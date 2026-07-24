@@ -128,22 +128,39 @@ text:
 
 const data = await ytmp4(result.url)
 
-console.log('===== RESPUESTA =====')
-console.dir(data, { depth: null })
-console.log('=====================')
-const downloadUrl =
-typeof data === 'string'
-? data
-: data?.url ||
-  data?.downloadUrl ||
-  data?.result ||
-  data?.dl ||
-  data?.video ||
-  data?.data?.url
+const data = await ytmp4(result.url)
 
-if (!downloadUrl) {
-    throw new Error('No se obtuvo el enlace de descarga')
-}
+if (Buffer.isBuffer(data)) {
+    filePath = path.join('./tmp', `video_${Date.now()}.mp4`)
+
+    if (!fs.existsSync('./tmp')) {
+        fs.mkdirSync('./tmp', { recursive: true })
+    }
+
+    fs.writeFileSync(filePath, data)
+} else {
+    const downloadUrl =
+        typeof data === 'string'
+            ? data
+            : data?.url ||
+              data?.downloadUrl ||
+              data?.result ||
+              data?.dl ||
+              data?.video ||
+              data?.data?.url
+
+    if (!downloadUrl) {
+        throw new Error('No se obtuvo el enlace de descarga')
+    }
+
+    filePath = path.join('./tmp', `video_${Date.now()}.mp4`)
+
+    const res = await axios.get(downloadUrl, {
+        responseType: 'arraybuffer'
+    })
+
+    fs.writeFileSync(filePath, res.data)
+        }
 
 // CREAR TEMP
 
@@ -167,16 +184,6 @@ dir,
 
 
 // DESCARGA STREAM
-
-const res = await axios.get(
-downloadUrl,
-{
-responseType:'stream',
-timeout:120000
-}
-)
-
-
 
 const total = Number(
     res.headers['content-length'] ||
@@ -237,12 +244,6 @@ const progress = setInterval(async () => {
 
 },3000)
 
-
-
-await pipeline(
-    res.data,
-    fs.createWriteStream(filePath)
-)
 
 
 clearInterval(progress)
