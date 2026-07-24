@@ -128,8 +128,9 @@ text:
 
 const data = await ytmp4(result.url)
 
-console.log(data)
-
+console.log('===== RESPUESTA =====')
+console.dir(data, { depth: null })
+console.log('=====================')
 const downloadUrl =
 typeof data === 'string'
 ? data
