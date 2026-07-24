@@ -128,8 +128,6 @@ text:
 
 const data = await ytmp4(result.url)
 
-const data = await ytmp4(result.url)
-
 if (Buffer.isBuffer(data)) {
     filePath = path.join('./tmp', `video_${Date.now()}.mp4`)
 
@@ -185,42 +183,6 @@ dir,
 
 // DESCARGA STREAM
 
-const total = Number(
-    res.headers['content-length'] ||
-    res.headers['Content-Length'] ||
-    0
-)
-
-let current = 0
-let lastPercent = -1
-let lastUpdate = 0
-
-
-res.data.on('data', chunk => {
-
-    current += chunk.length
-
-})
-
-
-const progress = setInterval(async () => {
-
-    if (!total) return
-
-
-    const percent = Math.floor(
-        (current / total) * 100
-    )
-
-
-    if (percent === lastPercent) return
-
-
-    if (Date.now() - lastUpdate < 3000) return
-
-
-    lastPercent = percent
-    lastUpdate = Date.now()
 
 
     await conn.sendMessage(
