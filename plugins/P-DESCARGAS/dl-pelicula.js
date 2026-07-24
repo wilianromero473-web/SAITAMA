@@ -183,11 +183,6 @@ edit: msg.key
 )
 
 
-clearInterval(progress)
-
-
-
-
 await conn.sendMessage(
 m.chat,
 {
