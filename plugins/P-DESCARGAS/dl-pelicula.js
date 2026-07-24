@@ -1,10 +1,8 @@
 import axios from 'axios'
 import fs from 'fs'
 import path from 'path'
-import { pipeline } from 'stream/promises'
 import { rm } from 'fs/promises'
 import { createRequire } from 'module'
-import { execFile } from 'child_process'
 
 const require = createRequire(import.meta.url)
 const { ytmp4 } = require('@hiudyy/ytdl')
@@ -12,6 +10,7 @@ const { ytmp4 } = require('@hiudyy/ytdl')
 
 const SEARCH =
 'https://api.delirius.store/search/ytsearch'
+
 
 function timeToSeconds(time = '') {
 
@@ -28,27 +27,13 @@ function timeToSeconds(time = '') {
 
 
 
-function createBar(percent){
-
-    const total = 10
-    const done = Math.floor(percent / 10)
-
-    return (
-        '█'.repeat(done) +
-        '░'.repeat(total - done)
-    )
-}
-
-
-
-const handler = async (m,{conn,text})=>{
-
+const handler = async (m,{conn,text}) => {
 
 if(!text){
 
 return m.reply(
-`╭━━━〔 *🎬 PELÍCULA*〕━━━⬣
-┃ Usa:
+`╭━━━〔 *🎬 PELÍCULA* 〕━━━⬣
+┃ Uso:
 ┃ #pelicula nombre
 ╰━━━━━━━━━━━━━━━━━━⬣`
 )
@@ -56,67 +41,66 @@ return m.reply(
 }
 
 
-
-let msg
-let filePath
-
+let filePath = null
+let msg = null
 
 
 try{
 
 
-// BUSCAR
+// BUSCAR VIDEO
 
-const search = await axios.get(
+const {data} = await axios.get(
 `${SEARCH}?q=${encodeURIComponent(text)}`
 )
 
 
-const result =
-search.data?.data?.find(
+const result = data?.data?.find(
 v => timeToSeconds(v.duration) >= 3600
 )
-
 
 
 if(!result){
 
 return m.reply(
-'❌ No encontré un video mayor a 1 hora'
+'❌ No encontré una película válida'
 )
 
 }
 
 
 
-// MENSAJE INICIAL
+// INFORMACIÓN
 
 await conn.sendMessage(
 m.chat,
 {
 image:{
-url:result.thumbnail || result.image
+url: result.thumbnail || result.image
 },
 caption:
-`╭━━━〔 *🎬 PELÍCULA ENCONTRADO* 〕━━━⬣
+`╭━━━〔 *🎬 PELÍCULA ENCONTRADA* 〕━━━⬣
 ┃ 🎬 Nombre:
 ┃ ${result.title}
-┃
+
 ┃ ⏱️ Duración:
 ┃ ${result.duration}
+
+┃ 📥 Preparando descarga...
 ╰━━━━━━━━━━━━━━━━━━⬣`
 },
 {quoted:m}
 )
+
 
 
 msg = await conn.sendMessage(
 m.chat,
 {
 text:
-`╭━━━〔 *📥 DESCARGANDO PELÍCULA* 〕━━━⬣
+`╭━━━〔 *📥 DESCARGANDO* 〕━━━⬣
 ┃ 🎬 ${result.title}
-┃ ⏳ Preparando descarga...
+┃ ⏳ Obteniendo enlace...
 ╰━━━━━━━━━━━━━━━━━━⬣`
 },
 {quoted:m}
@@ -125,76 +109,90 @@ text:
 
 
 
-// OBTENER DESCARGA
+// OBTENER LINK
 
-const data = await ytmp4(result.url)
-
-if (Buffer.isBuffer(data)) {
-    filePath = path.join('./tmp', `video_${Date.now()}.mp4`)
-
-    if (!fs.existsSync('./tmp')) {
-        fs.mkdirSync('./tmp', { recursive: true })
-    }
-
-    fs.writeFileSync(filePath, data)
-} else {
-    const downloadUrl =
-        typeof data === 'string'
-            ? data
-            : data?.url ||
-              data?.downloadUrl ||
-              data?.result ||
-              data?.dl ||
-              data?.video ||
-              data?.data?.url
-
-    if (!downloadUrl) {
-        throw new Error('No se obtuvo el enlace de descarga')
-    }
-
-    filePath = path.join('./tmp', `video_${Date.now()}.mp4`)
-
-    const res = await axios.get(downloadUrl, {
-        responseType: 'arraybuffer'
-    })
-
-    fs.writeFileSync(filePath, res.data)
-        }
-
-// CREAR TEMP
+const download = await ytmp4(result.url)
 
 
 
-// DESCARGA STREAM
+const url =
+typeof download === 'string'
+? download
+:
+download?.url ||
+download?.download ||
+download?.downloadUrl ||
+download?.result ||
+download?.data?.url
 
 
 
-    // PROGRESO SIMPLE
+if(!url){
 
-await conn.sendMessage(
-m.chat,
+throw new Error(
+'No se encontró enlace de descarga'
+)
+
+}
+
+
+
+
+// CREAR CARPETA
+
+const folder='./tmp'
+
+
+if(!fs.existsSync(folder)){
+
+fs.mkdirSync(
+folder,
+{recursive:true}
+)
+
+}
+
+
+
+filePath = path.join(
+folder,
+`pelicula_${Date.now()}.mp4`
+)
+
+
+
+
+// DESCARGAR ARCHIVO
+
+const response = await axios.get(
+url,
 {
-text:
-`╭━━━〔 *🎬 DESCARGANDO PELÍCULA* 〕━━━⬣
-┃ 🎬 ${result.title}
-┃ ⏳ Descarga en proceso...
-╰━━━━━━━━━━━━━━━━━━⬣`,
-edit: msg.key
+responseType:'arraybuffer',
+timeout:0
 }
 )
 
 
+
+fs.writeFileSync(
+filePath,
+response.data
+)
+
+
+
+
+// ACTUALIZAR ESTADO
+
 await conn.sendMessage(
 m.chat,
 {
 text:
-`╭━━━〔 ✅ VIDEO DESCARGADO 〕━━━⬣
-┃ 🎬 Nombre:
-┃ ${result.title}
-┃ ⏱️ Duración:
-┃ ${result.duration}
-┃ 💾 Tamaño:
-┃ ${(total/1024/1024).toFixed(2)} MB
+`╭━━━〔 ✅ DESCARGADO 〕━━━⬣
+┃ 🎬 ${result.title}
+┃ 📦 Tamaño:
+┃ ${(fs.statSync(filePath).size / 1024 / 1024).toFixed(2)} MB
+
 ┃ 📤 Enviando archivo...
 ╰━━━━━━━━━━━━━━━━━━⬣`,
 edit:msg.key
@@ -203,13 +201,16 @@ edit:msg.key
 
 
 
-console.log(fs.existsSync(filePath))
-console.log(fs.statSync(filePath).size)
+
+// ENVIAR VIDEO
+
+
 await conn.sendMessage(
 m.chat,
 {
-document: fs.createReadStream(filePath),
-        
+document:
+fs.createReadStream(filePath),
+
 mimetype:
 'video/mp4',
 
@@ -227,12 +228,12 @@ caption:
 
 
 
-
 }catch(e){
 
+
 console.log(
-'[VIDEOLARGO]',
-e
+'[PELÍCULA ERROR]',
+e.response?.data || e
 )
 
 
@@ -242,15 +243,16 @@ ${e.message}`
 )
 
 
-}
-finally{
+}finally{
 
 
 if(filePath){
 
 await rm(
 filePath,
-{force:true}
+{
+force:true
+}
 ).catch(()=>{})
 
 }
@@ -266,8 +268,8 @@ filePath,
 handler.command=[
 'pelicula',
 'peliculas',
-'pldl',
- 'pl',
+'pl',
+'pldl'
 ]
 
 
@@ -277,7 +279,7 @@ handler.tags=[
 
 
 handler.help=[
-'pelicula <texto>'
+'pelicula <nombre>'
 ]
 
 
