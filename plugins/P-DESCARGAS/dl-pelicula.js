@@ -162,50 +162,25 @@ if (Buffer.isBuffer(data)) {
 
 // CREAR TEMP
 
-const dir='./tmp'
-
-
-if(!fs.existsSync(dir)){
-
-fs.mkdirSync(dir,{recursive:true})
-
-}
-
-
-
-filePath = path.join(
-dir,
-`video_${Date.now()}.mp4`
-)
-
-
 
 
 // DESCARGA STREAM
 
 
 
-    await conn.sendMessage(
-    m.chat,
-    {
-    text:
+    // PROGRESO SIMPLE
+
+await conn.sendMessage(
+m.chat,
+{
+text:
 `╭━━━〔 *🎬 DESCARGANDO PELÍCULA* 〕━━━⬣
-┃ *🎬 Nombre:*
-┃ ${result.title}
-┃ *⏱️ Duración:*
-┃ ${result.duration}
-┃
-┃ *📥 Descargando...*
-┃ ${createBar(percent)} ${percent}%
-┃ 💾 ${(current/1024/1024).toFixed(2)} MB / ${(total/1024/1024).toFixed(2)} MB
+┃ 🎬 ${result.title}
+┃ ⏳ Descarga en proceso...
 ╰━━━━━━━━━━━━━━━━━━⬣`,
-    edit: msg.key
-    }
-    )
-
-
-},3000)
-
+edit: msg.key
+}
+)
 
 
 clearInterval(progress)
