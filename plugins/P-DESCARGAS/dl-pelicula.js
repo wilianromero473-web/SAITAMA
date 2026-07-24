@@ -4,6 +4,7 @@ import path from 'path'
 import { pipeline } from 'stream/promises'
 import { rm } from 'fs/promises'
 import { createRequire } from 'module'
+import { execFile } from 'child_process'
 
 const require = createRequire(import.meta.url)
 const { ytmp4 } = require('@hiudyy/ytdl')
