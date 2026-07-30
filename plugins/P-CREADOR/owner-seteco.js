@@ -16,7 +16,7 @@ const resolveTargetJid = (m, participants = []) => {
 
 const handler = async (m, { text, usedPrefix, command, participants }) => {
   const targetRaw = resolveTargetJid(m, participants)
-  if (!targetRaw) return m.reply(`*⌬┤ ⚠️ ├⌬ USO CORRECTO*\n> *${usedPrefix + command}* <cantidad> <moneda> [bank] @usuario\n> Ejemplo: *${usedPrefix + command} 500 zencoins bank*`)
+  if (!targetRaw) return m.reply(`*⌬┤ ⚠️ ├⌬ USO CORRECTO*\n> *${usedPrefix + command}* <cantidad> <moneda> [bank] @usuario\n> Ejemplo: *${usedPrefix + command} 500 genosCoins bank*`)
 
   const targetJid = targetRaw.includes('@s.whatsapp.net') ? targetRaw : `${extraerNum(targetRaw)}@s.whatsapp.net`
   const targetNum = extraerNum(targetJid)

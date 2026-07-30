@@ -2,9 +2,15 @@ import Group from '../lib/database/models/zen-groups.js'
 import { jidNormalizedUser } from '@whiskeysockets/baileys'
 import { groupCache, groupDbCache } from '../lib/caches.js'
 
-const DEFAULT_BV = '*╭┈ ✧ ¡BIENVENIDO/A! ✧ ┈*\n*│* 👋🏻 Hola, %user\n*│* ⛩️ Grupo: *%group*\n*│* 👥 Miembro N°: *%count*\n*╰┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈*\n> 🌟 _Disfrutá tu estadía y recordá leer las reglas._'
-const DEFAULT_DP = '*╭┈ ✧ ¡HASTA PRONTO! ✧ ┈*\n*│* 🚪 %user ha salido.\n*│* 📉 Quedamos *%count* miembros.\n*╰┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈*\n> 🥀 _Esperamos que vuelvas algún día..._'
-const DEFAULT_IMG = 'https://files.catbox.moe/bv5qib.png'
+const DEFAULT_BV = '*╭┈ ✧ ¡BIENVENIDO/A! ✧ ┈*\n*│* 👋🏻 Hola, %user\n*│* ⛩️ Grupo: *%group*\n*│* 👥 Miembro N°: *%count*\n*╰┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈*\n> 🌟 _Disfrutá tu estadía y recordá leer las reglas._'
+
+const DEFAULT_DP = '*╭┈ ✧ ¡HASTA PRONTO! ✧ ┈*\n*│* 🚪 %user ha salido.\n*│* 📉 Quedamos *%count* miembros.\n*╰┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈*\n> 🥀 _Esperamos que vuelvas algún día..._'
+
+// 🟢 Imagen para BIENVENIDA
+const DEFAULT_BV_IMG = 'https://i.postimg.cc/k5ZSjCdp/file-00000000c024820ea42520b884f17eb1.png'
+
+// 🔴 Imagen para DESPEDIDA
+const DEFAULT_DP_IMG = 'https://i.postimg.cc/FHHJNzrk/file-000000002324820ea9c05e944ac744df.png'
 
 async function getBuffer(url) {
   try {
@@ -108,9 +114,14 @@ export async function manejarParticipantes(conn, update) {
       const isRem = (action === 'remove' || action === 'leave') && group.goodbye
 
       if (isAdd || isRem) {
-        let pfpUrl = await conn.profilePictureUrl(jid, 'image').catch(() => null)
-        if (!pfpUrl) pfpUrl = DEFAULT_IMG
-        const pfpBuffer = await getBuffer(pfpUrl)
+        // Imagen diferente según sea bienvenida o despedida
+let pfpUrl = await conn.profilePictureUrl(jid, 'image').catch(() => null)
+
+if (!pfpUrl) {
+  pfpUrl = isAdd ? DEFAULT_BV_IMG : DEFAULT_DP_IMG
+}
+
+const pfpBuffer = await getBuffer(pfpUrl)
         const texto = parsear(isAdd ? (group.welcomeMsg || DEFAULT_BV) : (group.goodbyeMsg || DEFAULT_DP), jid, groupName, count)
 
         await conn.sendMessage(chatJid, {

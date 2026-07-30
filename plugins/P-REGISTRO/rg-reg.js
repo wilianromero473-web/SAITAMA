@@ -57,7 +57,7 @@ const handler = async (m, { conn, text, usedPrefix, command, userDb }) => {
   }
 
   let rewardText = isFirstTime
-    ? `*🎁 RECOMPENSA INICIAL:*\n> 🪙 1500 GenosCoins\n> ✨ 5 Genos`
+    ? `*🎁 RECOMPENSA INICIAL:*\n> 🪙 1500 genosCoins\n> ✨ 5 Genos`
     : `*🎁 RECOMPENSA:*\n> ¡Bienvenido de vuelta!\n> _(Las recompensas de inicio solo se dan una vez)_`
 
   let pfpUrl = await conn.profilePictureUrl(m.sender, 'image').catch(() => null)

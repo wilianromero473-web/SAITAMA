@@ -21,14 +21,14 @@ const config = {
   },
   newsletterJid: '120363408885875268@newsletter',
   groupLink: 'https://whatsapp.com/channel/0029VbCqH9V1Hspq4A7tm726',
-  CURRENCY_NAME: '𝙎𝙖𝙞𝘾𝙤𝙞𝙣𝙨',
+  CURRENCY_NAME: 'Ꮐᥱᥒ᥆᥉Ꮸ᥆іᥒ᥉',
   CURRENCY_SYMBOL: '✵',
   PREMIUM_NAME: '𝙂𝙀𝙉𝙊𝙎',
   PREMIUM_SYMBOL: '亗👊亗',
   kogenPrice: 1000,
   packname: 'SAITAMA-BOT',
   author: 'SAIDEV145',
-  limiteSubbots: '50', // Cambia la cantidad según cuánto soporte tu servidor 
+  limiteSubbots: '30', // Cambia la cantidad según cuánto soporte tu servidor 
   footer: '𝙎𝙖𝙞tama-Boᴛ · 𝙎𝙖𝙞Dev¹⁴⁵',
   
   ACR_HOST: 'identify-us-west-2.acrcloud.com',

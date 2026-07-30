@@ -263,7 +263,7 @@ const handler = async (m, { conn, text, usedPrefix, command, userDb, participant
             .replace(/{w}/g, `@${extraerNum(winner)}`)
             .replace(/{l}/g, `@${extraerNum(loser)}`)
 
-        const pfp = await conn.profilePictureUrl(winner, 'image').catch(() => 'https://i.ibb.co/nNkgRQjK/images-4.jpg')
+        const pfp = await conn.profilePictureUrl(winner, 'image').catch(() => 'https://i.postimg.cc/wvW9wHP1/file-000000006db0820e9b4a94f49b7a7f39.png')
 
         const hpInicialA = 100 + (potionA ? potionA.hpBonus : 0)
         const hpInicialB = 100 + (potionB ? potionB.hpBonus : 0)

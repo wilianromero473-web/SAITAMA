@@ -2,7 +2,7 @@ import { CATEGORIAS, getPorCategoria } from '../../lib/games/trivia-preguntas.js
 import User from '../../lib/database/models/zen-users.js'
 import config from '../../config.js'
 
-const TRIVIA_IMG = 'https://i.ibb.co/XrkqY11m/15dbf94b93aa43c8.jpg'
+const TRIVIA_IMG = 'https://i.postimg.cc/brY2rw0D/1785102624702-3.jpg'
 
 const partidas = new Map()
 const TIEMPO_MAX = 30_000

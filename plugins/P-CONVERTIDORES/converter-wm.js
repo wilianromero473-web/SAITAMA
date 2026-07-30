@@ -10,7 +10,7 @@ const handler = async (m, { conn, text }) => {
     return m.reply(`*⌬┤ ✙ ├⌬ SIN STICKER.*\n> Respondé a un sticker para editarle el nombre.`)
   }
 
-  let packname = config.packname || 'ZΞN-BOT'
+  let packname = config.packname || 'SAI-BOT'
   let author = config.author || 'AXELDEV09'
 
   if (text?.trim()) {

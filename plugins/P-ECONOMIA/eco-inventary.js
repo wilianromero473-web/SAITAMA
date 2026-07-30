@@ -35,7 +35,7 @@ const handler = async (m, { conn, userDb }) => {
   if (!userDb) return
   const inv = userDb.inventory
 
-  const pfp = await conn.profilePictureUrl(m.sender, 'image').catch(() => 'https://i.ibb.co/nNkgRQjK/images-4.jpg')
+  const pfp = await conn.profilePictureUrl(m.sender, 'image').catch(() => 'https://i.postimg.cc/sxc76BzY/porque-saitama-es-tan-fuerte.jpg')
 
   const potionStock = inv.potionStock instanceof Map ? Object.fromEntries(inv.potionStock) : (inv.potionStock || {})
   const shieldStock = inv.shieldStock instanceof Map ? Object.fromEntries(inv.shieldStock) : (inv.shieldStock || {})

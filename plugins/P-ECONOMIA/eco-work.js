@@ -94,7 +94,7 @@ const handler = async (m, { userDb }) => {
 
     let txt = `*⌬┤ 💼 ├⌬ TRABAJO FINALIZADO*\n\n`
             + `> 👷 *Empleo:* ${job.n}\n`
-            + `> 💰 *Ganancia:* ${total} ${config.CURRENCY_NAME}s\n`
+            + `> 💰 *Ganancia:* ${total} ${config.CURRENCY_NAME}\n`
     if (usedSuitBuff) txt += `> 👔 *Bono Traje (1/1):* ✅ APLICADO (+20%)\n`
     if (bonusAmulet > 0) txt += `> 🍀 *Bono Amuleto Fortuna:* +${bonusAmulet} (+10%)\n`
     txt += `> ✨ *Bono de Nivel:* +${bonusLevel}\n\n`

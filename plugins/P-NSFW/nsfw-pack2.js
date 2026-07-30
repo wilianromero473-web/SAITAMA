@@ -12,7 +12,7 @@ import config from '../../config.js'
 |
 */
 
-const API_URL = 'https://luxinfinity.vercel.app/api/nsfw/grils'
+const API_URL = 'https://luxinfinity.vercel.app/api/nsfw/boobs'
 
 /*
 |--------------------------------------------------------------------------
@@ -128,7 +128,7 @@ const handler = async (
         },
 
         caption:
-`『 🎴 』PACK
+`『 🎴 』TETAS
 
 │ ✨ Imagen aleatoria
 │
@@ -184,7 +184,8 @@ handler.tags = [
 ]
 
 handler.command = [
-  'pack'
+  'ph',
+  'tetas'
 ]
 
 handler.groupOnly = true

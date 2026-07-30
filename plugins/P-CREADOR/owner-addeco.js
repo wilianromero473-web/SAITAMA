@@ -16,7 +16,7 @@ const resolveTargetJid = (m, participants = []) => {
 
 const handler = async (m, { text, usedPrefix, command, participants }) => {
   const targetRaw = resolveTargetJid(m, participants)
-  if (!targetRaw) return m.reply(`*⌬┤ ⚠️ ├⌬ USO CORRECTO*\n> *${usedPrefix + command}* <cantidad> <moneda> @usuario\n> Ejemplo: *${usedPrefix + command} 500 zencoins* (respondiendo)`)
+  if (!targetRaw) return m.reply(`*⌬┤ ⚠️ ├⌬ USO CORRECTO*\n> *${usedPrefix + command}* <cantidad> <moneda> @usuario\n> Ejemplo: *${usedPrefix + command} 500 genosCoins* (respondiendo)`)
 
   const targetJid = targetRaw.includes('@s.whatsapp.net') ? targetRaw : `${extraerNum(targetRaw)}@s.whatsapp.net`
   const targetNum = extraerNum(targetJid)
@@ -47,7 +47,7 @@ const handler = async (m, { text, usedPrefix, command, participants }) => {
 
 handler.help = ['addeco <cantidad> <moneda> @user']
 handler.tags = ['owner']
-handler.command = ['addeco', 'añadir', 'addzencoins', 'addgenos', 'darplata']
+handler.command = ['addeco', 'añadir', 'addgenosCoins', 'addgenos', 'darplata']
 handler.ownerOnly = true
 
 export default handler
