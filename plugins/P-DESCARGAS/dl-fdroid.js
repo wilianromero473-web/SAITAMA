@@ -1,60 +1,253 @@
 import axios from 'axios'
-import config from '../../config.js'
-import User from '../../lib/database/models/zen-users.js'
 
-const handler = async (m, { conn, text, usedPrefix, command, userDb }) => {
+const handler = async (
+  m,
+  {
+    conn,
+    text,
+    usedPrefix,
+    command
+  }
+) => {
+
   let url = text ? text.trim() : ''
+
+  // Obtener URL desde mensaje citado
   if (!url && m.quoted) {
-    const quotedText = m.quoted.body || m.quoted.text || ''
-    const match = quotedText.match(/https?:\/\/[^\s]+/i)
-    if (match) url = match[0]
+    const quotedText =
+      m.quoted.body ||
+      m.quoted.text ||
+      ''
+
+    const match =
+      quotedText.match(/https?:\/\/[^\s]+/i)
+
+    if (match) {
+      url = match[0]
+    }
   }
 
-  if (!url) return m.reply(`*⌬┤ ❗ ├⌬ LINK REQUERIDO.*\n> Ej: *${usedPrefix}${command} https://f-droid.org/en/packages/com.termux/*`)
-  if (!url.includes('f-droid.org')) return m.reply(`*⌬┤ ❗ ├⌬ LINK INVÁLIDO.*\n> Asegurate de que sea un link de F-Droid.`)
-  if (userDb.genos < 1) return m.reply(`*⌬┤ 💎 ├⌬ SIN ${config.PREMIUM_NAME.toUpperCase()}.*\n> No tenés suficientes ${config.PREMIUM_NAME} para usar este comando.`)
+  // Comprobar enlace
+  if (!url) {
+    return m.reply(
+`*⌬┤ ❗ ├⌬ LINK REQUERIDO.*
+
+> Ejemplo:
+> *${usedPrefix}${command} https://f-droid.org/en/packages/com.termux/*`
+    )
+  }
+
+  // Comprobar que sea F-Droid
+  if (!url.includes('f-droid.org')) {
+    return m.reply(
+`*⌬┤ ❗ ├⌬ LINK INVÁLIDO.*
+
+> Asegurate de que sea un link válido de F-Droid.`
+    )
+  }
 
   const chatId = m.chat
-  await m.reply(`*⌬┤ ⏳ ├⌬ Buscando información de la app...*`)
+
+  // Reacción de espera
+  await conn.sendMessage(
+    chatId,
+    {
+      react: {
+        text: '⏳',
+        key: m.key
+      }
+    }
+  ).catch(() => {})
+
+  await m.reply(
+`*⌬┤ ⏳ ├⌬ BUSCANDO APP.*
+
+> Obteniendo información desde F-Droid...`
+  )
 
   try {
-    const res = await axios.get(`https://api.vreden.my.id/api/v1/download/fdroid?url=${encodeURIComponent(url)}`)
-    const app = res.data?.result
-    if (!app) return m.reply(`*⌬┤ ❌ ├⌬ No se pudo obtener la información.*`)
 
-    const latest = app.versions?.[0]
+    // API F-Droid
+    const response = await axios.get(
+      `https://api.vreden.my.id/api/v1/download/fdroid?url=${encodeURIComponent(url)}`,
+      {
+        timeout: 120000,
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Linux; Android 11) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36',
+          Accept: 'application/json'
+        }
+      }
+    )
 
-    await conn.sendMessage(chatId, {
-      text: `*⌬┤ 📱 ├⌬ ${app.name}*\n> 📝 ${app.summary}\n\n> 📖 _${app.description.substring(0, 300)}..._\n\n> 🔖 Versión: *${latest?.version || '-'}*\n> 📅 Fecha: *${latest?.added || '-'}*\n> ⚙️ Req: *${latest?.requirements || '-'}*\n> 📦 Tamaño: *${latest?.size || '-'}*`,
-    }, { quoted: m })
+    const app =
+      response.data?.result
 
-    if (!latest?.link) return
+    if (!app) {
+      throw new Error(
+        'No se pudo obtener la información de la aplicación.'
+      )
+    }
 
-    await conn.sendMessage(chatId, {
-      document: { url: latest.link },
-      mimetype: 'application/vnd.android.package-archive',
-      fileName: `${app.name}-${latest.version}.apk`,
-      caption:  `*⌬┤ 📥 ├⌬ APK descargado de F-Droid*`,
-    }, { quoted: m })
-    
-    await User.updateOne(
-  { jid: m.sender },
-  { $inc: { genos: -1 } }
-)
+    const latest =
+      app.versions?.[0]
 
-userDb.genos = Math.max(0, (userDb.genos || 0) - 1)
+    // Información segura
+    const name =
+      app.name ||
+      'Aplicación desconocida'
 
-await conn.sendMessage(chatId, {
-  text: `${config.PREMIUM_SYMBOL} Utilizaste *1 ${config.PREMIUM_NAME}*`
-}, { quoted: m })
+    const summary =
+      app.summary ||
+      'Sin descripción disponible'
 
-  } catch {
-    return m.reply(`*⌬┤ ❗ ├⌬ Error al obtener la información de la app.*`)
+    const description =
+      app.description ||
+      'Sin descripción disponible'
+
+    const version =
+      latest?.version ||
+      '-'
+
+    const added =
+      latest?.added ||
+      '-'
+
+    const requirements =
+      latest?.requirements ||
+      '-'
+
+    const size =
+      latest?.size ||
+      '-'
+
+    // Enviar información
+    await conn.sendMessage(
+      chatId,
+      {
+        text:
+`*⌬┤ 📱 ├⌬ ${name}*
+
+> 📝 *Descripción:*
+> ${summary}
+
+> 📖 *Información:*
+> _${description.slice(0, 500)}${description.length > 500 ? '...' : ''}_
+
+> 🔖 *Versión:* ${version}
+> 📅 *Fecha:* ${added}
+> ⚙️ *Requisitos:* ${requirements}
+> 📦 *Tamaño:* ${size}`
+      },
+      {
+        quoted: m
+      }
+    )
+
+    // Comprobar enlace APK
+    if (!latest?.link) {
+      await conn.sendMessage(
+        chatId,
+        {
+          react: {
+            text: '⚠️',
+            key: m.key
+          }
+        }
+      ).catch(() => {})
+
+      return m.reply(
+`*⌬┤ ⚠️ ├⌬ APK NO DISPONIBLE.*
+
+> Se encontró la información de la aplicación, pero F-Droid no proporcionó un enlace de descarga.`
+      )
+    }
+
+    // Enviar APK como documento
+    await conn.sendMessage(
+      chatId,
+      {
+        document: {
+          url: latest.link
+        },
+
+        mimetype:
+          'application/vnd.android.package-archive',
+
+        fileName:
+          `${name}-${version}.apk`,
+
+        caption:
+`*⌬┤ 📥 ├⌬ APK DESCARGADO*
+
+> 📱 *Aplicación:* ${name}
+> 🔖 *Versión:* ${version}
+> 📦 *Fuente:* F-Droid`
+      },
+      {
+        quoted: m
+      }
+    )
+
+    // Reacción final
+    await conn.sendMessage(
+      chatId,
+      {
+        react: {
+          text: '✅',
+          key: m.key
+        }
+      }
+    ).catch(() => {})
+
+  } catch (error) {
+
+    console.error(
+      '[F-DROID ERROR]',
+      error?.response?.data ||
+      error?.message ||
+      error
+    )
+
+    await conn.sendMessage(
+      chatId,
+      {
+        react: {
+          text: '❌',
+          key: m.key
+        }
+      }
+    ).catch(() => {})
+
+    return m.reply(
+`*⌬┤ ❌ ├⌬ ERROR.*
+
+> No se pudo obtener o descargar la aplicación desde F-Droid.
+
+⚠️ ${error?.message || 'Error desconocido'}`
+    )
   }
 }
 
-handler.help = [`fdroid <link> ${config.PREMIUM_SYMBOL}`]
-handler.command = ['fdroid', 'appinfo']
-handler.tags = ['descargas']
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CONFIGURACIÓN DEL PLUGIN
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+handler.help = [
+  'fdroid <link>',
+  'appinfo <link>'
+]
+
+handler.command = [
+  'fdroid',
+  'appinfo'
+]
+
+handler.tags = [
+  'descargas'
+]
+
+handler.register = true
 
 export default handler

@@ -2,9 +2,37 @@ import Group from '../lib/database/models/zen-groups.js'
 import { jidNormalizedUser } from '@whiskeysockets/baileys'
 import { groupCache, groupDbCache } from '../lib/caches.js'
 
-const DEFAULT_BV = '*╭┈ ✧ ¡BIENVENIDO/A! ✧ ┈*\n*│* 👋🏻 Hola, %user\n*│* ⛩️ Grupo: *%group*\n*│* 👥 Miembro N°: *%count*\n*╰┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈*\n> 🌟 _Disfrutá tu estadía y recordá leer las reglas._'
+const DEFAULT_BV = `*╭━━━〔 🌸 𝐒𝐀𝐈𝐓𝐀𝐌𝐀𝐁𝐎𝐓 🌸 〕━━━╮*
 
-const DEFAULT_DP = '*╭┈ ✧ ¡HASTA PRONTO! ✧ ┈*\n*│* 🚪 %user ha salido.\n*│* 📉 Quedamos *%count* miembros.\n*╰┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈*\n> 🥀 _Esperamos que vuelvas algún día..._'
+*│* 🎉 *¡𝐁𝐈𝐄𝐍𝐕𝐄𝐍𝐈𝐃𝐎/𝐀!*
+*│*
+*│* 👤 Hola: %user
+*│* 🏮 Grupo: *%group*
+*│* 👥 Miembro N°: *%count*
+*│*
+*│* ⚡ Ahora eres parte de nuestra comunidad.
+*│* 📜 Recuerda respetar las reglas del grupo.
+*│* 🤖 Disfruta los comandos de SaitamaBot.
+*│*
+*╰━━━━━━━━━━━━━━━━━━━━━━╯*
+
+> 🌟 _¡Esperamos que tengas una gran experiencia!_`
+
+const DEFAULT_DP = `*╭━━━〔 🌙 𝐒𝐀𝐈𝐓𝐀𝐌𝐀𝐁𝐎𝐓 🌙 〕━━━╮*
+
+*│* 👋 *¡𝐇𝐀𝐒𝐓𝐀 𝐋𝐔𝐄𝐆𝐎!*
+*│*
+*│* 🚪 Usuario: %user
+*│* 🏮 Grupo: *%group*
+*│* 📉 Miembros: *%count*
+*│*
+*│* 🥀 El usuario salió del grupo.
+*│* 💫 Gracias por haber sido parte.
+*│* 🤖 SaitamaBot seguirá activo.
+*│*
+*╰━━━━━━━━━━━━━━━━━━━━━━╯*
+
+> 🌌 _¡Esperamos verte nuevamente por aquí!_`
 
 // 🟢 Imagen para BIENVENIDA
 const DEFAULT_BV_IMG = 'https://i.postimg.cc/k5ZSjCdp/file-00000000c024820ea42520b884f17eb1.png'

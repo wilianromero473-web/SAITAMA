@@ -5,43 +5,103 @@ import { rm } from 'fs/promises'
 import { pipeline } from 'stream/promises'
 import { writeAudioTags } from '../../lib/audioTags.js'
 
-const API_URL = 'https://api.stellarwa.xyz'
-const API_KEY = 'proyectsV2'
+// ═════════════════════════════════════
+// 🌸 SAITAMABOT • YOUTUBE MP3
+// ═════════════════════════════════════
+// 🥇 SaiAPI1 → StellarWA
+// 🥈 SaiAPI2 → LuxInfinity
+// 🥉 SaiAPI3 → SylphyAPI
+// ═════════════════════════════════════
 
-const LUXINFINITY = 'https://luxinfinity.vercel.app/api'
+
+// ═════════════════════════════════════
+// 🥇 API 1 • STELLARWA
+// ═════════════════════════════════════
+
+const STELLAR_API =
+  'https://api.stellarwa.xyz'
+
+const STELLAR_KEY =
+  'proyectsV2'
+
+
+// ═════════════════════════════════════
+// 🥈 API 2 • LUXINFINITY
+// ═════════════════════════════════════
+
+const LUXINFINITY =
+  'https://luxinfinity.vercel.app/api'
+
+
+// ═════════════════════════════════════
+// 🥉 API 3 • SYLPHY
+// ═════════════════════════════════════
+
+const SYLPHY_API =
+  'https://www.sylphyy.xyz/download/ytmp3'
+
+const SYLPHY_KEY =
+  'sylph-d7ed7664'
+
+
+// ═════════════════════════════════════
+// 🌐 USER AGENT
+// ═════════════════════════════════════
 
 const USER_AGENT =
   'Mozilla/5.0 (Linux; Android 15; Pixel 7) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36'
 
 
-/*
-|--------------------------------------------------------------------------
-| LIMPIAR NOMBRE
-|--------------------------------------------------------------------------
-*/
+// ═════════════════════════════════════
+// ⏱️ TIEMPOS
+// ═════════════════════════════════════
+
+const API_TIMEOUT =
+  120000
+
+const DOWNLOAD_TIMEOUT =
+  600000
+
+
+// ═════════════════════════════════════
+// 🧹 LIMPIAR TÍTULO
+// ═════════════════════════════════════
 
 function cleanTitle(value) {
-  return String(value || 'YouTube Audio')
-    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
-    .replace(/\s+/g, ' ')
+
+  return String(
+    value || 'YouTube Audio'
+  )
+    .replace(
+      /[<>:"/\\|?*\x00-\x1F]/g,
+      ''
+    )
+    .replace(
+      /\s+/g,
+      ' '
+    )
     .trim()
-    .slice(0, 100) || 'YouTube Audio'
+    .slice(0, 100)
+    || 'YouTube Audio'
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| NORMALIZAR RESPUESTA DE LA API
-|--------------------------------------------------------------------------
-*/
+// ═════════════════════════════════════
+// 🔎 ANALIZAR RESPUESTA
+// ═════════════════════════════════════
 
 function parseMediaResponse(data) {
-  if (!data) return null
+
+  if (!data) {
+    return null
+  }
+
 
   const info =
     data.data ||
     data.result ||
     data
+
 
   const download =
     info?.dl ||
@@ -49,11 +109,17 @@ function parseMediaResponse(data) {
     info?.url ||
     info?.downloadUrl ||
     info?.download_url ||
+    info?.dl_url ||
     null
 
-  if (!download) return null
+
+  if (!download) {
+    return null
+  }
+
 
   return {
+
     download,
 
     title:
@@ -71,236 +137,448 @@ function parseMediaResponse(data) {
       info?.image ||
       info?.thumbnail ||
       info?.thumb ||
-      null,
-
-    fileName:
-      info?.fileName ||
-      info?.filename ||
       null
   }
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| STELLARWA
-|--------------------------------------------------------------------------
-*/
+// ═════════════════════════════════════
+// 🥇 STELLARWA
+// ═════════════════════════════════════
 
 async function fetchStellar(url) {
 
-  const endpoint =
-    `${API_URL}/dl/ytmp3`
+  const { data } =
+    await axios.get(
+      `${STELLAR_API}/dl/ytmp3`,
+      {
 
-  console.log(
-    '[YTMP3] StellarWA:',
-    endpoint
-  )
+        params: {
+          url,
+          key: STELLAR_KEY
+        },
 
-  const response = await axios.get(
-    endpoint,
-    {
-      params: {
-        url,
-        key: API_KEY
-      },
+        timeout:
+          API_TIMEOUT,
 
-      timeout: 120000,
+        headers: {
+          'User-Agent':
+            USER_AGENT,
 
-      headers: {
-        'User-Agent': USER_AGENT,
-        Accept: 'application/json'
+          Accept:
+            'application/json'
+        }
       }
-    }
-  )
+    )
 
-  console.log(
-    '[YTMP3] StellarWA RESPONSE:',
-    JSON.stringify(response.data)
-  )
 
   const media =
-    parseMediaResponse(response.data)
+    parseMediaResponse(data)
+
 
   if (!media?.download) {
+
     throw new Error(
-      'StellarWA no devolvió un enlace de descarga.'
+      'StellarWA no devolvió una descarga.'
     )
   }
 
-  return media
+
+  return {
+
+    ...media,
+
+    api:
+      'SaiAPI1'
+  }
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| LUXINFINITY
-|--------------------------------------------------------------------------
-*/
+// ═════════════════════════════════════
+// 🥈 LUXINFINITY
+// ═════════════════════════════════════
 
 async function fetchLuxInfinity(url) {
 
-  const endpoint =
-    `${LUXINFINITY}/dl/ytmp3`
+  const { data } =
+    await axios.get(
+      `${LUXINFINITY}/dl/ytmp3`,
+      {
 
-  console.log(
-    '[YTMP3] LuxInfinity:',
-    endpoint
-  )
+        params: {
+          url
+        },
 
-  const response = await axios.get(
-    endpoint,
-    {
-      params: {
-        url
-      },
+        timeout:
+          API_TIMEOUT,
 
-      timeout: 120000,
+        headers: {
+          'User-Agent':
+            USER_AGENT,
 
-      headers: {
-        'User-Agent': USER_AGENT,
-        Accept: 'application/json'
+          Accept:
+            'application/json'
+        }
       }
-    }
-  )
+    )
 
-  console.log(
-    '[YTMP3] LuxInfinity RESPONSE:',
-    JSON.stringify(response.data)
-  )
 
   const media =
-    parseMediaResponse(response.data)
+    parseMediaResponse(data)
+
 
   if (!media?.download) {
+
     throw new Error(
-      'LuxInfinity no devolvió un enlace de descarga.'
+      'LuxInfinity no devolvió una descarga.'
     )
   }
 
-  return media
+
+  return {
+
+    ...media,
+
+    api:
+      'SaiAPI2'
+  }
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| OBTENER INFORMACIÓN DEL AUDIO
-|--------------------------------------------------------------------------
-*/
+// ═════════════════════════════════════
+// 🥉 SYLPHY
+// ═════════════════════════════════════
 
-async function fetchMp3(url) {
+async function fetchSylphy(url) {
 
-  let stellarError = null
+  const { data } =
+    await axios.get(
+      SYLPHY_API,
+      {
 
-  /*
-  |--------------------------------------------------------------------------
-  | API PRINCIPAL
-  |--------------------------------------------------------------------------
-  */
+        params: {
+          url
+        },
 
-  try {
+        timeout:
+          API_TIMEOUT,
 
-    return await fetchStellar(url)
+        headers: {
+          'User-Agent':
+            USER_AGENT,
 
-  } catch (error) {
+          Accept:
+            'application/json',
 
-    stellarError = error
+          'X-API-Key':
+            SYLPHY_KEY
+        }
+      }
+    )
 
-    console.error(
-      '[YTMP3] StellarWA FALLÓ:',
-      error?.response?.data ||
-      error?.message ||
-      error
+
+  if (
+    !data?.status ||
+    !data?.result?.dl_url
+  ) {
+
+    throw new Error(
+      data?.message ||
+      'SylphyAPI no devolvió una descarga.'
     )
   }
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | API DE RESPALDO
-  |--------------------------------------------------------------------------
-  */
+  return {
+
+    download:
+      data.result.dl_url,
+
+    title:
+      data.result.title ||
+      'YouTube Audio',
+
+    author:
+      data.result.author ||
+      'YouTube',
+
+    image:
+      data.result.thumbnail ||
+      data.result.image ||
+      null,
+
+    api:
+      'SaiAPI3'
+  }
+}
+
+
+// ═════════════════════════════════════
+// 📥 DESCARGAR ARCHIVO
+// ═════════════════════════════════════
+
+async function downloadAudio(
+  downloadUrl,
+  filePath
+) {
+
+  if (!downloadUrl) {
+
+    throw new Error(
+      'URL de descarga vacía.'
+    )
+  }
+
+
+  const response =
+    await axios.get(
+      downloadUrl,
+      {
+
+        responseType:
+          'stream',
+
+        timeout:
+          DOWNLOAD_TIMEOUT,
+
+        maxContentLength:
+          Infinity,
+
+        maxBodyLength:
+          Infinity,
+
+        headers: {
+          'User-Agent':
+            USER_AGENT,
+
+          Accept:
+            'audio/mpeg,audio/*,*/*'
+        },
+
+        validateStatus:
+          status =>
+            status >= 200 &&
+            status < 400
+      }
+    )
+
+
+  await pipeline(
+    response.data,
+    fs.createWriteStream(
+      filePath
+    )
+  )
+
+
+  const stat =
+    await fs.promises.stat(
+      filePath
+    )
+
+
+  if (
+    !stat.isFile() ||
+    stat.size < 1000
+  ) {
+
+    throw new Error(
+      'El archivo MP3 descargado es inválido.'
+    )
+  }
+
+
+  return stat
+}
+
+
+// ═════════════════════════════════════
+// 🔄 OBTENER MP3 CON 3 APIS
+// ═════════════════════════════════════
+
+async function getMp3(
+  url,
+  filePath
+) {
+
+  const errors = []
+
+
+  // ═════════════════════════════════
+  // 🥇 SAIAPI1
+  // ═════════════════════════════════
 
   try {
 
-    return await fetchLuxInfinity(url)
+    const media =
+      await fetchStellar(url)
+
+
+    try {
+
+      await downloadAudio(
+        media.download,
+        filePath
+      )
+
+
+      return media
+
+    } catch (downloadError) {
+
+      errors.push(
+        `SaiAPI1 descarga: ${
+          downloadError.message
+        }`
+      )
+    }
 
   } catch (error) {
 
-    console.error(
-      '[YTMP3] LuxInfinity FALLÓ:',
-      error?.response?.data ||
-      error?.message ||
-      error
-    )
-
-    throw new Error(
-      `No se pudo obtener el audio.\n\n` +
-      `StellarWA: ${
-        stellarError?.message ||
-        'Error desconocido'
-      }\n` +
-      `LuxInfinity: ${
-        error?.message ||
-        'Error desconocido'
+    errors.push(
+      `SaiAPI1: ${
+        error.message
       }`
     )
   }
+
+
+  // ═════════════════════════════════
+  // 🥈 SAIAPI2
+  // ═════════════════════════════════
+
+  await rm(
+    filePath,
+    {
+      force: true
+    }
+  ).catch(() => {})
+
+
+  try {
+
+    const media =
+      await fetchLuxInfinity(url)
+
+
+    try {
+
+      await downloadAudio(
+        media.download,
+        filePath
+      )
+
+
+      return media
+
+    } catch (downloadError) {
+
+      errors.push(
+        `SaiAPI2 descarga: ${
+          downloadError.message
+        }`
+      )
+    }
+
+  } catch (error) {
+
+    errors.push(
+      `SaiAPI2: ${
+        error.message
+      }`
+    )
+  }
+
+
+  // ═════════════════════════════════
+  // 🥉 SAIAPI3
+  // ═════════════════════════════════
+
+  await rm(
+    filePath,
+    {
+      force: true
+    }
+  ).catch(() => {})
+
+
+  try {
+
+    const media =
+      await fetchSylphy(url)
+
+
+    await downloadAudio(
+      media.download,
+      filePath
+    )
+
+
+    return media
+
+  } catch (error) {
+
+    errors.push(
+      `SaiAPI3: ${
+        error.message
+      }`
+    )
+  }
+
+
+  // ═════════════════════════════════
+  // ❌ TODAS FALLARON
+  // ═════════════════════════════════
+
+  throw new Error(
+    errors.join('\n')
+  )
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| HANDLER
-|--------------------------------------------------------------------------
-*/
+// ═════════════════════════════════════
+// 🎵 HANDLER
+// ═════════════════════════════════════
 
 const handler = async (
   m,
   {
     conn,
     text,
-    userDb,
     usedPrefix,
     command
   }
 ) => {
 
-  /*
-  |--------------------------------------------------------------------------
-  | COMPROBAR TEXTO
-  |--------------------------------------------------------------------------
-  */
+  const input =
+    String(
+      text || ''
+    ).trim()
 
-  if (!text?.trim()) {
+
+  // ═════════════════════════════════
+  // ❌ SIN TEXTO
+  // ═════════════════════════════════
+
+  if (!input) {
 
     return m.reply(
-      `⌬┤ ✙ ├⌬ USO\n\n` +
-      `> Ejemplo:\n` +
-      `> ${usedPrefix}${command} https://youtu.be/xxxxx`
+`╭━━━〔 🎵 𝐘𝐓𝐌𝐏𝟑 〕━━━⬣
+
+❗ *Falta el enlace de YouTube.*
+
+📌 Ejemplo:
+
+${usedPrefix + command} https://youtu.be/xxxxx
+
+╰━━━━━━━━━━━━━━━━━━━━━━⬣`
     )
   }
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | COMPROBAR USUARIO
-  |--------------------------------------------------------------------------
-  */
-
-  if (!userDb) {
-
-    return m.reply(
-      '❌ No existe tu usuario en la base de datos.'
-    )
-  }
-
-
-  /*
-  |--------------------------------------------------------------------------
-  | REACCIÓN DE CARGANDO
-  |--------------------------------------------------------------------------
-  */
+  // ═════════════════════════════════
+  // ⏳ REACCIÓN
+  // ═════════════════════════════════
 
   await conn.sendMessage(
     m.chat,
@@ -313,13 +591,9 @@ const handler = async (
   ).catch(() => {})
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | CREAR TMP
-  |--------------------------------------------------------------------------
-  */
+  const tmpDir =
+    './tmp'
 
-  const tmpDir = './tmp'
 
   await fs.promises.mkdir(
     tmpDir,
@@ -329,207 +603,111 @@ const handler = async (
   )
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | ARCHIVO TEMPORAL
-  |--------------------------------------------------------------------------
-  */
-
   const filePath =
     path.join(
       tmpDir,
-      `ytmp3_${Date.now()}_${Math.random()
-        .toString(36)
-        .slice(2, 8)}.mp3`
+      `ytmp3_${Date.now()}.mp3`
     )
 
 
   try {
 
-    const input =
-      text.trim()
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | URL DE YOUTUBE
-    |--------------------------------------------------------------------------
-    */
+    // ═══════════════════════════════
+    // 🔗 URL
+    // ═══════════════════════════════
 
     const ytUrl =
       input.startsWith('http')
         ? input
-        : `https://www.youtube.com/watch?v=${input}`
+        : `https://www.youtube.com/watch?v=${encodeURIComponent(input)}`
 
 
-    console.log(
-      '[YTMP3] URL:',
-      ytUrl
-    )
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | OBTENER ENLACE MP3
-    |--------------------------------------------------------------------------
-    */
+    // ═══════════════════════════════
+    // 📥 DESCARGAR CON FALLBACK
+    // ═══════════════════════════════
 
     const media =
-      await fetchMp3(ytUrl)
-
-
-    if (!media?.download) {
-
-      throw new Error(
-        'La API no devolvió un enlace de descarga.'
+      await getMp3(
+        ytUrl,
+        filePath
       )
-    }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | INFORMACIÓN
-    |--------------------------------------------------------------------------
-    */
+    // ═══════════════════════════════
+    // 📝 DATOS
+    // ═══════════════════════════════
 
     const title =
       cleanTitle(
         media.title
       )
 
+
     const author =
       cleanTitle(
-        media.author ||
-        'Desconocido'
-      )
-
-    const image =
-      media.image ||
-      null
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | DESCARGAR MP3
-    |--------------------------------------------------------------------------
-    */
-
-    console.log(
-      '[YTMP3] Descargando audio...'
-    )
-
-    const response =
-      await axios.get(
-        media.download,
-        {
-          responseType: 'stream',
-
-          timeout: 600000,
-
-          maxContentLength:
-            Infinity,
-
-          maxBodyLength:
-            Infinity,
-
-          headers: {
-            'User-Agent':
-              USER_AGENT,
-
-            Accept:
-              'audio/mpeg,audio/*,*/*'
-          }
-        }
+        media.author
       )
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | GUARDAR EN TMP
-    |--------------------------------------------------------------------------
-    */
-
-    await pipeline(
-      response.data,
-      fs.createWriteStream(
-        filePath
-      )
-    )
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | COMPROBAR ARCHIVO
-    |--------------------------------------------------------------------------
-    */
-
-    const stat =
-      await fs.promises.stat(
-        filePath
-      )
-
-
-    if (
-      !stat.isFile() ||
-      stat.size < 1000
-    ) {
-
-      throw new Error(
-        'El archivo MP3 es inválido o está vacío.'
-      )
-    }
-
-
-    console.log(
-      `[YTMP3] Tamaño: ${
-        (stat.size / 1024 / 1024)
-          .toFixed(2)
-      } MB`
-    )
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | TAGS
-    |--------------------------------------------------------------------------
-    */
+    // ═══════════════════════════════
+    // 🏷️ ID3
+    // ═══════════════════════════════
 
     try {
 
       await writeAudioTags(
         filePath,
         {
+
           title,
+
           author,
-          artist: author,
-          album: title,
-          image
+
+          artist:
+            author,
+
+          album:
+            title,
+
+          image:
+            media.image
         }
       )
 
-      console.log(
-        '[YTMP3] Tags agregados.'
-      )
-
-    } catch (tagError) {
-
-      console.log(
-        '[YTMP3] No se pudieron agregar tags:',
-        tagError?.message ||
-        tagError
-      )
+    } catch {
+      // El audio funciona aunque
+      // las etiquetas fallen.
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | ENVIAR AUDIO
-    |--------------------------------------------------------------------------
-    */
+    // ═══════════════════════════════
+    // 🎵 CAPTION
+    // ═══════════════════════════════
+
+    const caption =
+`╭━━━〔 🎵 𝐘𝐎𝐔𝐓𝐔𝐁𝐄 𝐌𝐏𝟑 〕━━━⬣
+
+🎶 *${title}*
+
+👤 *Artista/Canal:* ${author}
+
+🌐 *API:* ${media.api}
+
+🎧 *Formato:* MP3
+
+╰━━━━━━━━━━━━━━━━━━━━━━⬣
+
+🌸 𝙎𝙖𝙞𝙩𝙖𝙢𝙖𝘽𝙤𝙩-𝙎𝙏`
+
+
+    // ═══════════════════════════════
+    // 🎧 ENVIAR AUDIO
+    // ═══════════════════════════════
 
     await conn.sendMessage(
       m.chat,
       {
+
         audio:
           fs.readFileSync(
             filePath
@@ -541,6 +719,8 @@ const handler = async (
         fileName:
           `${title}.mp3`,
 
+        caption,
+
         ptt:
           false
       },
@@ -550,11 +730,9 @@ const handler = async (
     )
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | REACCIÓN OK
-    |--------------------------------------------------------------------------
-    */
+    // ═══════════════════════════════
+    // ✅ FINAL
+    // ═══════════════════════════════
 
     await conn.sendMessage(
       m.chat,
@@ -569,19 +747,9 @@ const handler = async (
 
   } catch (error) {
 
-    console.error(
-      '[YTMP3 ERROR]',
-      error?.response?.data ||
-      error?.message ||
-      error
-    )
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | REACCIÓN ERROR
-    |--------------------------------------------------------------------------
-    */
+    // ═══════════════════════════════
+    // ❌ ERROR
+    // ═══════════════════════════════
 
     await conn.sendMessage(
       m.chat,
@@ -595,21 +763,32 @@ const handler = async (
 
 
     return m.reply(
-      `✧ *NO SE PUDO DESCARGAR EL AUDIO.*\n\n` +
-      `⚠️ ${
-        error?.message ||
-        'Error desconocido'
-      }`
-    )
+`╭━━━〔 ❌ 𝐘𝐓𝐌𝐏𝟑 𝐄𝐑𝐑𝐎𝐑 〕━━━╮
 
+No se pudo descargar el audio.
+
+⚠️ *Detalles:*
+${String(
+  error?.message ||
+  error ||
+  'Error desconocido'
+).slice(0, 900)}
+
+🔄 Se intentaron:
+• SaiAPI1
+• SaiAPI2
+• SaiAPI3
+
+╰━━━━━━━━━━━━━━━━━━━━━━╯
+
+🌸 𝙎𝙖𝙞𝙩𝙖𝙢𝙖𝘽𝙤𝙩-𝙎𝙏`
+    )
 
   } finally {
 
-    /*
-    |--------------------------------------------------------------------------
-    | ELIMINAR TMP
-    |--------------------------------------------------------------------------
-    */
+    // ═══════════════════════════════
+    // 🧹 ELIMINAR TEMPORAL
+    // ═══════════════════════════════
 
     await rm(
       filePath,
@@ -617,24 +796,18 @@ const handler = async (
         force: true
       }
     ).catch(() => {})
-
-    console.log(
-      '[YTMP3] Archivo temporal eliminado.'
-    )
   }
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| CONFIGURACIÓN
-|--------------------------------------------------------------------------
-*/
+// ═════════════════════════════════════
+// ⚙️ CONFIGURACIÓN
+// ═════════════════════════════════════
 
 handler.help = [
   'ytmp3 <url>',
   'yta <url>',
-  'play <url>'
+  'mp3yt <url>'
 ]
 
 handler.tags = [
