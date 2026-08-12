@@ -677,20 +677,14 @@ ${usedPrefix + command} https://youtu.be/xxxxx
 
         caption:
 `╭━━━〔 🎧 𝐒𝐀𝐈𝐓𝐀𝐌𝐀𝐁𝐎𝐓 𝐌𝐏𝟑 〕━━━⬣
-
 🎵 *Título:*
 ${title}
-
 🎤 *Artista/Canal:*
 ${author}
-
 🌐 *API:*
 ${media.api}
-
 🎶 *Formato:* MP3
-
 📄 *Tipo:* Documento
-
 ╰━━━━━━━━━━━━━━━━━━━━━━⬣
 
 🌸 𝙎𝙖𝙞𝙩𝙖𝙢𝙖𝘽𝙤𝙩-𝙎𝙏`
@@ -791,7 +785,5 @@ handler.command = [
   'ytadoc',
   'mp3ytdoc'
 ]
-
-handler.register = true
 
 export default handler

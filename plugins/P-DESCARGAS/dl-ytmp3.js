@@ -820,6 +820,4 @@ handler.command = [
   'mp3yt'
 ]
 
-handler.register = true
-
 export default handler

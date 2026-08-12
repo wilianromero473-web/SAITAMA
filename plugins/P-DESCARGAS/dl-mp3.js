@@ -1,357 +1,533 @@
 import fetch from 'node-fetch'
-import https from 'https'
-import dns from 'dns'
 import config from '../../config.js'
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
-import { execFile } from 'child_process'
-import { promisify } from 'util'
+import { rm } from 'fs/promises'
 import { writeAudioTags } from '../../lib/audioTags.js'
 
-const execFileAsync = promisify(execFile)
-
 // =========================================================
-// 🌸 SAITAMABOT • YOUTUBE MP3
-// =========================================================
-// 1️⃣ AZBRY
-// 2️⃣ yt-dlp COMO RESPALDO
+// 𝐒𝐀𝐈𝐓𝐀𝐌𝐀𝐁𝐎𝐓 • 𝐘𝐎𝐔𝐓𝐔𝐁𝐄 𝐌𝐏𝟑
 // =========================================================
 
-const AZBRY_API =
-  'https://api.azbry.com/api/download/ytplay'
+const FAA_API =
+  'https://api-faa.my.id/faa/ytplay'
 
-const YTDLP =
-  process.env.YTDLP_PATH ||
-  '/usr/local/bin/yt-dlp'
+const TMP_DIR =
+  path.join(
+    os.tmpdir(),
+    'saitamabot-mp3'
+  )
 
 const USER_AGENT =
-  'Mozilla/5.0 (Linux; Android 11; Mobile) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36'
+  'Mozilla/5.0 (Linux; Android 11) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36'
 
-const API_TIMEOUT = 60_000
-const DOWNLOAD_TIMEOUT = 180_000
+const API_TIMEOUT =
+  60 * 1000
 
-dns.setDefaultResultOrder('ipv4first')
+const DOWNLOAD_TIMEOUT =
+  10 * 60 * 1000
 
-const httpsAgent = new https.Agent({
-  family: 4,
-  keepAlive: true
-})
 
 // =========================================================
-// 🔎 YOUTUBE URL
+// 𝐕𝐀𝐋𝐎𝐑 → 𝐓𝐄𝐗𝐓𝐎
 // =========================================================
 
-function isYouTubeUrl(text = '') {
-  return /^https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)\//i.test(
-    text.trim()
+function textValue(
+  value,
+  fallback = 'Desconocido'
+) {
+
+  if (
+    value === undefined ||
+    value === null ||
+    value === ''
+  ) {
+    return fallback
+  }
+
+  if (
+    typeof value === 'string' ||
+    typeof value === 'number'
+  ) {
+    return String(value)
+  }
+
+  if (
+    typeof value === 'object'
+  ) {
+
+    const possible =
+      value.name ||
+      value.title ||
+      value.text ||
+      value.label ||
+      value.value ||
+      value.username ||
+      value.channelName ||
+      value.formatted ||
+      value.display
+
+    if (possible) {
+
+      return textValue(
+        possible,
+        fallback
+      )
+    }
+  }
+
+  return fallback
+}
+
+
+// =========================================================
+// 𝐍𝐎𝐌𝐁𝐑𝐄 𝐃𝐄 𝐀𝐑𝐂𝐇𝐈𝐕𝐎
+// =========================================================
+
+function safeFileName(
+  title = 'audio-youtube'
+) {
+
+  return String(title)
+
+    .replace(
+      /[<>:"/\\|?*\x00-\x1F]/g,
+      ''
+    )
+
+    .replace(
+      /\s+/g,
+      ' '
+    )
+
+    .trim()
+
+    .slice(0, 100)
+
+    ||
+    'audio-youtube'
+}
+
+
+// =========================================================
+// 𝐕𝐈𝐒𝐓𝐀𝐒
+// =========================================================
+
+function formatViews(
+  views
+) {
+
+  if (
+    views === undefined ||
+    views === null ||
+    views === ''
+  ) {
+
+    return 'Desconocidas'
+  }
+
+  const number =
+    Number(
+      String(views)
+        .replace(
+          /[^\d]/g,
+          ''
+        )
+    )
+
+  if (
+    !Number.isFinite(number)
+  ) {
+
+    return String(views)
+  }
+
+  return number.toLocaleString(
+    'es-ES'
   )
 }
 
-// =========================================================
-// 📝 NOMBRE SEGURO
-// =========================================================
-
-function safeFileName(title = 'audio-youtube') {
-  return String(title)
-    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 100)
-    || 'audio-youtube'
-}
 
 // =========================================================
-// ⏱️ DURACIÓN
+// 𝐃𝐔𝐑𝐀𝐂𝐈Ó𝐍
 // =========================================================
 
-function formatDuration(seconds) {
+function formatDuration(
+  duration,
+  timestamp
+) {
+
   if (
-    seconds === undefined ||
-    seconds === null ||
-    !Number.isFinite(Number(seconds))
+    timestamp
   ) {
+
+    return String(
+      timestamp
+    )
+  }
+
+  if (
+    duration === undefined ||
+    duration === null
+  ) {
+
     return 'Desconocida'
   }
 
-  seconds = Number(seconds)
+  const seconds =
+    Number(duration)
 
-  const h = Math.floor(seconds / 3600)
-  const m = Math.floor((seconds % 3600) / 60)
-  const s = Math.floor(seconds % 60)
+  if (
+    !Number.isFinite(seconds)
+  ) {
 
-  if (h > 0) {
-    return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+    return String(duration)
   }
 
-  return `${m}:${String(s).padStart(2, '0')}`
+  const hours =
+    Math.floor(
+      seconds / 3600
+    )
+
+  const minutes =
+    Math.floor(
+      (seconds % 3600) / 60
+    )
+
+  const secs =
+    Math.floor(
+      seconds % 60
+    )
+
+  if (
+    hours > 0
+  ) {
+
+    return (
+      `${hours}:` +
+      `${String(minutes).padStart(2, '0')}:` +
+      `${String(secs).padStart(2, '0')}`
+    )
+  }
+
+  return (
+    `${minutes}:` +
+    `${String(secs).padStart(2, '0')}`
+  )
 }
 
+
 // =========================================================
-// 🌐 PETICIÓN AZBRY
+// 𝐅𝐀𝐀 • 𝐁𝐔𝐒𝐂𝐀𝐑 𝐘𝐎𝐔𝐓𝐔𝐁𝐄
 // =========================================================
 
-async function requestAzbry(apiUrl) {
-  const response = await fetch(apiUrl, {
-    method: 'GET',
-    agent: httpsAgent,
+async function searchYouTube(
+  query
+) {
 
-    headers: {
-      'User-Agent': USER_AGENT,
-      'Accept': 'application/json'
-    },
+  const apiUrl =
+    `${FAA_API}?query=` +
+    encodeURIComponent(query)
 
-    timeout: API_TIMEOUT
-  })
+  const response =
+    await fetch(
+      apiUrl,
+      {
+        method: 'GET',
 
-  const body = await response.text()
+        headers: {
+          'User-Agent':
+            USER_AGENT,
 
-  if (!response.ok) {
-    throw new Error(`AZBRY HTTP ${response.status}`)
-  }
+          'Accept':
+            'application/json'
+        },
 
-  let json
+        timeout:
+          API_TIMEOUT
+      }
+    )
+
+  const body =
+    await response.text()
+
+  let data
 
   try {
-    json = JSON.parse(body)
+
+    data =
+      JSON.parse(body)
+
   } catch {
-    throw new Error('AZBRY no devolvió JSON válido')
-  }
 
-  if (!json?.status) {
-    throw new Error('AZBRY no encontró resultados')
-  }
-
-  if (!json?.result) {
-    throw new Error('AZBRY no devolvió result')
-  }
-
-  if (!json.result.download) {
-    throw new Error('AZBRY no devolvió URL de descarga')
-  }
-
-  return json.result
-}
-
-// =========================================================
-// 🔎 AZBRY SEARCH
-// =========================================================
-
-async function azbrySearch(input) {
-
-  // URL DIRECTA
-  if (isYouTubeUrl(input)) {
-    const apiUrl =
-      `${AZBRY_API}?url=${encodeURIComponent(input)}`
-
-    return await requestAzbry(apiUrl)
-  }
-
-  // q
-  try {
-    const apiUrl =
-      `${AZBRY_API}?q=${encodeURIComponent(input)}`
-
-    return await requestAzbry(apiUrl)
-  } catch {}
-
-  // query
-  try {
-    const apiUrl =
-      `${AZBRY_API}?query=${encodeURIComponent(input)}`
-
-    return await requestAzbry(apiUrl)
-  } catch {}
-
-  throw new Error(
-    'AZBRY no pudo encontrar la canción'
-  )
-}
-
-// =========================================================
-// 📥 DESCARGAR DESDE AZBRY
-// =========================================================
-
-async function downloadAzbry(url) {
-
-  const response = await fetch(url, {
-    method: 'GET',
-    agent: httpsAgent,
-
-    headers: {
-      'User-Agent': USER_AGENT,
-      'Accept': 'audio/mpeg,audio/*,*/*'
-    },
-
-    redirect: 'follow',
-    timeout: DOWNLOAD_TIMEOUT
-  })
-
-  if (!response.ok) {
     throw new Error(
-      `DESCARGA AZBRY HTTP ${response.status}`
+      'La API FAA no devolvió JSON válido'
     )
   }
 
-  const buffer =
-    Buffer.from(
-      await response.arrayBuffer()
-    )
+  if (
+    !response.ok
+  ) {
 
-  if (!buffer.length) {
     throw new Error(
-      'AZBRY devolvió un archivo vacío'
+      data?.message ||
+      data?.error ||
+      `FAA HTTP ${response.status}`
     )
   }
 
-  return buffer
+  if (
+    !data?.status
+  ) {
+
+    throw new Error(
+      data?.message ||
+      data?.error ||
+      'No se encontraron resultados'
+    )
+  }
+
+  if (
+    !data?.result
+  ) {
+
+    throw new Error(
+      'La API no devolvió información'
+    )
+  }
+
+  if (
+    !data.result.mp3
+  ) {
+
+    throw new Error(
+      'La API no devolvió el MP3'
+    )
+  }
+
+  return data.result
 }
 
+
 // =========================================================
-// 🎯 OBTENER INFORMACIÓN EXACTA CON YT-DLP
+// 𝐃𝐄𝐒𝐂𝐀𝐑𝐆𝐀𝐑 𝐌𝐏𝟑
 // =========================================================
 
-async function ytDlpInfo(input) {
+async function downloadMp3(
+  url,
+  output
+) {
 
-  const target = isYouTubeUrl(input)
-    ? input
-    : `ytsearch1:${input}`
+  const controller =
+    new AbortController()
 
-  const { stdout } = await execFileAsync(
-    YTDLP,
-    [
-      '--dump-single-json',
-      '--no-playlist',
-      '--skip-download',
-      '--no-warnings',
-      '--quiet',
-      '--user-agent',
-      USER_AGENT,
-      target
-    ],
-    {
-      timeout: API_TIMEOUT,
-      maxBuffer: 10 * 1024 * 1024
+  const timer =
+    setTimeout(
+      () => controller.abort(),
+      DOWNLOAD_TIMEOUT
+    )
+
+  try {
+
+    const response =
+      await fetch(
+        url,
+        {
+          method: 'GET',
+
+          headers: {
+            'User-Agent':
+              USER_AGENT,
+
+            'Accept':
+              'audio/mpeg,audio/*,*/*'
+          },
+
+          redirect:
+            'follow',
+
+          signal:
+            controller.signal
+        }
+      )
+
+    if (
+      !response.ok
+    ) {
+
+      throw new Error(
+        `Descarga MP3 HTTP ${response.status}`
+      )
     }
-  )
 
-  let info
+    if (
+      !response.body
+    ) {
+
+      throw new Error(
+        'El servidor no devolvió el audio'
+      )
+    }
+
+    await fs.promises.mkdir(
+      path.dirname(output),
+      {
+        recursive: true
+      }
+    )
+
+    const file =
+      fs.createWriteStream(
+        output
+      )
+
+    await new Promise(
+      (resolve, reject) => {
+
+        response.body.pipe(file)
+
+        response.body.once(
+          'error',
+          reject
+        )
+
+        file.once(
+          'error',
+          reject
+        )
+
+        file.once(
+          'finish',
+          resolve
+        )
+      }
+    )
+
+    const stat =
+      await fs.promises.stat(
+        output
+      )
+
+    if (
+      !stat.isFile() ||
+      stat.size < 1000
+    ) {
+
+      await rm(
+        output,
+        {
+          force: true
+        }
+      ).catch(() => {})
+
+      throw new Error(
+        'El MP3 descargado no es válido'
+      )
+    }
+
+    return stat
+
+  } finally {
+
+    clearTimeout(timer)
+  }
+}
+
+
+// =========================================================
+// 𝐌𝐈𝐍𝐈𝐀𝐓𝐔𝐑𝐀
+// =========================================================
+
+async function getThumbnail(
+  url
+) {
+
+  if (!url) {
+    return null
+  }
 
   try {
-    info = JSON.parse(stdout)
+
+    const response =
+      await fetch(
+        url,
+        {
+          headers: {
+            'User-Agent':
+              USER_AGENT
+          },
+
+          timeout:
+            API_TIMEOUT
+        }
+      )
+
+    if (
+      !response.ok
+    ) {
+
+      return null
+    }
+
+    const buffer =
+      Buffer.from(
+        await response.arrayBuffer()
+      )
+
+    if (
+      !buffer.length
+    ) {
+
+      return null
+    }
+
+    return buffer
+
   } catch {
-    throw new Error(
-      'yt-dlp no devolvió información válida'
-    )
-  }
 
-  if (!info?.id) {
-    throw new Error(
-      'yt-dlp no encontró el vídeo'
-    )
-  }
-
-  return {
-    id: info.id,
-
-    title:
-      info.title ||
-      'Audio de YouTube',
-
-    channel:
-      info.uploader ||
-      info.channel ||
-      'YouTube',
-
-    duration:
-      info.duration,
-
-    thumbnail:
-      info.thumbnail ||
-      null,
-
-    webpage_url:
-      info.webpage_url ||
-      `https://www.youtube.com/watch?v=${info.id}`
+    return null
   }
 }
 
+
 // =========================================================
-// 📥 DESCARGAR MP3 EXACTO
+// 𝐓𝐀𝐌𝐀Ñ𝐎
 // =========================================================
 
-async function downloadWithYtDlp(info, outputBase) {
+function formatSize(
+  bytes
+) {
 
-  const outputTemplate =
-    `${outputBase}.%(ext)s`
+  if (
+    !Number.isFinite(bytes)
+  ) {
 
-  await execFileAsync(
-    YTDLP,
-    [
-      '--no-playlist',
-      '--no-warnings',
+    return 'Desconocido'
+  }
 
-      '--user-agent',
-      USER_AGENT,
+  const mb =
+    bytes / 1024 / 1024
 
-      '--extract-audio',
-      '--audio-format',
-      'mp3',
-      '--audio-quality',
-      '0',
+  if (
+    mb < 1024
+  ) {
 
-      '-o',
-      outputTemplate,
-
-      info.webpage_url
-    ],
-    {
-      timeout: DOWNLOAD_TIMEOUT,
-      maxBuffer: 10 * 1024 * 1024
-    }
-  )
-
-  const directory =
-    path.dirname(outputBase)
-
-  const base =
-    path.basename(outputBase)
-
-  const files =
-    fs.readdirSync(directory)
-
-  const generated =
-    files.find(file =>
-      file.startsWith(`${base}.`) &&
-      file.toLowerCase().endsWith('.mp3')
-    )
-
-  if (!generated) {
-    throw new Error(
-      'yt-dlp no creó el archivo MP3'
+    return (
+      `${mb.toFixed(2)} MB`
     )
   }
 
-  return path.join(
-    directory,
-    generated
+  return (
+    `${(
+      mb / 1024
+    ).toFixed(2)} GB`
   )
 }
 
-// =========================================================
-// 🧹 ELIMINAR ARCHIVO
-// =========================================================
-
-function removeFile(file) {
-  try {
-    if (file && fs.existsSync(file)) {
-      fs.unlinkSync(file)
-    }
-  } catch {}
-}
 
 // =========================================================
-// 🎵 HANDLER
+// 𝐇𝐀𝐍𝐃𝐋𝐄𝐑
 // =========================================================
 
 const handler = async (
@@ -364,33 +540,34 @@ const handler = async (
   }
 ) => {
 
-  const input =
-    String(text || '').trim()
+  const query =
+    String(
+      text || ''
+    ).trim()
+
 
   // =======================================================
-  // ❌ SIN TEXTO
+  // 𝐒𝐈𝐍 𝐁Ú𝐒𝐐𝐔𝐄𝐃𝐀
   // =======================================================
 
-  if (!input) {
+  if (!query) {
+
     return m.reply(
-`╭━━━〔 🎵 𝐘𝐎𝐔𝐓𝐔𝐁𝐄 𝐌𝐏𝟑 〕━━━⬣
 
-❗ *Falta la canción o enlace.*
+`𝙔𝙤𝙪𝙏𝙪𝙗𝙚 𝙈𝙋𝟯
 
-🎧 *Ejemplo:*
-${usedPrefix + command} Ozuna Si No Te Quiere
+𝙀𝙨𝙘𝙧𝙞𝙗𝙚 𝙚𝙡 𝙣𝙤𝙢𝙗𝙧𝙚 𝙙𝙚 𝙡𝙖 𝙘𝙖𝙣𝙘𝙞ó𝙣.
 
-🔗 *También puedes usar URL:*
-${usedPrefix + command} https://youtu.be/xxxxx
+𝙀𝙟𝙚𝙢𝙥𝙡𝙤:
+${usedPrefix}${command} Ozuna Mi Niña
 
-╰━━━━━━━━━━━━━━━━━━━━━━⬣
-
-🌸 ${config.botName || 'SaitamaBot'}`
+${config.botName || 'SaitamaBot'}`
     )
   }
 
+
   // =======================================================
-  // ⏳ REACCIÓN
+  // 𝐑𝐄𝐀𝐂𝐂𝐈Ó𝐍
   // =======================================================
 
   await conn.sendMessage(
@@ -403,211 +580,191 @@ ${usedPrefix + command} https://youtu.be/xxxxx
     }
   ).catch(() => {})
 
-  let tempFile = null
-  let azbryData = null
-  let info = null
-  let thumbnail = null
+
+  const id =
+    Date.now()
+
+  const audioFile =
+    path.join(
+      TMP_DIR,
+      `${id}.mp3`
+    )
+
 
   try {
 
     // =====================================================
-    // 1️⃣ INTENTAR AZBRY
+    // 𝐁𝐔𝐒𝐂𝐀𝐑
     // =====================================================
 
-    try {
-
-      azbryData =
-        await azbrySearch(input)
-
-      // Información de Azbry
-      info = {
-        title:
-          azbryData.title ||
-          'Audio de YouTube',
-
-        channel:
-          azbryData.channel ||
-          azbryData.uploader ||
-          'YouTube',
-
-        duration:
-          azbryData.duration ||
-          null,
-
-        thumbnail:
-          azbryData.thumbnail ||
-          azbryData.image ||
-          null,
-
-        webpage_url:
-          azbryData.url ||
-          azbryData.webpage_url ||
-          input
-      }
-
-      thumbnail = info.thumbnail
-
-    } catch {
-
-      // ===================================================
-      // 2️⃣ RESPALDO YT-DLP
-      // ===================================================
-
-      info =
-        await ytDlpInfo(input)
-
-      thumbnail =
-        info.thumbnail
-    }
-
-    // =====================================================
-    // VALIDAR INFORMACIÓN
-    // =====================================================
-
-    if (!info?.title) {
-      throw new Error(
-        'No se pudo obtener el título del vídeo'
+    const result =
+      await searchYouTube(
+        query
       )
-    }
+
+
+    // =====================================================
+    // 𝐈𝐍𝐅𝐎𝐑𝐌𝐀𝐂𝐈Ó𝐍
+    // =====================================================
 
     const title =
-      info.title
+      textValue(
+        result.title,
+        'Audio de YouTube'
+      )
 
-    const channel =
-      info.channel ||
-      'YouTube'
+    const author =
+      textValue(
+        result.author,
+        'Desconocido'
+      )
+
+    const views =
+      formatViews(
+        result.views
+      )
 
     const duration =
-      typeof info.duration === 'number'
-        ? formatDuration(info.duration)
-        : info.duration ||
-          'Desconocida'
+      formatDuration(
+        result.duration,
+        result.duration_timestamp
+      )
+
+    const published =
+      textValue(
+        result.published,
+        'Desconocido'
+      )
+
+    const youtube =
+      textValue(
+        result.url,
+        'No disponible'
+      )
+
+    const thumbnail =
+      textValue(
+        result.thumbnail,
+        ''
+      )
+
 
     // =====================================================
-    // 📋 INFORMACIÓN
+    // 𝐌𝐈𝐍𝐈𝐀𝐓𝐔𝐑𝐀
+    // =====================================================
+
+    const thumbnailBuffer =
+      await getThumbnail(
+        thumbnail
+      )
+
+
+    // =====================================================
+    // 𝐂𝐀𝐏𝐓𝐈𝐎𝐍
     // =====================================================
 
     const caption =
-`╭━━━〔 🎵 𝐘𝐎𝐔𝐓𝐔𝐁𝐄 𝐌𝐏𝟑 〕━━━⬣
+`𝙔𝙤𝙪𝙏𝙪𝙗𝙚
 
-🎶 *${title}*
+𝙏í𝙩𝙪𝙡𝙤: ${title}
+𝘼𝙪𝙩𝙤𝙧: ${author}
+𝙑𝙞𝙨𝙩𝙖𝙨: ${views}
+𝘿𝙪𝙧𝙖𝙘𝙞ó𝙣: ${duration}
+𝙋𝙪𝙗𝙡𝙞𝙘𝙖𝙙𝙤: ${published}
+𝙀𝙣𝙡𝙖𝙘𝙚: ${youtube}
 
-👤 *Canal:* ${channel}
-⏱️ *Duración:* ${duration}
-🎧 *Formato:* MP3
-💿 *Álbum:* ѕαιтαмαвσт
+𝘿𝙚𝙨𝙘𝙖𝙧𝙜𝙖𝙣𝙙𝙤 𝙖𝙪𝙙𝙞𝙤...
 
-╰━━━━━━━━━━━━━━━━━━━━━━⬣
+${config.botName || 'SaitamaBot'}`
 
-⏳ *Preparando audio...*
-
-🌸 ${config.botName || 'SaitamaBot'}`
 
     // =====================================================
-    // 🖼️ ENVIAR MINIATURA PRIMERO
+    // 𝐄𝐍𝐕𝐈𝐀𝐑 𝐈𝐌𝐀𝐆𝐄𝐍
     // =====================================================
 
-    if (thumbnail) {
+    if (
+      thumbnailBuffer
+    ) {
 
       await conn.sendMessage(
         m.chat,
         {
-          image: {
-            url: thumbnail
-          },
-          caption
+          image:
+            thumbnailBuffer,
+
+          caption:
+            caption
         },
         {
-          quoted: m
+          quoted:
+            m
         }
-      ).catch(async () => {
-        await m.reply(caption)
-      })
-
-    } else {
-
-      await m.reply(caption)
-    }
-
-    // =====================================================
-    // 📥 DESCARGA
-    // =====================================================
-
-    if (azbryData?.download) {
-
-      // ===================================================
-      // AZBRY
-      // ===================================================
-
-      const audioBuffer =
-        await downloadAzbry(
-          azbryData.download
-        )
-
-      tempFile =
-        path.join(
-          os.tmpdir(),
-          `saitama-${Date.now()}.mp3`
-        )
-
-      fs.writeFileSync(
-        tempFile,
-        audioBuffer
       )
 
     } else {
 
-      // ===================================================
-      // YT-DLP
-      // ===================================================
-
-      const base =
-        path.join(
-          os.tmpdir(),
-          `saitama-${Date.now()}`
-        )
-
-      tempFile =
-        await downloadWithYtDlp(
-          info,
-          base
-        )
+      await m.reply(
+        caption
+      )
     }
 
+
     // =====================================================
-    // 🏷️ TAGS
+    // 𝐃𝐄𝐒𝐂𝐀𝐑𝐆𝐀𝐑
+    // =====================================================
+
+    const stat =
+      await downloadMp3(
+        result.mp3,
+        audioFile
+      )
+
+
+    // =====================================================
+    // 𝐓𝐀𝐆𝐒
     // =====================================================
 
     try {
 
       await writeAudioTags(
-        tempFile,
+        audioFile,
         {
-          title,
-          author: channel,
-          image: thumbnail
+          title:
+            title,
+
+          author:
+            author,
+
+          image:
+            thumbnail
         }
       )
 
     } catch {}
 
+
     // =====================================================
-    // 📖 LEER AUDIO
+    // 𝐋𝐄𝐄𝐑 𝐀𝐔𝐃𝐈𝐎
     // =====================================================
 
     const audio =
-      fs.readFileSync(
-        tempFile
+      await fs.promises.readFile(
+        audioFile
       )
 
-    if (!audio.length) {
+
+    if (
+      !audio.length
+    ) {
+
       throw new Error(
-        'El archivo MP3 está vacío'
+        'El MP3 está vacío'
       )
     }
 
+
     // =====================================================
-    // 🎧 ENVIAR AUDIO
+    // 𝐄𝐍𝐕𝐈𝐀𝐑 𝐌𝐏𝟑
     // =====================================================
 
     await conn.sendMessage(
@@ -621,22 +778,30 @@ ${usedPrefix + command} https://youtu.be/xxxxx
         fileName:
           `${safeFileName(title)}.mp3`,
 
-        ptt: false
+        ptt:
+          false
       },
       {
-        quoted: m
+        quoted:
+          m
       }
     )
 
-    // =====================================================
-    // 🗑️ LIMPIAR
-    // =====================================================
-
-    removeFile(tempFile)
-    tempFile = null
 
     // =====================================================
-    // ✅ FINAL
+    // 𝐋𝐈𝐌𝐏𝐈𝐀𝐑
+    // =====================================================
+
+    await rm(
+      audioFile,
+      {
+        force: true
+      }
+    ).catch(() => {})
+
+
+    // =====================================================
+    // 𝐑𝐄𝐀𝐂𝐂𝐈Ó𝐍
     // =====================================================
 
     await conn.sendMessage(
@@ -652,13 +817,19 @@ ${usedPrefix + command} https://youtu.be/xxxxx
   } catch (error) {
 
     // =====================================================
-    // 🧹 LIMPIAR
+    // 𝐋𝐈𝐌𝐏𝐈𝐀𝐑
     // =====================================================
 
-    removeFile(tempFile)
+    await rm(
+      audioFile,
+      {
+        force: true
+      }
+    ).catch(() => {})
+
 
     // =====================================================
-    // ❌ REACCIÓN
+    // 𝐑𝐄𝐀𝐂𝐂𝐈Ó𝐍 ERROR
     // =====================================================
 
     await conn.sendMessage(
@@ -671,39 +842,36 @@ ${usedPrefix + command} https://youtu.be/xxxxx
       }
     ).catch(() => {})
 
+
     // =====================================================
-    // ❌ ERROR
+    // 𝐄𝐑𝐑𝐎𝐑
     // =====================================================
 
     return m.reply(
-`╭━━━〔 ❌ 𝐌𝐏𝟑 𝐄𝐑𝐑𝐎𝐑 〕━━━╮
 
-No se pudo descargar el audio.
+`𝙀𝙧𝙧𝙤𝙧 𝙈𝙋𝟯
 
-⚠️ *Detalles:*
+𝙉𝙤 𝙨𝙚 𝙥𝙪𝙙𝙤 𝙙𝙚𝙨𝙘𝙖𝙧𝙜𝙖𝙧 𝙚𝙡 𝙖𝙪𝙙𝙞𝙤.
+
 ${String(
-  error?.message || error
-).slice(0, 300)}
+  error?.message ||
+  error ||
+  'Error desconocido'
+).slice(0, 500)}
 
-🔄 Intenta nuevamente con otra
-canción o enlace.
-
-╰━━━━━━━━━━━━━━━━━━━━━━╯
-
-🌸 ${config.botName || 'SaitamaBot'}`
+${config.botName || 'SaitamaBot'}`
     )
   }
 }
 
+
 // =========================================================
-// ⚙️ CONFIGURACIÓN
+// 𝐂𝐎𝐍𝐅𝐈𝐆𝐔𝐑𝐀𝐂𝐈Ó𝐍
 // =========================================================
 
 handler.help = [
   'mp3 <canción>',
-  'mp3 <url>',
-  'audio <canción>',
-  'audio <url>'
+  'audio <canción>'
 ]
 
 handler.tags = [

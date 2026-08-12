@@ -1,867 +1,741 @@
 import fetch from 'node-fetch'
-import https from 'https'
-import dns from 'dns'
+import fs from 'fs'
+import path from 'path'
+import os from 'os'
+import { rm } from 'fs/promises'
 import config from '../../config.js'
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 🌸 SAITAMABOT • YOUTUBE MP4
-//
-// 🔎 SEARCH:
-//    AZBRY
-//
-// 📥 DOWNLOAD:
-//    SaiAPI1 → AZBRY
-//    SaiAPI2 → SYLPHY
-//
-// 🔄 FALLBACK:
-//    Si Azbry falla → Sylphy
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// =========================================================
+// 𝐒𝐀𝐈𝐓𝐀𝐌𝐀𝐁𝐎𝐓 • 𝐘𝐎𝐔𝐓𝐔𝐁𝐄 𝐌𝐏𝟒
+// =========================================================
 
+const FAA_API =
+  'https://api-faa.my.id/faa/ytplayvid'
 
-// ╭──────────────────────────────────────╮
-// │              SAI API 1               │
-// │                AZBRY                  │
-// ╰──────────────────────────────────────╯
-
-const SEARCH_API =
-  'https://api.azbry.com/api/search/yts'
-
-const AZBRY_DOWNLOAD_API =
-  'https://api.azbry.com/api/download/ytmp4'
-
-
-// ╭──────────────────────────────────────╮
-// │              SAI API 2               │
-// │               SYLPHY                  │
-// ╰──────────────────────────────────────╯
-
-const SYLPHY_API =
-  'https://www.sylphyy.xyz/download/ytmp4'
-
-const SYLPHY_API_KEY =
-  'sylph-d7ed7664'
-
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ⚙️ CONFIGURACIÓN
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const TMP_DIR =
+  path.join(
+    os.tmpdir(),
+    'saitamabot-mp4'
+  )
 
 const USER_AGENT =
-  'Mozilla/5.0 (Linux; Android 11; Mobile) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36'
+  'Mozilla/5.0 (Linux; Android 11) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36'
 
 const API_TIMEOUT =
-  60_000
+  60 * 1000
 
 const DOWNLOAD_TIMEOUT =
-  300_000
+  30 * 60 * 1000
 
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 🌐 IPV4
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// =========================================================
+// 𝐕𝐀𝐋𝐎𝐑 → 𝐓𝐄𝐗𝐓𝐎
+// =========================================================
 
-dns.setDefaultResultOrder(
-  'ipv4first'
-)
+function textValue(
+  value,
+  fallback = 'Desconocido'
+) {
 
-const httpsAgent =
-  new https.Agent({
-    family: 4,
-    keepAlive: true
-  })
+  if (
+    value === undefined ||
+    value === null ||
+    value === ''
+  ) {
+    return fallback
+  }
 
+  if (
+    typeof value === 'string' ||
+    typeof value === 'number'
+  ) {
+    return String(value)
+  }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 🔗 DETECTAR YOUTUBE
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  if (
+    typeof value === 'object'
+  ) {
 
-function isYouTubeUrl(text = '') {
+    const possible =
+      value.name ||
+      value.title ||
+      value.text ||
+      value.label ||
+      value.value ||
+      value.username ||
+      value.channelName ||
+      value.formatted ||
+      value.display
 
-  return /^https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)\//i
-    .test(
-      text.trim()
-    )
+    if (possible) {
+
+      return textValue(
+        possible,
+        fallback
+      )
+    }
+  }
+
+  return fallback
 }
 
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 🌐 PETICIÓN JSON
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// =========================================================
+// 𝐘𝐎𝐔𝐓𝐔𝐁𝐄 𝐈𝐃
+// =========================================================
 
-async function requestJson(
-  url,
-  options = {}
+function getYouTubeId(
+  url = ''
 ) {
-
-  const response =
-    await fetch(
-      url,
-      {
-        method: 'GET',
-
-        agent:
-          httpsAgent,
-
-        headers: {
-          'User-Agent':
-            USER_AGENT,
-
-          'Accept':
-            'application/json',
-
-          ...(options.headers || {})
-        },
-
-        redirect:
-          'follow',
-
-        timeout:
-          API_TIMEOUT
-      }
-    )
-
-  const body =
-    await response.text()
-
-  if (!response.ok) {
-
-    throw new Error(
-      `HTTP ${response.status}`
-    )
-  }
-
-  let json
 
   try {
 
-    json =
-      JSON.parse(body)
+    const u =
+      new URL(url)
 
-  } catch {
+    if (
+      u.hostname.includes(
+        'youtube.com'
+      )
+    ) {
 
-    throw new Error(
-      'La API no devolvió JSON válido'
-    )
-  }
+      const id =
+        u.searchParams.get('v')
 
-  return json
-}
-
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 🔎 BUSCAR YOUTUBE • AZBRY
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-async function searchYouTube(
-  query
-) {
-
-  const apiUrl =
-    `${SEARCH_API}?q=${encodeURIComponent(query)}`
-
-  const json =
-    await requestJson(
-      apiUrl
-    )
-
-  if (
-    !json?.status
-  ) {
-
-    throw new Error(
-      'Azbry no encontró resultados'
-    )
-  }
-
-  if (
-    !Array.isArray(
-      json?.result
-    ) ||
-    !json.result.length
-  ) {
-
-    throw new Error(
-      'No se encontraron vídeos'
-    )
-  }
-
-  const first =
-    json.result[0]
-
-  if (
-    !first?.url
-  ) {
-
-    throw new Error(
-      'El resultado de Azbry no tiene URL'
-    )
-  }
-
-  return {
-
-    title:
-      first.title ||
-      'Vídeo de YouTube',
-
-    thumbnail:
-      first.thumbnail ||
-      null,
-
-    duration:
-      first.duration ||
-      'Desconocida',
-
-    uploaded:
-      first.uploaded ||
-      null,
-
-    views:
-      first.views ||
-      null,
-
-    url:
-      first.url,
-
-    videoId:
-      first.videoId ||
-      null
-
-  }
-}
-
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 📥 SAI API 1 • AZBRY
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-async function downloadAzbry(
-  url
-) {
-
-  const apiUrl =
-    `${AZBRY_DOWNLOAD_API}?url=${encodeURIComponent(url)}`
-
-  const json =
-    await requestJson(
-      apiUrl
-    )
-
-  if (
-    !json?.status
-  ) {
-
-    throw new Error(
-      'Azbry no pudo procesar el vídeo'
-    )
-  }
-
-  const result =
-    json?.result
-
-  if (
-    !result
-  ) {
-
-    throw new Error(
-      'Azbry no devolvió result'
-    )
-  }
-
-  if (
-    !result.download
-  ) {
-
-    throw new Error(
-      'Azbry no devolvió URL de descarga'
-    )
-  }
-
-  return {
-
-    title:
-      result.title ||
-      'Vídeo de YouTube',
-
-    author:
-      result.author ||
-      'Desconocido',
-
-    thumbnail:
-      result.thumbnail ||
-      null,
-
-    duration:
-      result.duration ||
-      'Desconocida',
-
-    quality:
-      result.quality ||
-      'Desconocida',
-
-    download:
-      result.download,
-
-    format:
-      result.format ||
-      'mp4',
-
-    api:
-      'SaiAPI1 • Azbry'
-
-  }
-}
-
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 📥 SAI API 2 • SYLPHY
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-async function downloadSylphy(
-  url
-) {
-
-  const apiUrl =
-    `${SYLPHY_API}?url=${encodeURIComponent(url)}`
-
-  const json =
-    await requestJson(
-      apiUrl,
-      {
-        headers: {
-
-          'X-API-Key':
-            SYLPHY_API_KEY
-
-        }
+      if (id) {
+        return id
       }
-    )
 
-  if (
-    !json?.status
-  ) {
+      const match =
+        u.pathname.match(
+          /\/(?:shorts|embed)\/([^/?]+)/
+        )
 
-    throw new Error(
-      'Sylphy no pudo procesar el vídeo'
-    )
-  }
-
-  const result =
-    json?.result
-
-  if (
-    !result
-  ) {
-
-    throw new Error(
-      'Sylphy no devolvió result'
-    )
-  }
-
-  if (
-    !result.dl_url
-  ) {
-
-    throw new Error(
-      'Sylphy no devolvió dl_url'
-    )
-  }
-
-  return {
-
-    title:
-      result.title ||
-      'Vídeo de YouTube',
-
-    author:
-      result.author ||
-      'Desconocido',
-
-    quality:
-      result.quality ||
-      'Desconocida',
-
-    download:
-      result.dl_url,
-
-    format:
-      'mp4',
-
-    api:
-      'SaiAPI2 • Sylphy'
-
-  }
-}
-
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 📥 DESCARGAR ARCHIVO
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-async function downloadVideo(
-  url
-) {
-
-  const response =
-    await fetch(
-      url,
-      {
-
-        method:
-          'GET',
-
-        agent:
-          httpsAgent,
-
-        headers: {
-
-          'User-Agent':
-            USER_AGENT,
-
-          'Accept':
-            'video/mp4,video/*,*/*'
-
-        },
-
-        redirect:
-          'follow',
-
-        timeout:
-          DOWNLOAD_TIMEOUT
-
+      if (match?.[1]) {
+        return match[1]
       }
-    )
+    }
 
-  if (
-    !response.ok
-  ) {
+    if (
+      u.hostname ===
+      'youtu.be'
+    ) {
 
-    throw new Error(
-      `DESCARGA HTTP ${response.status}`
-    )
-  }
+      return u.pathname
+        .replace('/', '')
+        .split('/')[0]
+    }
 
-  const contentType =
-    response.headers.get(
-      'content-type'
-    ) || ''
+  } catch {}
 
-  // Evitar guardar HTML/JSON como MP4
-  if (
-    contentType.includes(
-      'text/html'
-    ) ||
-    contentType.includes(
-      'application/json'
-    )
-  ) {
-
-    throw new Error(
-      `El servidor no devolvió vídeo (${contentType})`
-    )
-  }
-
-  const buffer =
-    Buffer.from(
-      await response.arrayBuffer()
-    )
-
-  if (
-    !buffer.length
-  ) {
-
-    throw new Error(
-      'El archivo de vídeo está vacío'
-    )
-  }
-
-  return buffer
+  return null
 }
 
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 🕐 DURACIÓN
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// =========================================================
+// 𝐌𝐈𝐍𝐈𝐀𝐓𝐔𝐑𝐀 𝐃𝐄 𝐘𝐎𝐔𝐓𝐔𝐁𝐄
+// =========================================================
 
-function formatDuration(
-  seconds
+function getThumbnail(
+  youtubeUrl = ''
 ) {
 
-  if (
-    seconds === null ||
-    seconds === undefined ||
-    seconds === ''
-  ) {
-
-    return 'Desconocida'
-  }
-
-  if (
-    typeof seconds === 'string' &&
-    seconds.includes(':')
-  ) {
-
-    return seconds
-  }
-
-  const total =
-    Number(seconds)
-
-  if (
-    !Number.isFinite(total)
-  ) {
-
-    return String(seconds)
-  }
-
-  const hours =
-    Math.floor(
-      total / 3600
+  const id =
+    getYouTubeId(
+      youtubeUrl
     )
 
-  const minutes =
-    Math.floor(
-      (total % 3600) / 60
-    )
-
-  const secs =
-    Math.floor(
-      total % 60
-    )
-
-  if (
-    hours > 0
-  ) {
-
-    return (
-      `${hours}:` +
-      `${String(minutes).padStart(2, '0')}:` +
-      `${String(secs).padStart(2, '0')}`
-    )
+  if (!id) {
+    return null
   }
 
   return (
-    `${minutes}:` +
-    `${String(secs).padStart(2, '0')}`
+    `https://i.ytimg.com/vi/` +
+    `${id}/hq720.jpg`
   )
 }
 
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 📝 NOMBRE SEGURO
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// =========================================================
+// 𝐎𝐁𝐓𝐄𝐍𝐄𝐑 𝐌𝐈𝐍𝐈𝐀𝐓𝐔𝐑𝐀
+// =========================================================
 
-function safeFileName(
-  title
+async function getThumbnailBuffer(
+  url
 ) {
 
-  return String(title)
+  if (!url) {
+    return null
+  }
 
+  try {
+
+    const controller =
+      new AbortController()
+
+    const timer =
+      setTimeout(
+        () => controller.abort(),
+        API_TIMEOUT
+      )
+
+    try {
+
+      const response =
+        await fetch(
+          url,
+          {
+            method: 'GET',
+
+            headers: {
+              'User-Agent':
+                USER_AGENT,
+
+              'Accept':
+                'image/jpeg,image/*,*/*'
+            },
+
+            signal:
+              controller.signal
+          }
+        )
+
+      if (!response.ok) {
+        return null
+      }
+
+      const arrayBuffer =
+        await response.arrayBuffer()
+
+      const buffer =
+        Buffer.from(
+          arrayBuffer
+        )
+
+      if (!buffer.length) {
+        return null
+      }
+
+      return buffer
+
+    } finally {
+
+      clearTimeout(timer)
+    }
+
+  } catch {
+
+    return null
+  }
+}
+
+
+// =========================================================
+// 𝐍𝐎𝐌𝐁𝐑𝐄 𝐒𝐄𝐆𝐔𝐑𝐎
+// =========================================================
+
+function safeName(
+  name
+) {
+
+  return String(
+    name ||
+    'youtube-video'
+  )
     .replace(
-      /[<>:"/\\|?*\x00-\x1F]/g,
+      /[\\/:*?"<>|]/g,
       ''
     )
-
     .replace(
       /\s+/g,
       ' '
     )
-
     .trim()
-
     .slice(
       0,
-      80
+      100
     )
-
     ||
     'youtube-video'
 }
 
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 🎬 HANDLER
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-const handler =
-  async (
-    m,
-    {
-      conn,
-      text,
-      usedPrefix,
-      command
-    }
-  ) => {
-
-    const input =
-      String(
-        text || ''
-      ).trim()
-
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // ❌ SIN TEXTO
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-    if (
-      !input
-    ) {
-
-      return m.reply(
-
-`╭━━━〔 🎬 𝐘𝐎𝐔𝐓𝐔𝐁𝐄 𝐌𝐏𝟒 〕━━━⬣
-
-❗ *Falta la canción o enlace.*
-
-🎬 *Por nombre:*
-${usedPrefix + command} Ozuna ZIZI
-
-🔗 *Por URL:*
-${usedPrefix + command} https://youtu.be/xxxxx
-
-╰━━━━━━━━━━━━━━━━━━━━━━⬣
-
-🌸 ${config.botName || 'SaitamaBot'}`
-      )
-    }
-
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // ⏳ REACCIÓN
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-    await conn
-      .sendMessage(
-        m.chat,
-        {
-          react: {
-            text: '⏳',
-            key: m.key
-          }
-        }
-      )
-      .catch(
-        () => {}
-      )
-
-
-    try {
-
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      // 🔎 OBTENER URL
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-      let searchData
-
-      if (
-        isYouTubeUrl(
-          input
-        )
-      ) {
-
-        searchData = {
-
-          title:
-            'Vídeo de YouTube',
-
-          thumbnail:
-            null,
-
-          duration:
-            'Desconocida',
-
-          url:
-            input
-
-        }
-
-      } else {
-
-        searchData =
-          await searchYouTube(
-            input
-          )
-      }
-
-
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      // 📝 INFORMACIÓN DE BÚSQUEDA
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-      const infoCaption =
-
-`╭━━━〔 🎬 𝐘𝐎𝐔𝐓𝐔𝐁𝐄 𝐌𝐏𝟒 〕━━━⬣
-
-🎬 *${searchData.title}*
-
-⏱️ *Duración:* ${searchData.duration || 'Desconocida'}
-
-${searchData.uploaded
-  ? `📅 *Publicado:* ${searchData.uploaded}\n`
-  : ''}${searchData.views
-  ? `👁️ *Vistas:* ${searchData.views}\n`
-  : ''}
-🌐 *Búsqueda:* SaiAPI1 • SaitamaBot
-
-📥 *Preparando vídeo...*
-
-╰━━━━━━━━━━━━━━━━━━━━━━⬣
-
-⏳ *Espera un momento...*
-
-🌸 ${config.botName || 'SaitamaBot'}`
-
-
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      // 🖼️ ENVIAR MINIATURA
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-      if (
-        searchData.thumbnail
-      ) {
-
-        await conn.sendMessage(
-          m.chat,
-          {
-
-            image: {
-              url:
-                searchData.thumbnail
-            },
-
-            caption:
-              infoCaption
-
-          },
-          {
-            quoted:
-              m
-          }
-        )
-
-      } else {
-
-        await m.reply(
-          infoCaption
-        )
-      }
-
-
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      // 📥 DESCARGA
-      //
-      // SAI API 1 → AZBRY
-      // SAI API 2 → SYLPHY
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-      let data
-
-      let usedApi
-
-
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      // 🥇 INTENTO 1 • AZBRY
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-      try {
-
-        data =
-          await downloadAzbry(
-            searchData.url
-          )
-
-        usedApi =
-          'SaiAPI1 • SaitamaBot'
-
-      } catch {
-
-        // ━━━━━━━━━━━━━━━━━━━━━━━━
-        // 🥈 INTENTO 2 • SYLPHY
-        // ━━━━━━━━━━━━━━━━━━━━━━━━
-
-        try {
-
-          data =
-            await downloadSylphy(
-              searchData.url
-            )
-
-          usedApi =
-            'SaiAPI2 • SaitamaBot'
-
-        } catch {
-
-          throw new Error(
-            'SaiAPI1 y SaiAPI2 no pudieron descargar el vídeo'
-          )
-        }
-      }
-
-
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      // 📥 DESCARGAR VÍDEO
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-      const videoBuffer =
-        await downloadVideo(
-          data.download
-        )
-
-
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      // 📝 CAPTION FINAL
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-      const finalCaption =
-
-`╭━━━〔 🎬 𝐘𝐎𝐔𝐓𝐔𝐁𝐄 𝐌𝐏𝟒 〕━━━⬣
-
-🎬 *${data.title}*
-
-👤 *Autor:* ${data.author || 'Desconocido'}
-
-⏱️ *Duración:* ${
-  formatDuration(
-    data.duration
+// =========================================================
+// 𝐓𝐀𝐌𝐀Ñ𝐎
+// =========================================================
+
+function formatSize(
+  bytes
+) {
+
+  if (
+    !Number.isFinite(bytes)
+  ) {
+
+    return 'Desconocido'
+  }
+
+  const mb =
+    bytes /
+    1024 /
+    1024
+
+  if (
+    mb < 1024
+  ) {
+
+    return (
+      `${mb.toFixed(2)} MB`
+    )
+  }
+
+  return (
+    `${(
+      mb / 1024
+    ).toFixed(2)} GB`
   )
 }
 
-📺 *Calidad:* ${
-  data.quality ||
-  'Desconocida'
+
+// =========================================================
+// 𝐁𝐔𝐒𝐂𝐀𝐑 𝐕𝐈𝐃𝐄𝐎 𝐂𝐎𝐍 𝐅𝐀𝐀
+// =========================================================
+
+async function searchVideo(
+  query
+) {
+
+  const apiUrl =
+    `${FAA_API}?q=` +
+    encodeURIComponent(
+      query
+    )
+
+  const controller =
+    new AbortController()
+
+  const timer =
+    setTimeout(
+      () => controller.abort(),
+      API_TIMEOUT
+    )
+
+  try {
+
+    const response =
+      await fetch(
+        apiUrl,
+        {
+          method: 'GET',
+
+          headers: {
+            'User-Agent':
+              USER_AGENT,
+
+            'Accept':
+              'application/json'
+          },
+
+          signal:
+            controller.signal
+        }
+      )
+
+    const body =
+      await response.text()
+
+    let data
+
+    try {
+
+      data =
+        JSON.parse(body)
+
+    } catch {
+
+      throw new Error(
+        'La API FAA no devolvió JSON válido'
+      )
+    }
+
+    if (
+      !response.ok
+    ) {
+
+      throw new Error(
+        data?.message ||
+        data?.error ||
+        `FAA HTTP ${response.status}`
+      )
+    }
+
+    if (
+      !data?.status
+    ) {
+
+      throw new Error(
+        data?.message ||
+        data?.error ||
+        'FAA no encontró el vídeo'
+      )
+    }
+
+    if (
+      !data?.result
+    ) {
+
+      throw new Error(
+        'FAA no devolvió result'
+      )
+    }
+
+    if (
+      !data.result.download_url
+    ) {
+
+      throw new Error(
+        'FAA no devolvió download_url'
+      )
+    }
+
+    return data.result
+
+  } finally {
+
+    clearTimeout(
+      timer
+    )
+  }
 }
 
-🎞️ *Formato:* MP4
 
-🌐 *API:* ${usedApi}
+// =========================================================
+// 𝐃𝐄𝐒𝐂𝐀𝐑𝐆𝐀𝐑 𝐕𝐈𝐃𝐄𝐎
+// =========================================================
 
-╰━━━━━━━━━━━━━━━━━━━━━━⬣
+async function downloadVideo(
+  url,
+  output
+) {
 
-🌸 ${config.botName || 'SaitamaBot'}`
+  const controller =
+    new AbortController()
+
+  const timer =
+    setTimeout(
+      () => controller.abort(),
+      DOWNLOAD_TIMEOUT
+    )
+
+  let file = null
+
+  try {
+
+    const response =
+      await fetch(
+        url,
+        {
+          method: 'GET',
+
+          headers: {
+            'User-Agent':
+              USER_AGENT,
+
+            'Accept':
+              'video/mp4,video/*,*/*'
+          },
+
+          redirect:
+            'follow',
+
+          signal:
+            controller.signal
+        }
+      )
+
+    if (
+      !response.ok
+    ) {
+
+      throw new Error(
+        `Descarga HTTP ${response.status}`
+      )
+    }
+
+    if (
+      !response.body
+    ) {
+
+      throw new Error(
+        'El servidor no devolvió el vídeo'
+      )
+    }
+
+    await fs.promises.mkdir(
+      path.dirname(output),
+      {
+        recursive: true
+      }
+    )
+
+    file =
+      fs.createWriteStream(
+        output
+      )
+
+    await new Promise(
+      (resolve, reject) => {
+
+        let finished = false
+
+        const finish =
+          () => {
+
+            if (finished) {
+              return
+            }
+
+            finished = true
+            resolve()
+          }
+
+        const fail =
+          error => {
+
+            if (finished) {
+              return
+            }
+
+            finished = true
+            reject(error)
+          }
+
+        response.body.on(
+          'error',
+          fail
+        )
+
+        file.on(
+          'error',
+          fail
+        )
+
+        file.on(
+          'finish',
+          finish
+        )
+
+        response.body.pipe(
+          file
+        )
+      }
+    )
+
+    const stat =
+      await fs.promises.stat(
+        output
+      )
+
+    if (
+      !stat.isFile()
+    ) {
+
+      throw new Error(
+        'El archivo descargado no es válido'
+      )
+    }
+
+    if (
+      stat.size < 10000
+    ) {
+
+      await rm(
+        output,
+        {
+          force: true
+        }
+      ).catch(() => {})
+
+      throw new Error(
+        'El vídeo descargado está vacío o es inválido'
+      )
+    }
+
+    return stat
+
+  } finally {
+
+    clearTimeout(
+      timer
+    )
+
+    if (
+      file &&
+      !file.closed
+    ) {
+
+      file.close()
+    }
+  }
+}
 
 
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      // 🎥 ENVIAR VÍDEO
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// =========================================================
+// 𝐇𝐀𝐍𝐃𝐋𝐄𝐑
+// =========================================================
+
+const handler = async (
+  m,
+  {
+    conn,
+    text,
+    usedPrefix,
+    command
+  }
+) => {
+
+  const query =
+    String(
+      text || ''
+    ).trim()
+
+
+  // =======================================================
+  // 𝐒𝐈𝐍 𝐁Ú𝐒𝐐𝐔𝐄𝐃𝐀
+  // =======================================================
+
+  if (!query) {
+
+    return m.reply(
+
+`𝙔𝙤𝙪𝙏𝙪𝙗𝙚 𝙈𝙋𝟰
+
+𝙀𝙨𝙘𝙧𝙞𝙗𝙚 𝙚𝙡 𝙣𝙤𝙢𝙗𝙧𝙚 𝙙𝙚𝙡 𝙫í𝙙𝙚𝙤.
+
+𝙀𝙟𝙚𝙢𝙥𝙡𝙤:
+
+${usedPrefix}${command} Shakira La La La
+
+${config.botName || 'SaitamaBot'}`
+    )
+  }
+
+
+  // =======================================================
+  // 𝐑𝐄𝐀𝐂𝐂𝐈Ó𝐍
+  // =======================================================
+
+  await conn.sendMessage(
+    m.chat,
+    {
+      react: {
+        text: '⏳',
+        key: m.key
+      }
+    }
+  ).catch(() => {})
+
+
+  const id =
+    Date.now()
+
+  const videoFile =
+    path.join(
+      TMP_DIR,
+      `${id}.mp4`
+    )
+
+
+  try {
+
+    await fs.promises.mkdir(
+      TMP_DIR,
+      {
+        recursive: true
+      }
+    )
+
+
+    // =====================================================
+    // 𝐁𝐔𝐒𝐂𝐀𝐑 𝐂𝐎𝐍 𝐅𝐀𝐀
+    // =====================================================
+
+    const result =
+      await searchVideo(
+        query
+      )
+
+
+    // =====================================================
+    // 𝐃𝐀𝐓𝐎𝐒 𝐐𝐔𝐄 𝐃𝐄𝐕𝐔𝐄𝐋𝐕𝐄 𝐋𝐀 𝐀𝐏𝐈
+    // =====================================================
+
+    const title =
+      textValue(
+        result.searched_title,
+        'YouTube Video'
+      )
+
+    const youtube =
+      textValue(
+        result.searched_url,
+        'No disponible'
+      )
+
+    const format =
+      textValue(
+        result.format,
+        'mp4'
+      )
+
+
+    // =====================================================
+    // 𝐌𝐈𝐍𝐈𝐀𝐓𝐔𝐑𝐀
+    // =====================================================
+
+    const thumbnail =
+      getThumbnail(
+        youtube
+      )
+
+    const thumbnailBuffer =
+      await getThumbnailBuffer(
+        thumbnail
+      )
+
+
+    // =====================================================
+    // 𝐂𝐀𝐏𝐓𝐈𝐎𝐍 𝐂𝐎𝐑𝐓𝐎
+    // =====================================================
+
+    const caption =
+`𝙔𝙤𝙪𝙏𝙪𝙗𝙚
+
+𝙏í𝙩𝙪𝙡𝙤: ${title}
+𝙀𝙣𝙡𝙖𝙘𝙚: ${youtube}
+𝙁𝙤𝙧𝙢𝙖𝙩𝙤: ${format.toUpperCase()}
+
+𝘿𝙚𝙨𝙘𝙖𝙧𝙜𝙖𝙣𝙙𝙤 𝙫í𝙙𝙚𝙤...
+
+${config.botName || 'SaitamaBot'}`
+
+
+    // =====================================================
+    // 𝐄𝐍𝐕𝐈𝐀𝐑 𝐌𝐈𝐍𝐈𝐀𝐓𝐔𝐑𝐀 + 𝐈𝐍𝐅𝐎
+    // =====================================================
+
+    if (
+      thumbnailBuffer
+    ) {
 
       await conn.sendMessage(
         m.chat,
         {
-
-          video:
-            videoBuffer,
-
-          mimetype:
-            'video/mp4',
-
-          fileName:
-            `${safeFileName(
-              data.title
-            )}.mp4`,
+          image:
+            thumbnailBuffer,
 
           caption:
-            finalCaption
-
+            caption
         },
         {
           quoted:
@@ -869,85 +743,179 @@ ${searchData.uploaded
         }
       )
 
+    } else {
 
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      // ✅ FINAL
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-      await conn
-        .sendMessage(
-          m.chat,
-          {
-            react: {
-              text: '✅',
-              key: m.key
-            }
-          }
-        )
-        .catch(
-          () => {}
-        )
-
-
-    } catch (
-      error
-    ) {
-
-      await conn
-        .sendMessage(
-          m.chat,
-          {
-            react: {
-              text: '❌',
-              key: m.key
-            }
-          }
-        )
-        .catch(
-          () => {}
-        )
-
-
-      return m.reply(
-
-`╭━━━〔 ❌ 𝐌𝐏𝟒 𝐄𝐑𝐑𝐎𝐑 〕━━━╮
-
-No se pudo descargar el vídeo.
-
-⚠️ *Detalles:*
-${String(
-  error?.message ||
-  error
-).slice(
-  0,
-  300
-)}
-
-🔄 Intenta nuevamente con otro
-nombre o enlace.
-
-╰━━━━━━━━━━━━━━━━━━━━━━╯
-
-🌸 ${config.botName || 'SaitamaBot'}`
+      await m.reply(
+        caption
       )
     }
+
+
+    // =====================================================
+    // 𝐃𝐄𝐒𝐂𝐀𝐑𝐆𝐀𝐑 𝐌𝐏𝟒
+    // =====================================================
+
+    const stat =
+      await downloadVideo(
+        result.download_url,
+        videoFile
+      )
+
+
+    // =====================================================
+    // 𝐂𝐀𝐏𝐓𝐈𝐎𝐍 𝐅𝐈𝐍𝐀𝐋
+    // =====================================================
+
+    const videoCaption =
+`𝙔𝙤𝙪𝙏𝙪𝙗𝙚
+
+𝙏í𝙩𝙪𝙡𝙤: ${title}
+𝙀𝙣𝙡𝙖𝙘𝙚: ${youtube}
+
+𝙏𝙖𝙢𝙖ñ𝙤: ${formatSize(stat.size)}
+𝙁𝙤𝙧𝙢𝙖𝙩𝙤: MP4
+
+${config.botName || 'SaitamaBot'}`
+
+
+    // =====================================================
+    // 𝐄𝐍𝐕𝐈𝐀𝐑 𝐕𝐈𝐃𝐄𝐎
+    // =====================================================
+
+    const videoMessage = {
+
+      video: {
+        url:
+          videoFile
+      },
+
+      mimetype:
+        'video/mp4',
+
+      fileName:
+        `${safeName(title)}.mp4`,
+
+      caption:
+        videoCaption
+    }
+
+
+    // =====================================================
+    // 𝐌𝐈𝐍𝐈𝐀𝐓𝐔𝐑𝐀 𝐃𝐄𝐋 𝐕𝐈𝐃𝐄𝐎
+    // =====================================================
+
+    if (
+      thumbnailBuffer
+    ) {
+
+      videoMessage.jpegThumbnail =
+        thumbnailBuffer
+    }
+
+
+    await conn.sendMessage(
+      m.chat,
+      videoMessage,
+      {
+        quoted:
+          m
+      }
+    )
+
+
+    // =====================================================
+    // 𝐋𝐈𝐌𝐏𝐈𝐀𝐑
+    // =====================================================
+
+    await rm(
+      videoFile,
+      {
+        force: true
+      }
+    ).catch(() => {})
+
+
+    // =====================================================
+    // 𝐑𝐄𝐀𝐂𝐂𝐈Ó𝐍 𝐅𝐈𝐍𝐀𝐋
+    // =====================================================
+
+    await conn.sendMessage(
+      m.chat,
+      {
+        react: {
+          text: '✅',
+          key: m.key
+        }
+      }
+    ).catch(() => {})
+
+  } catch (error) {
+
+    // =====================================================
+    // 𝐋𝐈𝐌𝐏𝐈𝐀𝐑
+    // =====================================================
+
+    await rm(
+      videoFile,
+      {
+        force: true
+      }
+    ).catch(() => {})
+
+
+    // =====================================================
+    // 𝐑𝐄𝐀𝐂𝐂𝐈Ó𝐍
+    // =====================================================
+
+    await conn.sendMessage(
+      m.chat,
+      {
+        react: {
+          text: '❌',
+          key: m.key
+        }
+      }
+    ).catch(() => {})
+
+
+    // =====================================================
+    // 𝐄𝐑𝐑𝐎𝐑
+    // =====================================================
+
+    return m.reply(
+
+`𝙀𝙧𝙧𝙤𝙧 𝙈𝙋𝟰
+
+𝙉𝙤 𝙨𝙚 𝙥𝙪𝙙𝙤 𝙙𝙚𝙨𝙘𝙖𝙧𝙜𝙖𝙧 𝙚𝙡 𝙫í𝙙𝙚𝙤.
+
+${String(
+  error?.message ||
+  error ||
+  'Error desconocido'
+).slice(0, 500)}
+
+${config.botName || 'SaitamaBot'}`
+    )
+
+  } finally {
+
+    await rm(
+      videoFile,
+      {
+        force: true
+      }
+    ).catch(() => {})
   }
+}
 
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ⚙️ CONFIGURACIÓN
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// =========================================================
+// 𝐂𝐎𝐍𝐅𝐈𝐆𝐔𝐑𝐀𝐂𝐈Ó𝐍
+// =========================================================
 
 handler.help = [
-
-  'mp4 <canción>',
-
-  'mp4 <url>',
-
-  'video <canción>',
-
-  'video <url>'
-
+  'mp4 <nombre>',
+  'video <nombre>'
 ]
 
 handler.tags = [
@@ -955,15 +923,10 @@ handler.tags = [
 ]
 
 handler.command = [
-
   'mp4',
-
   'mp4dl',
-
-  'videodl',
-
-  'video'
-
+  'video',
+  'videodl'
 ]
 
 export default handler

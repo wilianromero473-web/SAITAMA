@@ -409,7 +409,7 @@ async function sendYoutubeCard(
 
             {
               title:
-                '🎬 𝑽𝑰𝑫𝑬𝑶 𝑴𝑷𝟒',
+                '🎬 ❯ 𝑽𝑰𝑫𝑬𝑶 𝑴𝑷𝟒',
 
               description:
                 '✦ 𝑫𝒆𝒔𝒄𝒂𝒓𝒈𝒂𝒓 𝒗𝒊𝒅𝒆𝒐 𝑴𝑷𝟒',
