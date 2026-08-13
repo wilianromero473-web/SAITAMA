@@ -7,7 +7,7 @@ nixPkgs = [
 
 [phases.install]
 cmds = [
-  "npm install"
+  "npm install --ignore-scripts"
 ]
 
 [start]
