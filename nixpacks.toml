@@ -1,5 +1,14 @@
 [phases.setup]
 nixPkgs = [
   "nodejs_22",
-  "ffmpeg"
+  "ffmpeg",
+  "yt-dlp"
 ]
+
+[phases.install]
+cmds = [
+  "npm install"
+]
+
+[start]
+cmd = "npm start"
