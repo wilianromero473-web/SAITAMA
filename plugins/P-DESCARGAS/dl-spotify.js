@@ -2,30 +2,34 @@ import axios from 'axios'
 import config from '../../config.js'
 
 
-/* ═════════════════════════════════════
-   🎵 CACHE SPOTIFY
-═════════════════════════════════════ */
+// ═══════════════════════════════════════
+// ✰ SAITAMABOT • SPOTIFY SEARCH
+// ═══════════════════════════════════════
 
 global.spotifyCache =
   global.spotifyCache || {}
 
 
-/* ═════════════════════════════════════
-   ⚙️ CONFIGURACIÓN
-═════════════════════════════════════ */
+const CACHE_TIME =
+  10 * 60 * 1000
 
-const CACHE_TIME = 10 * 60 * 1000
 
 const API_URL =
   'https://api.lempi.lat/s/sp'
 
+
 const API_KEY =
-  'lem992'
+  'lem_fe9463d34eeb2708aea45ffdefd6f852f5361f01'
 
 
-/* ═════════════════════════════════════
-   🔎 SPOTIFY SEARCH - LEMPI
-═════════════════════════════════════ */
+const BOT_NAME =
+  config.botName ||
+  '𝚂𝙰𝙸𝚃𝙰𝙼𝙰𝙱𝙾𝚃'
+
+
+// ═══════════════════════════════════════
+// ✰ SPOTIFY SEARCH
+// ═══════════════════════════════════════
 
 async function searchSpotify(
   query,
@@ -35,7 +39,7 @@ async function searchSpotify(
   if (!query?.trim()) {
 
     throw new Error(
-      'La búsqueda está vacía.'
+      '𝙻𝚊 𝚋ú𝚜𝚚𝚞𝚎𝚍𝚊 𝚎𝚜𝚝á 𝚟𝚊𝚌í𝚊.'
     )
 
   }
@@ -50,10 +54,6 @@ async function searchSpotify(
       10
     )
 
-
-  /* ═══════════════════════════════
-     🔎 PETICIÓN
-  ═══════════════════════════════ */
 
   const response =
     await axios.get(
@@ -89,7 +89,7 @@ async function searchSpotify(
   if (!data) {
 
     throw new Error(
-      'La API no devolvió ninguna respuesta.'
+      '𝙻𝚊 𝙰𝙿𝙸 𝚗𝚘 𝚍𝚎𝚟𝚘𝚕𝚟𝚒ó 𝚞𝚗𝚊 𝚛𝚎𝚜𝚙𝚞𝚎𝚜𝚝𝚊.'
     )
 
   }
@@ -99,15 +99,11 @@ async function searchSpotify(
 
     throw new Error(
       data.message ||
-      'La API rechazó la búsqueda.'
+      '𝙻𝚊 𝙰𝙿𝙸 𝚛𝚎𝚌𝚑𝚊𝚣ó 𝚕𝚊 𝚋ú𝚜𝚚𝚞𝚎𝚍𝚊.'
     )
 
   }
 
-
-  /* ═══════════════════════════════
-     🎵 CANCIONES
-  ═══════════════════════════════ */
 
   const tracks =
     data
@@ -122,10 +118,6 @@ async function searchSpotify(
   }
 
 
-  /* ═══════════════════════════════
-     🔄 NORMALIZAR
-  ═══════════════════════════════ */
-
   return tracks.map(
     track => {
 
@@ -137,12 +129,8 @@ async function searchSpotify(
 
       const title =
         track?.titulo ||
-        'Desconocido'
+        '𝙳𝚎𝚜𝚌𝚘𝚗𝚘𝚌𝚒𝚍𝚘'
 
-
-      /* ═════════════════════════
-         👤 ARTISTAS
-      ═════════════════════════ */
 
       const artists =
         Array.isArray(
@@ -160,40 +148,24 @@ async function searchSpotify(
       const artist =
         artists.length
           ? artists.join(', ')
-          : 'Desconocido'
+          : '𝙳𝚎𝚜𝚌𝚘𝚗𝚘𝚌𝚒𝚍𝚘'
 
-
-      /* ═════════════════════════
-         💿 ÁLBUM
-      ═════════════════════════ */
 
       const album =
         track?.album?.nombre ||
-        'Desconocido'
+        '𝙳𝚎𝚜𝚌𝚘𝚗𝚘𝚌𝚒𝚍𝚘'
 
-
-      /* ═════════════════════════
-         🖼️ PORTADA
-      ═════════════════════════ */
 
       const image =
         track?.album?.imagen ||
         null
 
 
-      /* ═════════════════════════
-         ⏱️ DURACIÓN
-      ═════════════════════════ */
-
       const durationMs =
         Number(
           track?.duracion_ms || 0
         )
 
-
-      /* ═════════════════════════
-         🔗 URL SPOTIFY REAL
-      ═════════════════════════ */
 
       const spotifyUrl =
         track?.url ||
@@ -205,10 +177,6 @@ async function searchSpotify(
               )}`
         )
 
-
-      /* ═════════════════════════
-         📦 RESULTADO
-      ═════════════════════════ */
 
       return {
 
@@ -252,11 +220,11 @@ async function searchSpotify(
           ),
 
         publish:
-          'Desconocido',
+          '𝙳𝚎𝚜𝚌𝚘𝚗𝚘𝚌𝚒𝚍𝚘',
 
         year:
           track?.album?.año ||
-          'Desconocido'
+          '𝙳𝚎𝚜𝚌𝚘𝚗𝚘𝚌𝚒𝚍𝚘'
 
       }
 
@@ -266,9 +234,9 @@ async function searchSpotify(
 }
 
 
-/* ═════════════════════════════════════
-   ⏱️ FORMATO DURACIÓN
-═════════════════════════════════════ */
+// ═══════════════════════════════════════
+// ✰ FORMATO DURACIÓN
+// ═══════════════════════════════════════
 
 function formatDuration(ms) {
 
@@ -277,7 +245,7 @@ function formatDuration(ms) {
     ms <= 0
   ) {
 
-    return 'Desconocida'
+    return '𝙳𝚎𝚜𝚌𝚘𝚗𝚘𝚌𝚒𝚍𝚊'
 
   }
 
@@ -301,9 +269,9 @@ function formatDuration(ms) {
 }
 
 
-/* ═════════════════════════════════════
-   👤 OBTENER IDENTIFICADOR
-═════════════════════════════════════ */
+// ═══════════════════════════════════════
+// ✰ OBTENER USUARIO
+// ═══════════════════════════════════════
 
 function getSender(m) {
 
@@ -317,14 +285,18 @@ function getSender(m) {
 }
 
 
-/* ═════════════════════════════════════
-   🧹 LIMPIAR CACHE
-═════════════════════════════════════ */
+// ═══════════════════════════════════════
+// ✰ LIMPIAR CACHE
+// ═══════════════════════════════════════
 
-function cleanSpotifyCache(sender) {
+function cleanSpotifyCache(
+  sender
+) {
 
   const cache =
-    global.spotifyCache?.[sender]
+    global.spotifyCache?.[
+      sender
+    ]
 
 
   if (!cache) {
@@ -340,7 +312,9 @@ function cleanSpotifyCache(sender) {
     CACHE_TIME
   ) {
 
-    delete global.spotifyCache[sender]
+    delete global.spotifyCache[
+      sender
+    ]
 
     return null
 
@@ -352,21 +326,18 @@ function cleanSpotifyCache(sender) {
 }
 
 
-/* ═════════════════════════════════════
-   🎵 HANDLER
-═════════════════════════════════════ */
+// ═══════════════════════════════════════
+// ✰ HANDLER
+// ═══════════════════════════════════════
 
 const handler = async (
-
   m,
-
   {
     conn,
     text,
     usedPrefix,
     command
   }
-
 ) => {
 
   try {
@@ -375,9 +346,9 @@ const handler = async (
       getSender(m)
 
 
-    /* ═══════════════════════════════
-       ➡️ SIGUIENTE RESULTADO
-    ═══════════════════════════════ */
+    // ═════════════════════════════════
+    // ✰ SIGUIENTE
+    // ═════════════════════════════════
 
     if (
       command === 'spnext' ||
@@ -401,42 +372,25 @@ const handler = async (
 
         return m.reply(
 
-`╭━━━〔 ❌ 𝐒𝐏𝐎𝐓𝐈𝐅𝐘 〕━━━⬣
+`༺ 𝚂𝙸𝙽 𝙱Ú𝚂𝚀𝚄𝙴𝙳𝙰 ༻
 
-La búsqueda anterior
-ya no está disponible.
+✰ 𝙽𝚘 𝚑𝚊𝚢 𝚞𝚗𝚊 𝚋ú𝚜𝚚𝚞𝚎𝚍𝚊 𝚊𝚗𝚝𝚎𝚛𝚒𝚘𝚛.
 
-🔎 Realiza una nueva búsqueda.
+✰ 𝚄𝚜𝚊:
+${usedPrefix}spotify <texto>
 
-✧ Ejemplo:
-
+✰ 𝙴𝚓𝚎𝚖𝚙𝚕𝚘:
 ${usedPrefix}spotify The Weeknd
 
-╰━━━━━━━━━━━━━━━━━━━━━━⬣
-
-🌸 ${
-  config.botName ||
-  'SaitamaBot'
-}`
+✰ ${BOT_NAME}`
 
         )
 
       }
 
 
-      /* ═════════════════════════════
-         🔢 SIGUIENTE ÍNDICE
-      ═════════════════════════════ */
+      cache.index++
 
-      cache.index =
-        Number(
-          cache.index || 0
-        ) + 1
-
-
-      /* ═════════════════════════════
-         🔄 VOLVER AL PRIMERO
-      ═════════════════════════════ */
 
       if (
         cache.index >=
@@ -452,68 +406,38 @@ ${usedPrefix}spotify The Weeknd
         Date.now()
 
 
-      /* ═════════════════════════════
-         🔎 REACCIÓN
-      ═════════════════════════════ */
-
       await conn.sendMessage(
-
         m.chat,
-
         {
-
           react: {
-
             text:
               '🔎',
-
             key:
               m.key
-
           }
-
         }
-
       ).catch(() => {})
 
 
-      /* ═════════════════════════════
-         🎧 MOSTRAR SIGUIENTE
-      ═════════════════════════════ */
-
       await sendSpotifyCard(
-
         conn,
-
         m,
-
         cache.results,
-
         cache.index,
-
         usedPrefix
-
       )
 
 
       await conn.sendMessage(
-
         m.chat,
-
         {
-
           react: {
-
             text:
               '✅',
-
             key:
               m.key
-
           }
-
         }
-
       ).catch(() => {})
 
 
@@ -522,9 +446,9 @@ ${usedPrefix}spotify The Weeknd
     }
 
 
-    /* ═══════════════════════════════
-       🔎 TEXTO DE BÚSQUEDA
-    ═══════════════════════════════ */
+    // ═════════════════════════════════
+    // ✰ SIN TEXTO
+    // ═════════════════════════════════
 
     const query =
       String(
@@ -532,76 +456,77 @@ ${usedPrefix}spotify The Weeknd
       ).trim()
 
 
-    /* ═══════════════════════════════
-       ❌ SIN TEXTO
-    ═══════════════════════════════ */
-
     if (!query) {
 
       return m.reply(
 
-`╭━━━〔 🎧 𝐒𝐏𝐎𝐓𝐈𝐅𝐘 〕━━━⬣
+`༺ 𝚂𝙿𝙾𝚃𝙸𝙵𝚈 ༻
 
-✦ Ingresa el nombre de una canción.
+✰ 𝙸𝚗𝚐𝚛𝚎𝚜𝚊 𝚎𝚕 𝚗𝚘𝚖𝚋𝚛𝚎 𝚍𝚎 𝚞𝚗𝚊 𝚌𝚊𝚗𝚌𝚒ó𝚗.
 
-✧ Ejemplo:
+✰ 𝚄𝚜𝚊:
+${usedPrefix}${command} <texto>
 
-${usedPrefix + command} The Weeknd
+✰ 𝙴𝚓𝚎𝚖𝚙𝚕𝚘:
+${usedPrefix}${command} Twice
 
-╰━━━━━━━━━━━━━━━━━━━━━━⬣
-
-🌸 ${
-  config.botName ||
-  'SaitamaBot'
-}`
+✰ ${BOT_NAME}`
 
       )
 
     }
 
 
-    /* ═══════════════════════════════
-       🔎 REACCIÓN
-    ═══════════════════════════════ */
+    // ═════════════════════════════════
+    // ✰ REACCIÓN
+    // ═════════════════════════════════
 
     await conn.sendMessage(
-
       m.chat,
-
       {
-
         react: {
-
           text:
-            '🔎',
-
+            '⏳',
           key:
             m.key
-
         }
-
       }
-
     ).catch(() => {})
 
 
-    /* ═══════════════════════════════
-       🔎 BUSCAR
-    ═══════════════════════════════ */
+    // ═════════════════════════════════
+    // ✰ BUSCANDO
+    // ═════════════════════════════════
 
-    const results =
-      await searchSpotify(
+    const searchMsg =
+      await m.reply(
 
-        query,
+`༺ 𝙱𝚄𝚂𝙲𝙰𝙽𝙳𝙾 𝚂𝙿𝙾𝚃𝙸𝙵𝚈 ༻
 
-        10
+✰ 𝙱𝚞𝚜𝚌𝚊𝚗𝚍𝚘:
+${query}
+
+✰ 𝙴𝚜𝚙𝚎𝚛𝚊 𝚞𝚗 𝚖𝚘𝚖𝚎𝚗𝚝𝚘...
+
+✰ ${BOT_NAME}`
 
       )
 
 
-    /* ═══════════════════════════════
-       ❌ SIN RESULTADOS
-    ═══════════════════════════════ */
+    // ═════════════════════════════════
+    // ✰ BUSCAR
+    // ═════════════════════════════════
+
+    const results =
+      await searchSpotify(
+        query,
+        10
+      )
+
+
+    // ═════════════════════════════════
+    // ✰ SIN RESULTADOS
+    // ═════════════════════════════════
 
     if (
       !results ||
@@ -609,51 +534,48 @@ ${usedPrefix + command} The Weeknd
     ) {
 
       await conn.sendMessage(
-
         m.chat,
-
         {
+          edit:
+            searchMsg.key,
 
-          react: {
+          text:
 
-            text:
-              '❌',
+`༺ 𝚂𝙸𝙽 𝚁𝙴𝚂𝚄𝙻𝚃𝙰𝙳𝙾𝚂 ༻
 
-            key:
-              m.key
+✰ 𝙽𝚘 𝚎𝚗𝚌𝚘𝚗𝚝𝚛é:
+${query}
 
-          }
-
+✰ ${BOT_NAME}`
         }
-
       ).catch(() => {})
 
 
-      return m.reply(
+      await conn.sendMessage(
+        m.chat,
+        {
+          react: {
+            text:
+              '❌',
+            key:
+              m.key
+          }
+        }
+      ).catch(() => {})
 
-`╭━━━〔 ❌ 𝐒𝐏𝐎𝐓𝐈𝐅𝐘 〕━━━⬣
 
-No encontré resultados para:
-
-🔎 ${query}
-
-╰━━━━━━━━━━━━━━━━━━━━━━⬣
-
-🌸 ${
-  config.botName ||
-  'SaitamaBot'
-}`
-
-      )
+      return
 
     }
 
 
-    /* ═══════════════════════════════
-       💾 GUARDAR CACHE
-    ═══════════════════════════════ */
+    // ═════════════════════════════════
+    // ✰ GUARDAR CACHE
+    // ═════════════════════════════════
 
-    global.spotifyCache[sender] = {
+    global.spotifyCache[
+      sender
+    ] = {
 
       query,
 
@@ -668,104 +590,90 @@ No encontré resultados para:
     }
 
 
-    /* ═══════════════════════════════
-       🎧 MOSTRAR RESULTADO
-    ═══════════════════════════════ */
+    // ═════════════════════════════════
+    // ✰ EDITAR BUSCANDO
+    // ═════════════════════════════════
+
+    await conn.sendMessage(
+      m.chat,
+      {
+        edit:
+          searchMsg.key,
+
+        text:
+
+`༺ 𝚁𝙴𝚂𝚄𝙻𝚃𝙰𝙳𝙾𝚂 𝚂𝙿𝙾𝚃𝙸𝙵𝚈 ༻
+
+✰ 𝙴𝚗𝚌𝚘𝚗𝚝𝚛𝚊𝚍𝚘𝚜:
+${results.length}
+
+✰ ${BOT_NAME}`
+      }
+    ).catch(() => {})
+
+
+    // ═════════════════════════════════
+    // ✰ MOSTRAR RESULTADO
+    // ═════════════════════════════════
 
     await sendSpotifyCard(
-
       conn,
-
       m,
-
       results,
-
       0,
-
       usedPrefix
-
     )
 
 
-    /* ═══════════════════════════════
-       ✅ REACCIÓN
-    ═══════════════════════════════ */
+    // ═════════════════════════════════
+    // ✰ REACCIÓN FINAL
+    // ═════════════════════════════════
 
     await conn.sendMessage(
-
       m.chat,
-
       {
-
         react: {
-
           text:
             '✅',
-
           key:
             m.key
-
         }
-
       }
-
     ).catch(() => {})
 
 
   } catch (error) {
 
     console.error(
-
       '[SPOTIFY SEARCH]',
-
       error?.response?.data ||
       error?.message ||
       error
-
     )
 
 
     await conn.sendMessage(
-
       m.chat,
-
       {
-
         react: {
-
           text:
             '❌',
-
           key:
             m.key
-
         }
-
       }
-
     ).catch(() => {})
 
 
     return m.reply(
 
-`╭━━━〔 ❌ 𝐒𝐏𝐎𝐓𝐈𝐅𝐘 〕━━━⬣
+`༺ 𝙴𝚁𝚁𝙾𝚁 𝚂𝙿𝙾𝚃𝙸𝙵𝚈 ༻
 
-No se pudo realizar la búsqueda.
+✰ 𝙽𝚘 𝚜𝚎 𝚙𝚞𝚍𝚘 𝚛𝚎𝚊𝚕𝚒𝚣𝚊𝚛 𝚕𝚊 𝚋ú𝚜𝚚𝚞𝚎𝚍𝚊.
 
-⚠️ Detalles:
+✰ 𝙸𝚗𝚝𝚎𝚗𝚝𝚊 𝚍𝚎 𝚗𝚞𝚎𝚟𝚘.
 
-${String(
-  error?.response?.data?.message ||
-  error?.message ||
-  error
-).slice(0, 300)}
-
-╰━━━━━━━━━━━━━━━━━━━━━━⬣
-
-🌸 ${
-  config.botName ||
-  'SaitamaBot'
-}`
+✰ ${BOT_NAME}`
 
     )
 
@@ -774,22 +682,16 @@ ${String(
 }
 
 
-/* ═════════════════════════════════════
-   🎧 TARJETA SPOTIFY
-═════════════════════════════════════ */
+// ═══════════════════════════════════════
+// ✰ TARJETA SPOTIFY
+// ═══════════════════════════════════════
 
 async function sendSpotifyCard(
-
   conn,
-
   m,
-
   results,
-
   index,
-
   usedPrefix
-
 ) {
 
   const song =
@@ -799,35 +701,41 @@ async function sendSpotifyCard(
   if (!song) {
 
     return m.reply(
-      '❌ No existe ese resultado.'
+
+`༺ 𝚁𝙴𝚂𝚄𝙻𝚃𝙰𝙳𝙾 𝙸𝙽𝚅Á𝙻𝙸𝙳𝙾 ༻
+
+✰ 𝙽𝚘 𝚎𝚡𝚒𝚜𝚝𝚎 𝚎𝚜𝚎 𝚛𝚎𝚜𝚞𝚕𝚝𝚊𝚍𝚘.
+
+✰ ${BOT_NAME}`
+
     )
 
   }
 
 
-  /* ═══════════════════════════════
-     🎵 DATOS
-  ═══════════════════════════════ */
+  // ═════════════════════════════════
+  // ✰ DATOS
+  // ═════════════════════════════════
 
   const title =
     song.title ||
     song.name ||
-    'Desconocido'
+    '𝙳𝚎𝚜𝚌𝚘𝚗𝚘𝚌𝚒𝚍𝚘'
 
 
   const artist =
     song.artist ||
-    'Desconocido'
+    '𝙳𝚎𝚜𝚌𝚘𝚗𝚘𝚌𝚒𝚍𝚘'
 
 
   const album =
     song.album ||
-    'Desconocido'
+    '𝙳𝚎𝚜𝚌𝚘𝚗𝚘𝚌𝚒𝚍𝚘'
 
 
   const duration =
     song.duration ||
-    'Desconocida'
+    '𝙳𝚎𝚜𝚌𝚘𝚗𝚘𝚌𝚒𝚍𝚊'
 
 
   const image =
@@ -842,70 +750,61 @@ async function sendSpotifyCard(
     ''
 
 
-  /* ═══════════════════════════════
-     📝 CAPTION
-  ═══════════════════════════════ */
+  // ═════════════════════════════════
+  // ✰ INFORMACIÓN
+  // ═════════════════════════════════
 
-  const caption =
+  const infoText =
 
-`╭━━━〔 🎧 𝐒𝐏𝐎𝐓𝐈𝐅𝐘 〕━━━⬣
-┃
-┃ ✦ 𝐈𝐍𝐅𝐎𝐑𝐌𝐀𝐂𝐈Ó𝐍
-┃
-┃ 🎵 𝐓í𝐭𝐮𝐥𝐨 ❯ ${title}
-┃ 👤 𝐀𝐫𝐭𝐢𝐬𝐭𝐚 ❯ ${artist}
-┃ 💿 𝐀́𝐥𝐛𝐮𝐦 ❯ ${album}
-┃ ⏱️ 𝐃𝐮𝐫𝐚𝐜𝐢𝐨́𝐧 ❯ ${duration}
-┃
-┃ 🔢 𝐑𝐞𝐬𝐮𝐥𝐭𝐚𝐝𝐨 ❯ ${index + 1}/${results.length}
-┃
-┃ ╰─➤ 𝐄𝐥𝐢𝐠𝐞 𝐮𝐧𝐚 𝐨𝐩𝐜𝐢𝐨́𝐧
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━⬣
+`*༺ 𝚂𝙿𝙾𝚃𝙸𝙵𝚈 ༻*
 
-🌸 ${
-  config.botName ||
-  'SaitamaBot'
-}`
+*✰ 𝚃í𝚝𝚞𝚕𝚘:*
+${title}
+*✰ 𝙰𝚛𝚝𝚒𝚜𝚝𝚊:*
+${artist}
+*✰ Á𝚕𝚋𝚞𝚖:*
+${album}
+*✰ 𝙳𝚞𝚛𝚊𝚌𝚒ó𝚗:*
+${duration}
+*✰ 𝚁𝚎𝚜𝚞𝚕𝚝𝚊𝚍𝚘:*
+${index + 1}/${results.length}
+
+✰ 𝙴𝚕𝚒𝚐𝚎 𝚞𝚗𝚊 𝚘𝚙𝚌𝚒ó𝚗
+
+✰ ╰┈➤ 𝟮𝟬𝟮𝟲`
 
 
-  /* ═══════════════════════════════
-     🎧 BOTONES
-  ═══════════════════════════════ */
+  // ═════════════════════════════════
+  // ✰ BOTONES
+  // ═════════════════════════════════
 
   const buttons = [
 
     {
 
       text:
-        '✦ Elegir formato ✦',
+        '✦ 𝙵𝙾𝚁𝙼𝙰𝚃𝙾 ✦',
 
       sections: [
 
-        /* ═══════════════════════
-           🎧 AUDIO
-        ═══════════════════════ */
+        // ═══════════════════════════
+        // ✰ AUDIO
+        // ═══════════════════════════
 
         {
 
           title:
-            '╭─〔 🎧 𝐀𝐔𝐃𝐈𝐎 〕─╮',
+            '╭─〔 𝙰𝚄𝙳𝙸𝙾 〕─╮',
 
           rows: [
 
             {
 
               title:
-                '🎵 ❯ 𝐀𝐔𝐃𝐈𝐎 𝐌𝐏𝟑',
+                '🎵 ❯ 𝙼𝙿𝟹',
 
               description:
-                '✦ Descargar esta canción en MP3',
-
-              /*
-               * IMPORTANTE:
-               * Ahora enviamos la URL REAL
-               * de Spotify al comando.
-               */
+                '✰ 𝙳𝚎𝚜𝚌𝚊𝚛𝚐𝚊𝚛 𝚊𝚞𝚍𝚒𝚘',
 
               id:
                 `${usedPrefix}spotifymp3 ${spotifyUrl}`
@@ -915,10 +814,10 @@ async function sendSpotifyCard(
             {
 
               title:
-                '📄 ❯ 𝐀𝐔𝐃𝐈𝐎 𝐃𝐎𝐂𝐔𝐌𝐄𝐍𝐓𝐎',
+                '📄 ❯ 𝙼𝙿𝟹 𝙳𝙾𝙲',
 
               description:
-                '✦ Descargar como documento',
+                '✰ 𝙰𝚞𝚍𝚒𝚘 𝚌𝚘𝚖𝚘 𝚍𝚘𝚌𝚞𝚖𝚎𝚗𝚝𝚘',
 
               id:
                 `${usedPrefix}spotifymp3doc ${spotifyUrl}`
@@ -930,24 +829,24 @@ async function sendSpotifyCard(
         },
 
 
-        /* ═══════════════════════════════
-           🎵 SPOTIFY
-        ═══════════════════════════════ */
+        // ═══════════════════════════
+        // ✰ SPOTIFY
+        // ═══════════════════════════
 
         {
 
           title:
-            '╭─〔 🎵 𝐒𝐏𝐎𝐓𝐈𝐅𝐘 〕─╮',
+            '╭─〔 𝚂𝙿𝙾𝚃𝙸𝙵𝚈 〕─╮',
 
           rows: [
 
             {
 
               title:
-                '🎵 ❯ 𝐀𝐁𝐑𝐈𝐑 𝐒𝐏𝐎𝐓𝐈𝐅𝐘',
+                '🎵 ❯ 𝙰𝙱𝚁𝙸𝚁 𝚂𝙿𝙾𝚃𝙸𝙵𝚈',
 
               description:
-                '✦ Abrir la canción en Spotify',
+                '✰ 𝙰𝚋𝚛𝚒𝚛 𝚕𝚊 𝚌𝚊𝚗𝚌𝚒ó𝚗 𝚎𝚗 𝚂𝚙𝚘𝚝𝚒𝚏𝚢',
 
               id:
                 spotifyUrl
@@ -959,38 +858,29 @@ async function sendSpotifyCard(
         },
 
 
-        /* ═══════════════════════════════
-           🔎 SIGUIENTE
-        ═══════════════════════════════ */
+        // ═══════════════════════════
+        // ✰ BÚSQUEDA
+        // ═══════════════════════════
 
         {
 
           title:
-            '╭─〔 🔎 𝐁𝐔́𝐒𝐐𝐔𝐄𝐃𝐀 〕─╮',
+            '╭─〔 𝙱Ú𝚂𝚀𝚄𝙴𝙳𝙰 〕─╮',
 
           rows: [
 
             {
 
               title:
-                '➡️ ❯ 𝐒𝐈𝐆𝐔𝐈𝐄𝐍𝐓𝐄',
+                '➡️ ❯ 𝚂𝙸𝙶𝚄𝙸𝙴𝙽𝚃𝙴',
 
               description:
-                `Ver resultado ${
+                `✰ 𝚅𝚎𝚛 𝚛𝚎𝚜𝚞𝚕𝚝𝚊𝚍𝚘 ${
                   index + 2 >
                   results.length
                     ? 1
                     : index + 2
                 }/${results.length}`,
-
-              /*
-               * IMPORTANTE:
-               * Ya NO hacemos:
-               *
-               * spotify ${song.title}
-               *
-               * Ahora usamos el CACHE.
-               */
 
               id:
                 `${usedPrefix}spnext`
@@ -1008,27 +898,26 @@ async function sendSpotifyCard(
   ]
 
 
-  /* ═══════════════════════════════
-     📦 CONTENIDO
-  ═══════════════════════════════ */
+  // ═════════════════════════════════
+  // ✰ CONTENIDO
+  // ═════════════════════════════════
 
   const content = {
 
-    caption,
+    caption:
+      infoText,
 
     footer:
-      global.botname ||
-      config.botName ||
-      'SaitamaBot',
+      BOT_NAME,
 
     buttons
 
   }
 
 
-  /* ═══════════════════════════════
-     🖼️ PORTADA
-  ═══════════════════════════════ */
+  // ═════════════════════════════════
+  // ✰ PORTADA
+  // ═════════════════════════════════
 
   if (image) {
 
@@ -1042,9 +931,9 @@ async function sendSpotifyCard(
   }
 
 
-  /* ═══════════════════════════════
-     📤 ENVIAR
-  ═══════════════════════════════ */
+  // ═════════════════════════════════
+  // ✰ ENVIAR
+  // ═════════════════════════════════
 
   await conn.sendMessage(
 
@@ -1064,17 +953,17 @@ async function sendSpotifyCard(
 }
 
 
-/* ═════════════════════════════════════
-   ⚙️ CONFIGURACIÓN
-═════════════════════════════════════ */
+// ═══════════════════════════════════════
+// ✰ CONFIGURACIÓN
+// ═══════════════════════════════════════
 
 handler.help = [
 
-  'spotify <canción>',
+  'spotify <texto>',
 
-  'sp <canción>',
+  'sp <texto>',
 
-  'spsearch <canción>',
+  'spsearch <texto>',
 
   'spnext'
 
@@ -1105,6 +994,9 @@ handler.command = [
   'spotify_next'
 
 ]
+
+
+handler.register = false
 
 
 export default handler

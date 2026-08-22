@@ -1,193 +1,61 @@
 import axios from 'axios'
 import config from '../../config.js'
 
-/*
-|--------------------------------------------------------------------------
-| API
-|--------------------------------------------------------------------------
-|
-| IMPORTANTE:
-| Esta variable debe ser una URL REAL.
-| No pongas "TU-API-SFW.com".
-|
-*/
-
-const API_URL = 'https://luxinfinity.vercel.app/api/nsfw/boobs'
-
-/*
-|--------------------------------------------------------------------------
-| OBTENER URL DE IMAGEN
-|--------------------------------------------------------------------------
-*/
+const API_URL = 'https://luxinfinity.vercel.app/api/images/random'
 
 async function obtenerImagen() {
-  const response = await axios.get(API_URL, {
+  const { data } = await axios.get(API_URL, {
     timeout: 30000,
-    maxRedirects: 10,
     headers: {
       'User-Agent': 'Mozilla/5.0',
       'Accept': 'application/json'
     }
   })
 
-  const data = response.data
-
-  console.log('[PACK API]', data)
-
-  /*
-  | La función soporta varios formatos comunes:
-  |
-  | { url: "https://..." }
-  | { image: "https://..." }
-  | { data: { url: "https://..." } }
-  | { data: { image: "https://..." } }
-  | { result: { url: "https://..." } }
-  */
-
-  const imageUrl =
+  const url =
     data?.url ||
     data?.image ||
     data?.data?.url ||
     data?.data?.image ||
     data?.result?.url ||
-    data?.result?.image ||
-    null
+    data?.result?.image
 
-  if (!imageUrl) {
-    throw new Error(
-      'La API respondió correctamente, pero no devolvió una URL de imagen.'
-    )
-  }
+  if (!url || !/^https?:\/\//i.test(url))
+    throw new Error('URL inválida')
 
-  return imageUrl
+  return url
 }
 
-/*
-|--------------------------------------------------------------------------
-| HANDLER
-|--------------------------------------------------------------------------
-*/
-
-const handler = async (
-  m,
-  {
-    conn,
-    command,
-    usedPrefix
-  }
-) => {
-
-  /*
-  |--------------------------------------------------------------------------
-  | SOLO GRUPOS
-  |--------------------------------------------------------------------------
-  */
-
-  if (!m.isGroup) {
+const handler = async (m, { conn, command, usedPrefix }) => {
+  if (!m.isGroup)
     return m.reply(
-      '*『 ❌ 』ESTE COMANDO SOLO FUNCIONA EN GRUPOS.*'
+      '𝙿𝙰𝙲𝙺 ༻\n' +
+      '✰ 𝚄𝚜𝚊 𝚎𝚗 𝚞𝚗 𝚐𝚛𝚞𝚙𝚘'
     )
-  }
-
-  /*
-  |--------------------------------------------------------------------------
-  | OBTENER IMAGEN
-  |--------------------------------------------------------------------------
-  */
 
   try {
+    const url = await obtenerImagen()
 
-    const imageUrl = await obtenerImagen()
+    await conn.sendMessage(m.chat, {
+      image: { url },
+      caption:
+        '𝙿𝙰𝙲𝙺 ༻\n' +
+        '✰ 𝙸𝚖𝚊𝚐𝚎𝚗 𝚊𝚕𝚎𝚊𝚝𝚘𝚛𝚒𝚊\n\n' +
+        `✰ 𝚄𝚜𝚊 ${usedPrefix}${command} 𝚙𝚊𝚛𝚊 𝚘𝚝𝚛𝚊`,
+      footer: config.botname
+    }, { quoted: m })
 
-    /*
-    |--------------------------------------------------------------------------
-    | COMPROBAR URL
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-      typeof imageUrl !== 'string' ||
-      !/^https?:\/\//i.test(imageUrl)
-    ) {
-      throw new Error(
-        'La API devolvió una URL inválida.'
-      )
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | ENVIAR IMAGEN
-    |--------------------------------------------------------------------------
-    */
-
-    await conn.sendMessage(
-      m.chat,
-      {
-        image: {
-          url: imageUrl
-        },
-
-        caption:
-`『 🎴 』TETAS
-
-│ ✨ Imagen aleatoria
-│
-│ 🔄 Pulsa el botón
-│ para obtener otra.`,
-
-        footer: config.botname,
-
-        buttons: [
-          {
-            buttonId: `${usedPrefix}${command}`,
-            buttonText: {
-              displayText: '🔄 SIGUIENTE PACK'
-            },
-            type: 1
-          }
-        ],
-
-        headerType: 4
-      },
-      {
-        quoted: m
-      }
-    )
-
-  } catch (error) {
-
-    console.error(
-      '[PACK ERROR]',
-      error?.response?.status || '',
-      error?.message || error
-    )
-
+  } catch {
     return m.reply(
-      '*『 ❌ 』ERROR.*\n\n' +
-      '> La API respondió, pero no entregó una imagen utilizable.'
+      '𝙿𝙰𝙲𝙺 ༻\n' +
+      '✰ 𝙽𝚘 𝚜𝚎 𝚙𝚞𝚍𝚘 𝚘𝚋𝚝𝚎𝚗𝚎𝚛 𝚕𝚊 𝚒𝚖𝚊𝚐𝚎𝚗'
     )
   }
 }
 
-/*
-|--------------------------------------------------------------------------
-| CONFIGURACIÓN
-|--------------------------------------------------------------------------
-*/
-
-handler.help = [
-  'pack'
-]
-
-handler.tags = [
-  'utils'
-]
-
-handler.command = [
-  'ph',
-  'tetas'
-]
-
+handler.help = ['pack2']
+handler.tags = ['fun']
+handler.command = ['pack2', 'imagenes']
 handler.groupOnly = true
 handler.register = true
 

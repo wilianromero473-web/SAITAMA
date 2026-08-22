@@ -1,17 +1,18 @@
 import fetch from 'node-fetch'
-import config from '../../config.js'
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
 import { rm } from 'fs/promises'
 import { writeAudioTags } from '../../lib/audioTags.js'
 
-// =========================================================
-// 𝐒𝐀𝐈𝐓𝐀𝐌𝐀𝐁𝐎𝐓 • 𝐘𝐎𝐔𝐓𝐔𝐁𝐄 𝐌𝐏𝟑
-// =========================================================
+
+// ═══════════════════════════════════════
+// ✰ SAITAMABOT • YOUTUBE MP3
+// ═══════════════════════════════════════
 
 const FAA_API =
   'https://api-faa.my.id/faa/ytplay'
+
 
 const TMP_DIR =
   path.join(
@@ -19,19 +20,38 @@ const TMP_DIR =
     'saitamabot-mp3'
   )
 
+
+const BOT_NAME =
+  '𝑺𝒂𝒊𝒕𝒂𝒎𝒂𝑩𝒐𝒕'
+
+
 const USER_AGENT =
   'Mozilla/5.0 (Linux; Android 11) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36'
 
+
 const API_TIMEOUT =
   60 * 1000
+
 
 const DOWNLOAD_TIMEOUT =
   10 * 60 * 1000
 
 
-// =========================================================
-// 𝐕𝐀𝐋𝐎𝐑 → 𝐓𝐄𝐗𝐓𝐎
-// =========================================================
+// ═══════════════════════════════════════
+// ✰ CREAR CARPETA
+// ═══════════════════════════════════════
+
+await fs.promises.mkdir(
+  TMP_DIR,
+  {
+    recursive: true
+  }
+)
+
+
+// ═══════════════════════════════════════
+// ✰ VALOR → TEXTO
+// ═══════════════════════════════════════
 
 function textValue(
   value,
@@ -46,12 +66,15 @@ function textValue(
     return fallback
   }
 
+
   if (
     typeof value === 'string' ||
     typeof value === 'number'
   ) {
+
     return String(value)
   }
+
 
   if (
     typeof value === 'object'
@@ -68,6 +91,7 @@ function textValue(
       value.formatted ||
       value.display
 
+
     if (possible) {
 
       return textValue(
@@ -77,42 +101,41 @@ function textValue(
     }
   }
 
+
   return fallback
 }
 
 
-// =========================================================
-// 𝐍𝐎𝐌𝐁𝐑𝐄 𝐃𝐄 𝐀𝐑𝐂𝐇𝐈𝐕𝐎
-// =========================================================
+// ═══════════════════════════════════════
+// ✰ NOMBRE SEGURO
+// ═══════════════════════════════════════
 
 function safeFileName(
   title = 'audio-youtube'
 ) {
 
   return String(title)
-
     .replace(
       /[<>:"/\\|?*\x00-\x1F]/g,
       ''
     )
-
     .replace(
       /\s+/g,
       ' '
     )
-
     .trim()
-
-    .slice(0, 100)
-
+    .slice(
+      0,
+      100
+    )
     ||
     'audio-youtube'
 }
 
 
-// =========================================================
-// 𝐕𝐈𝐒𝐓𝐀𝐒
-// =========================================================
+// ═══════════════════════════════════════
+// ✰ VISTAS
+// ═══════════════════════════════════════
 
 function formatViews(
   views
@@ -127,6 +150,7 @@ function formatViews(
     return 'Desconocidas'
   }
 
+
   const number =
     Number(
       String(views)
@@ -136,6 +160,7 @@ function formatViews(
         )
     )
 
+
   if (
     !Number.isFinite(number)
   ) {
@@ -143,29 +168,29 @@ function formatViews(
     return String(views)
   }
 
+
   return number.toLocaleString(
     'es-ES'
   )
 }
 
 
-// =========================================================
-// 𝐃𝐔𝐑𝐀𝐂𝐈Ó𝐍
-// =========================================================
+// ═══════════════════════════════════════
+// ✰ DURACIÓN
+// ═══════════════════════════════════════
 
 function formatDuration(
   duration,
   timestamp
 ) {
 
-  if (
-    timestamp
-  ) {
+  if (timestamp) {
 
     return String(
       timestamp
     )
   }
+
 
   if (
     duration === undefined ||
@@ -175,8 +200,10 @@ function formatDuration(
     return 'Desconocida'
   }
 
+
   const seconds =
     Number(duration)
+
 
   if (
     !Number.isFinite(seconds)
@@ -185,24 +212,26 @@ function formatDuration(
     return String(duration)
   }
 
+
   const hours =
     Math.floor(
       seconds / 3600
     )
+
 
   const minutes =
     Math.floor(
       (seconds % 3600) / 60
     )
 
+
   const secs =
     Math.floor(
       seconds % 60
     )
 
-  if (
-    hours > 0
-  ) {
+
+  if (hours > 0) {
 
     return (
       `${hours}:` +
@@ -211,6 +240,7 @@ function formatDuration(
     )
   }
 
+
   return (
     `${minutes}:` +
     `${String(secs).padStart(2, '0')}`
@@ -218,9 +248,9 @@ function formatDuration(
 }
 
 
-// =========================================================
-// 𝐅𝐀𝐀 • 𝐁𝐔𝐒𝐂𝐀𝐑 𝐘𝐎𝐔𝐓𝐔𝐁𝐄
-// =========================================================
+// ═══════════════════════════════════════
+// ✰ BUSCAR YOUTUBE
+// ═══════════════════════════════════════
 
 async function searchYouTube(
   query
@@ -229,6 +259,7 @@ async function searchYouTube(
   const apiUrl =
     `${FAA_API}?query=` +
     encodeURIComponent(query)
+
 
   const response =
     await fetch(
@@ -249,10 +280,13 @@ async function searchYouTube(
       }
     )
 
+
   const body =
     await response.text()
 
+
   let data
+
 
   try {
 
@@ -262,9 +296,10 @@ async function searchYouTube(
   } catch {
 
     throw new Error(
-      'La API FAA no devolvió JSON válido'
+      'La API no devolvió JSON válido.'
     )
   }
+
 
   if (
     !response.ok
@@ -277,6 +312,7 @@ async function searchYouTube(
     )
   }
 
+
   if (
     !data?.status
   ) {
@@ -284,35 +320,38 @@ async function searchYouTube(
     throw new Error(
       data?.message ||
       data?.error ||
-      'No se encontraron resultados'
+      'No se encontraron resultados.'
     )
   }
+
 
   if (
     !data?.result
   ) {
 
     throw new Error(
-      'La API no devolvió información'
+      'La API no devolvió información.'
     )
   }
+
 
   if (
     !data.result.mp3
   ) {
 
     throw new Error(
-      'La API no devolvió el MP3'
+      'La API no devolvió el MP3.'
     )
   }
+
 
   return data.result
 }
 
 
-// =========================================================
-// 𝐃𝐄𝐒𝐂𝐀𝐑𝐆𝐀𝐑 𝐌𝐏𝟑
-// =========================================================
+// ═══════════════════════════════════════
+// ✰ DESCARGAR MP3
+// ═══════════════════════════════════════
 
 async function downloadMp3(
   url,
@@ -322,11 +361,13 @@ async function downloadMp3(
   const controller =
     new AbortController()
 
+
   const timer =
     setTimeout(
       () => controller.abort(),
       DOWNLOAD_TIMEOUT
     )
+
 
   try {
 
@@ -352,23 +393,26 @@ async function downloadMp3(
         }
       )
 
+
     if (
       !response.ok
     ) {
 
       throw new Error(
-        `Descarga MP3 HTTP ${response.status}`
+        `Descarga HTTP ${response.status}`
       )
     }
+
 
     if (
       !response.body
     ) {
 
       throw new Error(
-        'El servidor no devolvió el audio'
+        'El servidor no devolvió el audio.'
       )
     }
+
 
     await fs.promises.mkdir(
       path.dirname(output),
@@ -377,25 +421,30 @@ async function downloadMp3(
       }
     )
 
+
     const file =
       fs.createWriteStream(
         output
       )
+
 
     await new Promise(
       (resolve, reject) => {
 
         response.body.pipe(file)
 
+
         response.body.once(
           'error',
           reject
         )
 
+
         file.once(
           'error',
           reject
         )
+
 
         file.once(
           'finish',
@@ -404,10 +453,12 @@ async function downloadMp3(
       }
     )
 
+
     const stat =
       await fs.promises.stat(
         output
       )
+
 
     if (
       !stat.isFile() ||
@@ -421,10 +472,12 @@ async function downloadMp3(
         }
       ).catch(() => {})
 
+
       throw new Error(
-        'El MP3 descargado no es válido'
+        'El MP3 descargado no es válido.'
       )
     }
+
 
     return stat
 
@@ -435,9 +488,9 @@ async function downloadMp3(
 }
 
 
-// =========================================================
-// 𝐌𝐈𝐍𝐈𝐀𝐓𝐔𝐑𝐀
-// =========================================================
+// ═══════════════════════════════════════
+// ✰ MINIATURA
+// ═══════════════════════════════════════
 
 async function getThumbnail(
   url
@@ -446,6 +499,7 @@ async function getThumbnail(
   if (!url) {
     return null
   }
+
 
   try {
 
@@ -463,6 +517,7 @@ async function getThumbnail(
         }
       )
 
+
     if (
       !response.ok
     ) {
@@ -470,10 +525,12 @@ async function getThumbnail(
       return null
     }
 
+
     const buffer =
       Buffer.from(
         await response.arrayBuffer()
       )
+
 
     if (
       !buffer.length
@@ -481,6 +538,7 @@ async function getThumbnail(
 
       return null
     }
+
 
     return buffer
 
@@ -491,44 +549,9 @@ async function getThumbnail(
 }
 
 
-// =========================================================
-// 𝐓𝐀𝐌𝐀Ñ𝐎
-// =========================================================
-
-function formatSize(
-  bytes
-) {
-
-  if (
-    !Number.isFinite(bytes)
-  ) {
-
-    return 'Desconocido'
-  }
-
-  const mb =
-    bytes / 1024 / 1024
-
-  if (
-    mb < 1024
-  ) {
-
-    return (
-      `${mb.toFixed(2)} MB`
-    )
-  }
-
-  return (
-    `${(
-      mb / 1024
-    ).toFixed(2)} GB`
-  )
-}
-
-
-// =========================================================
-// 𝐇𝐀𝐍𝐃𝐋𝐄𝐑
-// =========================================================
+// ═══════════════════════════════════════
+// ✰ HANDLER
+// ═══════════════════════════════════════
 
 const handler = async (
   m,
@@ -546,29 +569,30 @@ const handler = async (
     ).trim()
 
 
-  // =======================================================
-  // 𝐒𝐈𝐍 𝐁Ú𝐒𝐐𝐔𝐄𝐃𝐀
-  // =======================================================
+  // ═══════════════════════════════════
+  // ✰ SIN CONSULTA
+  // ═══════════════════════════════════
 
   if (!query) {
 
     return m.reply(
 
-`𝙔𝙤𝙪𝙏𝙪𝙗𝙚 𝙈𝙋𝟯
+`༺ 𝚈𝙾𝚄𝚃𝚄𝙱𝙴 𝙼𝙿𝟹 ༻
 
-𝙀𝙨𝙘𝙧𝙞𝙗𝙚 𝙚𝙡 𝙣𝙤𝙢𝙗𝙧𝙚 𝙙𝙚 𝙡𝙖 𝙘𝙖𝙣𝙘𝙞ó𝙣.
+✰ 𝚄𝚜𝚊:
+${usedPrefix}${command} <canción>
 
-𝙀𝙟𝙚𝙢𝙥𝙡𝙤:
+✰ 𝙴𝚓𝚎𝚖𝚙𝚕𝚘:
 ${usedPrefix}${command} Ozuna Mi Niña
 
-${config.botName || 'SaitamaBot'}`
+✰ ${BOT_NAME}`
     )
   }
 
 
-  // =======================================================
-  // 𝐑𝐄𝐀𝐂𝐂𝐈Ó𝐍
-  // =======================================================
+  // ═══════════════════════════════════
+  // ✰ REACCIÓN
+  // ═══════════════════════════════════
 
   await conn.sendMessage(
     m.chat,
@@ -581,21 +605,21 @@ ${config.botName || 'SaitamaBot'}`
   ).catch(() => {})
 
 
-  const id =
-    Date.now()
-
   const audioFile =
     path.join(
       TMP_DIR,
-      `${id}.mp3`
+      `${Date.now()}.mp3`
     )
+
+
+  let progressMsg = null
 
 
   try {
 
-    // =====================================================
-    // 𝐁𝐔𝐒𝐂𝐀𝐑
-    // =====================================================
+    // ═════════════════════════════════
+    // ✰ BUSCAR
+    // ═════════════════════════════════
 
     const result =
       await searchYouTube(
@@ -603,15 +627,12 @@ ${config.botName || 'SaitamaBot'}`
       )
 
 
-    // =====================================================
-    // 𝐈𝐍𝐅𝐎𝐑𝐌𝐀𝐂𝐈Ó𝐍
-    // =====================================================
-
     const title =
       textValue(
         result.title,
         'Audio de YouTube'
       )
+
 
     const author =
       textValue(
@@ -619,10 +640,12 @@ ${config.botName || 'SaitamaBot'}`
         'Desconocido'
       )
 
+
     const views =
       formatViews(
         result.views
       )
+
 
     const duration =
       formatDuration(
@@ -630,17 +653,6 @@ ${config.botName || 'SaitamaBot'}`
         result.duration_timestamp
       )
 
-    const published =
-      textValue(
-        result.published,
-        'Desconocido'
-      )
-
-    const youtube =
-      textValue(
-        result.url,
-        'No disponible'
-      )
 
     const thumbnail =
       textValue(
@@ -649,9 +661,9 @@ ${config.botName || 'SaitamaBot'}`
       )
 
 
-    // =====================================================
-    // 𝐌𝐈𝐍𝐈𝐀𝐓𝐔𝐑𝐀
-    // =====================================================
+    // ═════════════════════════════════
+    // ✰ MINIATURA
+    // ═════════════════════════════════
 
     const thumbnailBuffer =
       await getThumbnail(
@@ -659,28 +671,23 @@ ${config.botName || 'SaitamaBot'}`
       )
 
 
-    // =====================================================
-    // 𝐂𝐀𝐏𝐓𝐈𝐎𝐍
-    // =====================================================
+    // ═════════════════════════════════
+    // ✰ MENSAJE INICIAL
+    // ═════════════════════════════════
 
     const caption =
-`𝙔𝙤𝙪𝙏𝙪𝙗𝙚
 
-𝙏í𝙩𝙪𝙡𝙤: ${title}
-𝘼𝙪𝙩𝙤𝙧: ${author}
-𝙑𝙞𝙨𝙩𝙖𝙨: ${views}
-𝘿𝙪𝙧𝙖𝙘𝙞ó𝙣: ${duration}
-𝙋𝙪𝙗𝙡𝙞𝙘𝙖𝙙𝙤: ${published}
-𝙀𝙣𝙡𝙖𝙘𝙚: ${youtube}
+`༺ 𝚈𝙾𝚄𝚃𝚄𝙱𝙴 𝙼𝙿𝟹 ༻
 
-𝘿𝙚𝙨𝙘𝙖𝙧𝙜𝙖𝙣𝙙𝙤 𝙖𝙪𝙙𝙞𝙤...
+✰ 𝚃í𝚝𝚞𝚕𝚘: ${title}
+✰ 𝙰𝚞𝚝𝚘𝚛: ${author}
+✰ 𝚅𝚒𝚜𝚝𝚊𝚜: ${views}
+✰ 𝙳𝚞𝚛𝚊𝚌𝚒ó𝚗: ${duration}
 
-${config.botName || 'SaitamaBot'}`
+✰ 𝙳𝚎𝚜𝚌𝚊𝚛𝚐𝚊𝚗𝚍𝚘...
 
+✰ ${BOT_NAME}`
 
-    // =====================================================
-    // 𝐄𝐍𝐕𝐈𝐀𝐑 𝐈𝐌𝐀𝐆𝐄𝐍
-    // =====================================================
 
     if (
       thumbnailBuffer
@@ -692,8 +699,7 @@ ${config.botName || 'SaitamaBot'}`
           image:
             thumbnailBuffer,
 
-          caption:
-            caption
+          caption
         },
         {
           quoted:
@@ -703,15 +709,16 @@ ${config.botName || 'SaitamaBot'}`
 
     } else {
 
-      await m.reply(
-        caption
-      )
+      progressMsg =
+        await m.reply(
+          caption
+        )
     }
 
 
-    // =====================================================
-    // 𝐃𝐄𝐒𝐂𝐀𝐑𝐆𝐀𝐑
-    // =====================================================
+    // ═════════════════════════════════
+    // ✰ DESCARGAR
+    // ═════════════════════════════════
 
     const stat =
       await downloadMp3(
@@ -720,21 +727,17 @@ ${config.botName || 'SaitamaBot'}`
       )
 
 
-    // =====================================================
-    // 𝐓𝐀𝐆𝐒
-    // =====================================================
+    // ═════════════════════════════════
+    // ✰ TAGS
+    // ═════════════════════════════════
 
     try {
 
       await writeAudioTags(
         audioFile,
         {
-          title:
-            title,
-
-          author:
-            author,
-
+          title,
+          author,
           image:
             thumbnail
         }
@@ -743,9 +746,9 @@ ${config.botName || 'SaitamaBot'}`
     } catch {}
 
 
-    // =====================================================
-    // 𝐋𝐄𝐄𝐑 𝐀𝐔𝐃𝐈𝐎
-    // =====================================================
+    // ═════════════════════════════════
+    // ✰ LEER AUDIO
+    // ═════════════════════════════════
 
     const audio =
       await fs.promises.readFile(
@@ -758,14 +761,14 @@ ${config.botName || 'SaitamaBot'}`
     ) {
 
       throw new Error(
-        'El MP3 está vacío'
+        'El MP3 está vacío.'
       )
     }
 
 
-    // =====================================================
-    // 𝐄𝐍𝐕𝐈𝐀𝐑 𝐌𝐏𝟑
-    // =====================================================
+    // ═════════════════════════════════
+    // ✰ ENVIAR MP3
+    // ═════════════════════════════════
 
     await conn.sendMessage(
       m.chat,
@@ -788,9 +791,9 @@ ${config.botName || 'SaitamaBot'}`
     )
 
 
-    // =====================================================
-    // 𝐋𝐈𝐌𝐏𝐈𝐀𝐑
-    // =====================================================
+    // ═════════════════════════════════
+    // ✰ LIMPIAR
+    // ═════════════════════════════════
 
     await rm(
       audioFile,
@@ -800,9 +803,9 @@ ${config.botName || 'SaitamaBot'}`
     ).catch(() => {})
 
 
-    // =====================================================
-    // 𝐑𝐄𝐀𝐂𝐂𝐈Ó𝐍
-    // =====================================================
+    // ═════════════════════════════════
+    // ✰ REACCIÓN FINAL
+    // ═════════════════════════════════
 
     await conn.sendMessage(
       m.chat,
@@ -816,10 +819,6 @@ ${config.botName || 'SaitamaBot'}`
 
   } catch (error) {
 
-    // =====================================================
-    // 𝐋𝐈𝐌𝐏𝐈𝐀𝐑
-    // =====================================================
-
     await rm(
       audioFile,
       {
@@ -827,10 +826,6 @@ ${config.botName || 'SaitamaBot'}`
       }
     ).catch(() => {})
 
-
-    // =====================================================
-    // 𝐑𝐄𝐀𝐂𝐂𝐈Ó𝐍 ERROR
-    // =====================================================
 
     await conn.sendMessage(
       m.chat,
@@ -843,40 +838,37 @@ ${config.botName || 'SaitamaBot'}`
     ).catch(() => {})
 
 
-    // =====================================================
-    // 𝐄𝐑𝐑𝐎𝐑
-    // =====================================================
-
     return m.reply(
 
-`𝙀𝙧𝙧𝙤𝙧 𝙈𝙋𝟯
+`༺ 𝙴𝚁𝚁𝙾𝚁 𝙼𝙿𝟹 ༻
 
-𝙉𝙤 𝙨𝙚 𝙥𝙪𝙙𝙤 𝙙𝙚𝙨𝙘𝙖𝙧𝙜𝙖𝙧 𝙚𝙡 𝙖𝙪𝙙𝙞𝙤.
+✰ 𝙽𝚘 𝚜𝚎 𝚙𝚞𝚍𝚘 𝚍𝚎𝚜𝚌𝚊𝚛𝚐𝚊𝚛.
 
-${String(
+✰ ${String(
   error?.message ||
-  error ||
-  'Error desconocido'
-).slice(0, 500)}
+  'Error desconocido.'
+).slice(0, 150)}
 
-${config.botName || 'SaitamaBot'}`
+✰ ${BOT_NAME}`
     )
   }
 }
 
 
-// =========================================================
-// 𝐂𝐎𝐍𝐅𝐈𝐆𝐔𝐑𝐀𝐂𝐈Ó𝐍
-// =========================================================
+// ═══════════════════════════════════════
+// ✰ CONFIGURACIÓN
+// ═══════════════════════════════════════
 
 handler.help = [
   'mp3 <canción>',
   'audio <canción>'
 ]
 
+
 handler.tags = [
   'descargas'
 ]
+
 
 handler.command = [
   'mp3',
@@ -884,5 +876,9 @@ handler.command = [
   'audio',
   'music'
 ]
+
+
+handler.register = false
+
 
 export default handler

@@ -3,515 +3,519 @@ import config from '../../config.js'
 
 const partidas = new Map()
 
-const TABLERO_VACIO = [' ',' ',' ',' ',' ',' ',' ',' ',' ']
-const POS_MAP       = { '1':0,'2':1,'3':2,'4':3,'5':4,'6':5,'7':6,'8':7,'9':8 }
-const COMBOS        = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]
-const NUM_EMOJI     = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣']
-const MAX_APUESTA   = 100_000
+const VACIO = [' ',' ',' ',' ',' ',' ',' ',' ',' ']
+const POS = {1:0,2:1,3:2,4:3,5:4,6:5,7:6,8:7,9:8}
+const COMBOS = [
+  [0,1,2],[3,4,5],[6,7,8],
+  [0,3,6],[1,4,7],[2,5,8],
+  [0,4,8],[2,4,6]
+]
+const NUM = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣']
 
-const ALIAS_DIF = {
-  facil: 'facil', easy: 'facil',
-  medio: 'medio', medium: 'medio',
-  dificil: 'dificil', hard: 'dificil',
-  imposible: 'imposible', impossible: 'imposible'
-}
-const DIF_LABEL = {
-  facil:    '🟢 FÁCIL',
-  medio:    '🟡 MEDIO',
-  dificil:  '🔴 DIFÍCIL',
-  imposible:'⚫ IMPOSIBLE'
-}
-const DIF_CONFIG = {
-  facil:    { premio: 0,     genos: 0,  desc: 'La IA comete errores frecuentes' },
-  medio:    { premio: 0,     genos: 0,  desc: 'Equilibrado, puede fallar' },
-  dificil:  { premio: 2500,  genos: 0,  desc: 'Casi imposible ganarle' },
-  imposible:{ premio: 10000, genos: 10, desc: 'La IA nunca pierde' },
-}
-
-function dibujarTablero(t) {
-  const c = t.map((v, i) => v === ' ' ? NUM_EMOJI[i] : v)
-  return (
-    `┌─────────────┐\n` +
-    `│ ${c[0]} │ ${c[1]} │ ${c[2]} │\n` +
-    `│─────────────│\n` +
-    `│ ${c[3]} │ ${c[4]} │ ${c[5]} │\n` +
-    `│─────────────│\n` +
-    `│ ${c[6]} │ ${c[7]} │ ${c[8]} │\n` +
-    `└─────────────┘`
-  )
-}
-
-function verificarGanador(t) {
-  for (const [a,b,c] of COMBOS)
-    if (t[a] !== ' ' && t[a] === t[b] && t[b] === t[c]) return t[a]
-  return null
-}
-
-function tableroLleno(t) { return t.every(c => c !== ' ') }
-
-function minimax(tab, esIA, prof = 0, alfa = -Infinity, beta = Infinity) {
-  const gan = verificarGanador(tab)
-  if (gan === '✖') return -10 + prof
-  if (gan === '⭕') return  10 - prof
-  if (tableroLleno(tab)) return 0
-
-  if (esIA) {
-    let mejor = -Infinity
-    for (let i = 0; i < 9; i++) {
-      if (tab[i] !== ' ') continue
-      const c = [...tab]; c[i] = '⭕'
-      mejor = Math.max(mejor, minimax(c, false, prof + 1, alfa, beta))
-      alfa = Math.max(alfa, mejor)
-      if (beta <= alfa) break
-    }
-    return mejor
-  } else {
-    let mejor = Infinity
-    for (let i = 0; i < 9; i++) {
-      if (tab[i] !== ' ') continue
-      const c = [...tab]; c[i] = '✖'
-      mejor = Math.min(mejor, minimax(c, true, prof + 1, alfa, beta))
-      beta = Math.min(beta, mejor)
-      if (beta <= alfa) break
-    }
-    return mejor
+const DIF = {
+  facil: {
+    premio: 0,
+    texto: 'La IA comete errores frecuentes'
+  },
+  medio: {
+    premio: 0,
+    texto: 'La IA juega de forma equilibrada'
+  },
+  dificil: {
+    premio: 2500,
+    texto: 'La IA es muy difícil de vencer'
+  },
+  imposible: {
+    premio: 10000,
+    texto: 'La IA juega perfectamente'
   }
 }
 
-function ganarSi(t, ficha) {
-  const libres = t.map((v, i) => v === ' ' ? i : -1).filter(i => i !== -1)
-  for (const i of libres) {
-    const c = [...t]; c[i] = ficha
-    if (verificarGanador(c) === ficha) return i
+const ALIAS = {
+  facil: 'facil',
+  easy: 'facil',
+  medio: 'medio',
+  medium: 'medio',
+  dificil: 'dificil',
+  hard: 'dificil',
+  imposible: 'imposible',
+  impossible: 'imposible'
+}
+
+const nombre = jid => jid?.split('@')[0] || 'Usuario'
+
+function tablero(t) {
+  return [
+    `┌─────┬─────┬─────┐`,
+    `│ ${t[0] === ' ' ? NUM[0] : t[0]} │ ${t[1] === ' ' ? NUM[1] : t[1]} │ ${t[2] === ' ' ? NUM[2] : t[2]} │`,
+    `├─────┼─────┼─────┤`,
+    `│ ${t[3] === ' ' ? NUM[3] : t[3]} │ ${t[4] === ' ' ? NUM[4] : t[4]} │ ${t[5] === ' ' ? NUM[5] : t[5]} │`,
+    `├─────┼─────┼─────┤`,
+    `│ ${t[6] === ' ' ? NUM[6] : t[6]} │ ${t[7] === ' ' ? NUM[7] : t[7]} │ ${t[8] === ' ' ? NUM[8] : t[8]} │`,
+    `└─────┴─────┴─────┘`
+  ].join('\n')
+}
+
+function ganador(t) {
+  for (const [a,b,c] of COMBOS)
+    if (t[a] !== ' ' && t[a] === t[b] && t[b] === t[c])
+      return t[a]
+  return null
+}
+
+const lleno = t => t.every(x => x !== ' ')
+
+function ganarEn(t, ficha) {
+  for (const i of t.map((x,i) => x === ' ' ? i : -1).filter(i => i >= 0)) {
+    const copia = [...t]
+    copia[i] = ficha
+    if (ganador(copia) === ficha) return i
   }
   return -1
 }
 
-function movIA(t, dif = 'imposible') {
-  const libres = t.map((v, i) => v === ' ' ? i : -1).filter(i => i !== -1)
-  if (!libres.length) return -1
+function minimax(t, ia) {
+  const g = ganador(t)
+  if (g === '⭕') return 10
+  if (g === '✖') return -10
+  if (lleno(t)) return 0
 
-  const rand     = () => libres[Math.floor(Math.random() * libres.length)]
-  const centro   = 4
-  const esquinas = [0, 2, 6, 8].filter(i => t[i] === ' ')
-  const lados    = [1, 3, 5, 7].filter(i => t[i] === ' ')
+  const libres = t.map((x,i) => x === ' ' ? i : -1).filter(i => i >= 0)
 
-  if (dif === 'facil') {
-    if (Math.random() < 0.75) return rand()
-    const bloqueo = ganarSi(t, '✖')
-    if (bloqueo !== -1 && Math.random() < 0.50) return bloqueo
-    return rand()
-  }
-
-  if (dif === 'medio') {
-    const ganar = ganarSi(t, '⭕')
-    if (ganar !== -1) return ganar
-    const bloqueo = ganarSi(t, '✖')
-    if (bloqueo !== -1 && Math.random() < 0.60) return bloqueo
-    if (Math.random() < 0.50) {
-      if (t[centro] === ' ') return centro
-      if (esquinas.length) return esquinas[Math.floor(Math.random() * esquinas.length)]
+  if (ia) {
+    let mejor = -Infinity
+    for (const i of libres) {
+      const c = [...t]
+      c[i] = '⭕'
+      mejor = Math.max(mejor, minimax(c, false))
     }
-    return rand()
+    return mejor
   }
 
-  if (dif === 'dificil') {
-    const ganar = ganarSi(t, '⭕')
-    if (ganar !== -1) return ganar
-    const bloqueo = ganarSi(t, '✖')
-    if (bloqueo !== -1) return bloqueo
-    if (Math.random() < 0.10) return rand()
-    if (t[centro] === ' ') return centro
-    if (esquinas.length) return esquinas[Math.floor(Math.random() * esquinas.length)]
-    if (lados.length) return lados[Math.floor(Math.random() * lados.length)]
-    return rand()
-  }
-
-  const ganar = ganarSi(t, '⭕')
-  if (ganar !== -1) return ganar
-  const bloqueo = ganarSi(t, '✖')
-  if (bloqueo !== -1) return bloqueo
-
-  let mejorP = -Infinity
-  let mejorI = libres[0]
+  let mejor = Infinity
   for (const i of libres) {
-    const c = [...t]; c[i] = '⭕'
-    const p = minimax(c, false)
-    if (p > mejorP) { mejorP = p; mejorI = i }
+    const c = [...t]
+    c[i] = '✖'
+    mejor = Math.min(mejor, minimax(c, true))
   }
-  return mejorI
+  return mejor
 }
 
-function nombreCorto(jid) { return jid.split('@')[0] }
+function movimientoIA(t, dificultad) {
+  const libres = t.map((x,i) => x === ' ' ? i : -1).filter(i => i >= 0)
+  if (!libres.length) return -1
 
-async function actualizarStats(jid, campo, valor) {
-  await User.updateOne({ jid }, { $inc: { [campo]: valor } })
+  const random = () => libres[Math.floor(Math.random() * libres.length)]
+
+  if (dificultad === 'facil')
+    return Math.random() < .75 ? random() : ganarEn(t, '✖') >= 0 ? ganarEn(t, '✖') : random()
+
+  const ganar = ganarEn(t, '⭕')
+  if (ganar >= 0) return ganar
+
+  const bloquear = ganarEn(t, '✖')
+
+  if (dificultad === 'medio')
+    return bloquear >= 0 && Math.random() < .6 ? bloquear : random()
+
+  if (dificultad === 'dificil') {
+    if (bloquear >= 0) return bloquear
+    if (t[4] === ' ') return 4
+    return random()
+  }
+
+  let mejor = -Infinity
+  let posicion = libres[0]
+
+  for (const i of libres) {
+    const c = [...t]
+    c[i] = '⭕'
+    const valor = minimax(c, false)
+
+    if (valor > mejor) {
+      mejor = valor
+      posicion = i
+    }
+  }
+
+  return posicion
+}
+
+async function stat(jid, campo) {
+  await User.updateOne({ jid }, { $inc: { [campo]: 1 } })
 }
 
 const handler = async (m, ctx) => {
-  const { conn, args, command, userDb } = ctx
-  const chatId = m.chat
+  const { conn, command, args } = ctx
+  const chat = m.chat
   const sender = m.sender
-  const nombre = m.pushName || nombreCorto(sender)
-  const S      = config.CURRENCY_SYMBOL
+  const S = config.CURRENCY_SYMBOL
 
   if (command === 'ttt' || command === 'tictactoe') {
 
-    if (partidas.has(chatId)) {
-      const p = partidas.get(chatId)
-      return conn.sendMessage(chatId, {
-        text: `*⌬┤ ⚠️ ├⌬ YA HAY UNA PARTIDA ACTIVA.*\n> Terminala con *!rendirse* o esperá a que termine.\n\n${dibujarTablero(p.tablero)}`,
-        mentions: [p.jugador1, p.jugador2].filter(Boolean)
-      }, { quoted: m })
-    }
-
-    const arg0 = (args[0] || '').toLowerCase()
-
-    if (!arg0) {
+    if (partidas.has(chat))
       return m.reply(
-        `*⌬┤ ❌⭕ ├⌬ TIC TAC TOE.*\n\n` +
-        `> *!ttt ia <dificultad>* — vs IA (No permite apostar)\n` +
-        `> *!ttt @usuario [apuesta]* — vs jugador (PvP)\n\n` +
-        `*Dificultades vs IA:*\n` +
-        `> 🟢 *facil* — La IA comete errores\n` +
-        `> 🟡 *medio* — Equilibrado\n` +
-        `> 🔴 *dificil* — Muy difícil + premio *2,500 ${S}*\n` +
-        `> ⚫ *imposible* — Nunca pierde + premio *10,000 ${S}* y *10 Genos* ✦\n\n` +
-        `> 💰 Apuesta máxima PvP: *100,000 ${S}*`
+        `*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n` +
+        `✰ 𝚈𝚊 𝚑𝚊𝚢 𝚞𝚗𝚊 𝚙𝚊𝚛𝚝𝚒𝚍𝚊 𝚊𝚌𝚝𝚒𝚟𝚊\n\n` +
+        `${tablero(partidas.get(chat).tablero)}`
       )
-    }
 
-    const esIA = ['ia', 'ai', 'bot'].includes(arg0)
-    if (esIA) {
-      const difKey = ALIAS_DIF[(args[1] || '').toLowerCase()]
-      if (!difKey) {
+    const tipo = (args[0] || '').toLowerCase()
+
+    if (!tipo)
+      return m.reply(
+        `*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n` +
+        `✰ 𝚃𝙸𝙲 𝚃𝙰𝙲 𝚃𝙾𝙴\n\n` +
+        `✰ 𝚄𝚜𝚊\n` +
+        `> !ttt ia facil\n` +
+        `> !ttt ia medio\n` +
+        `> !ttt ia dificil\n` +
+        `> !ttt ia imposible\n` +
+        `> !ttt @usuario\n\n` +
+        `✰ 𝙳𝚒𝚏𝚒𝚌𝚞𝚕𝚝𝚊𝚍𝚎𝚜\n` +
+        `> 🟢 Facil\n` +
+        `> 🟡 Medio\n` +
+        `> 🔴 Dificil — +2,500 ${S}\n` +
+        `> ⚫ Imposible — +10,000 ${S}`
+      )
+
+    if (['ia','ai','bot'].includes(tipo)) {
+      const dificultad = ALIAS[(args[1] || '').toLowerCase()]
+
+      if (!dificultad)
         return m.reply(
-          `*⌬┤ 🤖 ├⌬ ELEGÍ LA DIFICULTAD.*\n\n` +
-          `> *!ttt ia facil* 🟢\n> *!ttt ia medio* 🟡\n> *!ttt ia dificil* 🔴 (+2,500 ${S})\n> *!ttt ia imposible* ⚫ (+10,000 ${S} y 10 Genos ✦)`
+          `*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n` +
+          `✰ 𝙳𝚒𝚏𝚒𝚌𝚞𝚕𝚝𝚊𝚍 𝚒𝚗𝚟𝚊𝚕𝚒𝚍𝚊\n\n` +
+          `✰ 𝚄𝚜𝚊\n` +
+          `> !ttt ia facil\n` +
+          `> !ttt ia medio\n` +
+          `> !ttt ia dificil\n` +
+          `> !ttt ia imposible`
         )
-      }
 
-      partidas.set(chatId, {
-        tablero: [...TABLERO_VACIO],
+      partidas.set(chat, {
+        tablero: [...VACIO],
         jugador1: sender,
         jugador2: null,
         turno: sender,
         vsIA: true,
+        dificultad,
         fichaJ1: '✖',
         fichaIA: '⭕',
-        apuesta: 0,
-        dif: difKey,
         movs: 0
       })
 
-      const dc = DIF_CONFIG[difKey]
-      let cap = `*⌬┤ ❌⭕ ├⌬ TIC TAC TOE vs IA — ${DIF_LABEL[difKey]}.*\n\n`
-      cap += `> Vos: *✖* │ IA: *⭕*\n`
-      cap += `> ${dc.desc}\n`
-      if (dc.premio > 0 || dc.genos > 0) {
-        cap += `> 🏆 Premio si ganás: `
-        if (dc.premio > 0) cap += `*+${dc.premio.toLocaleString('es-AR')} ${S}*`
-        if (dc.genos > 0)  cap += ` + *${dc.genos} Genos ✦*`
-        cap += `\n`
-      }
-      cap += `\n> Jugá enviando un número del *1* al *9* sin prefijo\n\n${dibujarTablero([...TABLERO_VACIO])}`
+      const d = DIF[dificultad]
 
-      return m.reply(cap)
+      return m.reply(
+        `*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n` +
+        `✰ 𝚃𝚃𝚃 𝚅𝚂 𝙸𝙰\n\n` +
+        `✰ 𝙳𝚒𝚏𝚒𝚌𝚞𝚕𝚝𝚊𝚍: *${dificultad.toUpperCase()}*\n` +
+        `✰ ${d.texto}\n` +
+        (d.premio ? `✰ 𝙿𝚛𝚎𝚖𝚒𝚘: *+${d.premio.toLocaleString()} ${S}*\n\n` : '\n') +
+        `✰ 𝚄𝚜𝚊\n` +
+        `> Envía un número del *1 al 9*\n\n` +
+        tablero(VACIO)
+      )
     }
 
     const rival = m.mentionedJid?.[0] ||
-                  (m.quoted?.sender && m.quoted.sender !== sender ? m.quoted.sender : null)
+      (m.quoted?.sender && m.quoted.sender !== sender ? m.quoted.sender : null)
 
     if (!rival || rival === sender)
-      return m.reply(`*⌬┤ ❌⭕ ├⌬ TIC TAC TOE.*\n> Mencioná a un rival: *!ttt @usuario [apuesta]*`)
+      return m.reply(
+        `*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n` +
+        `✰ 𝙳𝚎𝚗𝚐𝚊 𝚊 𝚞𝚗 𝚛𝚒𝚟𝚊𝚕\n\n` +
+        `✰ 𝚄𝚜𝚊\n` +
+        `> !ttt @usuario`
+      )
 
-    const apuesta = parseInt(args[1]) || 0
-
-    if (apuesta > 0) {
-      if (!userDb?.registered)
-        return m.reply(`*⌬┤ 🔒 ├⌬ NO REGISTRADO.*\n> Debés registrarte para apostar.`)
-      if (apuesta > MAX_APUESTA)
-        return m.reply(`*⌬┤ ⚠️ ├⌬ APUESTA EXCESIVA.*\n> El máximo es *100,000 ${S}*.`)
-      if ((userDb.genosCoins || 0) < apuesta)
-        return m.reply(`*⌬┤ 💸 ├⌬ SIN FONDOS.*\n> Tenés *${userDb.genosCoins || 0} ${S}* y apostás *${apuesta} ${S}*.`)
-      await User.updateOne({ jid: sender }, { $inc: { genosCoins: -apuesta } })
-    }
-
-    partidas.set(chatId, {
-      tablero: [...TABLERO_VACIO],
+    partidas.set(chat, {
+      tablero: [...VACIO],
       jugador1: sender,
       jugador2: rival,
       turno: sender,
       vsIA: false,
+      esperando: true,
       fichaJ1: '✖',
       fichaJ2: '⭕',
-      apuesta,
-      esperando: true,
       movs: 0
     })
 
-    let txtReto = `*⌬┤ ❌⭕ ├⌬ RETO TIC TAC TOE.*\n\n`
-    txtReto += `> @${nombreCorto(sender)} *✖* retó a @${nombreCorto(rival)} *⭕*\n`
-    if (apuesta > 0)
-      txtReto += `> 💰 Apuesta: *${apuesta} ${S}* c/u — ganador lleva *${apuesta * 2} ${S}*\n`
-    txtReto += `\n> @${nombreCorto(rival)}, respondé con *!aceptar* o *!rechazar*`
-
-    return conn.sendMessage(chatId, {
-      text: txtReto,
+    return conn.sendMessage(chat, {
+      text:
+        `*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n` +
+        `✰ 𝚁𝚎𝚝𝚘 𝚃𝚒𝚌 𝚃𝚊𝚌 𝚃𝚘𝚎\n\n` +
+        `✰ @${nombre(sender)} *✖* retó a @${nombre(rival)} *⭕*\n\n` +
+        `✰ 𝚄𝚜𝚊\n` +
+        `> !aceptar\n` +
+        `> !rechazar`,
       mentions: [sender, rival]
     }, { quoted: m })
   }
 
-  if (['aceptar','accept'].includes(command) || ['rechazar','decline'].includes(command)) {
-    const esAceptar = ['aceptar','accept'].includes(command)
+  if (['aceptar','accept'].includes(command)) {
+    const p = partidas.get(chat)
 
-    if (!partidas.has(chatId))
-      return m.reply(`*⌬┤ ✙ ├⌬ SIN PARTIDA.*\n> No hay ningún reto pendiente.`)
+    if (!p || !p.esperando)
+      return m.reply(`*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n✰ 𝙽𝚘 𝚑𝚊𝚢 𝚛𝚎𝚝𝚘𝚜 𝚙𝚎𝚗𝚍𝚒𝚎𝚗𝚝𝚎𝚜`)
 
-    const p = partidas.get(chatId)
-    if (!p.esperando || p.jugador2 !== sender)
-      return m.reply(`*⌬┤ ✙ ├⌬ NO ES TU RETO.*\n> Este reto no es para vos.`)
-
-    if (!esAceptar) {
-      if (p.apuesta > 0)
-        await User.updateOne({ jid: p.jugador1 }, { $inc: { genosCoins: p.apuesta } })
-      partidas.delete(chatId)
-      let txt = `*⌬┤ ❌ ├⌬ RETO RECHAZADO.*\n> @${nombre} rechazó la partida.`
-      if (p.apuesta > 0) txt += `\n> Se devolvieron *${p.apuesta} ${S}* a @${nombreCorto(p.jugador1)}.`
-      return conn.sendMessage(chatId, { text: txt, mentions: [p.jugador1, sender] }, { quoted: m })
-    }
-
-    if (p.apuesta > 0) {
-      const j2Db = await User.findOne({ jid: sender })
-      if (!j2Db?.registered) {
-        await User.updateOne({ jid: p.jugador1 }, { $inc: { genosCoins: p.apuesta } })
-        partidas.delete(chatId)
-        return m.reply(`*⌬┤ 🔒 ├⌬ NO REGISTRADO.*\n> Necesitás estar registrado para apostar. Partida cancelada.`)
-      }
-      if ((j2Db.genosCoins || 0) < p.apuesta) {
-        await User.updateOne({ jid: p.jugador1 }, { $inc: { genosCoins: p.apuesta } })
-        partidas.delete(chatId)
-        return conn.sendMessage(chatId, {
-          text: `*⌬┤ 💸 ├⌬ SIN FONDOS.*\n> @${nombre} no tiene *${p.apuesta} ${S}* para aceptar. Partida cancelada.`,
-          mentions: [sender]
-        }, { quoted: m })
-      }
-      await User.updateOne({ jid: sender }, { $inc: { genosCoins: -p.apuesta } })
-    }
+    if (p.jugador2 !== sender)
+      return m.reply(`*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n✰ 𝙴𝚜𝚝𝚎 𝚛𝚎𝚝𝚘 𝚗𝚘 𝚎𝚜 𝚙𝚊𝚛𝚊 𝚟𝚘𝚜`)
 
     p.esperando = false
-    partidas.set(chatId, p)
+    partidas.set(chat, p)
 
-    let txt = `*⌬┤ ✅ ├⌬ PARTIDA INICIADA.*\n\n`
-    txt += `> @${nombreCorto(p.jugador1)} *✖* vs @${nombre} *⭕*\n`
-    if (p.apuesta > 0)
-      txt += `> 💰 Premio total: *${p.apuesta * 2} ${S}* al ganador\n`
-    txt += `\n> Turno de @${nombreCorto(p.jugador1)} — enviá un número del *1* al *9*\n\n`
-    txt += dibujarTablero(p.tablero)
+    return conn.sendMessage(chat, {
+      text:
+        `*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n` +
+        `✰ 𝙿𝚊𝚛𝚝𝚒𝚍𝚊 𝚒𝚗𝚒𝚌𝚒𝚊𝚍𝚊\n\n` +
+        `✰ @${nombre(p.jugador1)} *✖* vs @${nombre(sender)} *⭕*\n\n` +
+        `✰ 𝚃𝚞𝚛𝚗𝚘 𝚍𝚎 @${nombre(p.jugador1)}\n` +
+        `✰ 𝚄𝚜𝚊 𝚞𝚗 𝚗ú𝚖𝚎𝚛𝚘 𝚍𝚎𝚕 *1 𝚊𝚕 9*\n\n` +
+        tablero(p.tablero),
+      mentions: [p.jugador1, sender]
+    }, { quoted: m })
+  }
 
-    return conn.sendMessage(chatId, { text: txt, mentions: [p.jugador1, sender] }, { quoted: m })
+  if (['rechazar','decline'].includes(command)) {
+    const p = partidas.get(chat)
+
+    if (!p || !p.esperando || p.jugador2 !== sender)
+      return m.reply(`*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n✰ 𝙽𝚘 𝚝𝚒𝚎𝚗𝚎𝚜 𝚞𝚗 𝚛𝚎𝚝𝚘`)
+
+    partidas.delete(chat)
+
+    return conn.sendMessage(chat, {
+      text:
+        `*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n` +
+        `✰ 𝚁𝚎𝚝𝚘 𝚛𝚎𝚌𝚑𝚊𝚣𝚊𝚍𝚘\n` +
+        `✰ @${nombre(sender)} rechazó la partida`,
+      mentions: [sender, p.jugador1]
+    }, { quoted: m })
   }
 
   if (['rendirse','surrender','desistir'].includes(command)) {
-    if (!partidas.has(chatId))
-      return m.reply(`*⌬┤ ✙ ├⌬ SIN PARTIDA.*\n> No hay partida activa.`)
+    const p = partidas.get(chat)
 
-    const p = partidas.get(chatId)
-    if (p.jugador1 !== sender && p.jugador2 !== sender)
-      return m.reply(`*⌬┤ ✙ ├⌬ NO PARTICIPÁS.*\n> No sos parte de esta partida.`)
+    if (!p)
+      return m.reply(`*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n✰ 𝙽𝚘 𝚑𝚊𝚢 𝚙𝚊𝚛𝚝𝚒𝚍𝚊`)
 
-    const rival = p.vsIA ? null : (sender === p.jugador1 ? p.jugador2 : p.jugador1)
+    if (![p.jugador1, p.jugador2].includes(sender))
+      return m.reply(`*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n✰ 𝙽𝚘 𝚙𝚊𝚛𝚝𝚒𝚌𝚒𝚙𝚊𝚜 𝚎𝚗 𝚎𝚜𝚝𝚊 𝚙𝚊𝚛𝚝𝚒𝚍𝚊`)
 
-    if (p.apuesta > 0 && !p.esperando) {
-      if (p.vsIA) {
-        await actualizarStats(sender, 'tttLosses', 1)
-      } else if (rival) {
-        await User.updateOne({ jid: rival }, { $inc: { genosCoins: p.apuesta * 2, tttWins: 1 } })
-        await actualizarStats(sender, 'tttLosses', 1)
-      }
-    } else if (p.apuesta > 0 && p.esperando) {
-      await User.updateOne({ jid: p.jugador1 }, { $inc: { genosCoins: p.apuesta } })
-    }
+    const rival = p.vsIA ? null :
+      sender === p.jugador1 ? p.jugador2 : p.jugador1
 
-    partidas.delete(chatId)
+    partidas.delete(chat)
 
-    let txt = `*⌬┤ 🏳️ ├⌬ RENDICIÓN.*\n> @${nombre} se rindió.`
-    if (rival && p.apuesta > 0)
-      txt += `\n> @${nombreCorto(rival)} gana *+${p.apuesta * 2} ${S}* 🎉`
-    else if (rival)
-      txt += `\n> Victoria para @${nombreCorto(rival)}.`
+    if (rival) await stat(rival, 'tttWins')
+    await stat(sender, 'tttLosses')
 
-    return conn.sendMessage(chatId, {
-      text: txt,
+    return conn.sendMessage(chat, {
+      text:
+        `*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n` +
+        `✰ 𝚁𝚎𝚗𝚍𝚒𝚌𝚒ó𝚗\n\n` +
+        `✰ @${nombre(sender)} abandonó la partida` +
+        (rival ? `\n✰ Victoria para @${nombre(rival)}` : ''),
       mentions: [sender, rival].filter(Boolean)
     }, { quoted: m })
   }
 
   if (command === 'tttstats') {
-    const jid    = m.mentionedJid?.[0] || sender
-    const u      = await User.findOne({ jid }).lean()
-    const wins   = u?.tttWins   || 0
-    const losses = u?.tttLosses || 0
-    const draws  = u?.tttDraws  || 0
-    const total  = wins + losses + draws
-    const pct    = total > 0 ? ((wins / total) * 100).toFixed(1) : '0.0'
+    const jid = m.mentionedJid?.[0] || sender
+    const u = await User.findOne({ jid }).lean()
 
-    return conn.sendMessage(chatId, {
-      text: `*⌬┤ 📊 ├⌬ STATS TTT — @${nombreCorto(jid)}*\n\n> 🏆 Victorias: *${wins}*\n> ❌ Derrotas:  *${losses}*\n> 🤝 Empates:   *${draws}*\n> 📈 Win rate:  *${pct}%*`,
+    const wins = u?.tttWins || 0
+    const losses = u?.tttLosses || 0
+    const draws = u?.tttDraws || 0
+    const total = wins + losses + draws
+    const rate = total ? ((wins / total) * 100).toFixed(1) : '0.0'
+
+    return conn.sendMessage(chat, {
+      text:
+        `*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n` +
+        `✰ 𝚂𝚝𝚊𝚝𝚜 𝚃𝚃𝚃 — @${nombre(jid)}\n\n` +
+        `✰ 𝚅𝚒𝚌𝚝𝚘𝚛𝚒𝚊𝚜: *${wins}*\n` +
+        `✰ 𝙳𝚎𝚛𝚛𝚘𝚝𝚊𝚜: *${losses}*\n` +
+        `✰ 𝙴𝚖𝚙𝚊𝚝𝚎𝚜: *${draws}*\n` +
+        `✰ 𝚆𝚒𝚗 𝚛𝚊𝚝𝚎: *${rate}%*`,
       mentions: [jid]
     }, { quoted: m })
   }
 
   if (command === 'tttranking' || command === 'tttrank') {
-    const todos = await User.find(
-      { $or: [{ tttWins: { $gt: 0 } }, { tttLosses: { $gt: 0 } }] },
-      { jid: 1, name: 1, tttWins: 1, tttLosses: 1, tttDraws: 1 }
-    ).sort({ tttWins: -1 }).limit(10).lean()
+    const users = await User.find(
+      { $or: [{tttWins: {$gt: 0}}, {tttLosses: {$gt: 0}}] },
+      { jid:1, name:1, tttWins:1, tttLosses:1, tttDraws:1 }
+    ).sort({tttWins:-1}).limit(10).lean()
 
-    if (!todos.length)
-      return m.reply(`*⌬┤ 📋 ├⌬ RANKING TTT.*\n> Nadie ha jugado aún.`)
+    if (!users.length)
+      return m.reply(`*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n✰ 𝙽𝚊𝚍𝚒𝚎 𝚑𝚊 𝚓𝚞𝚐𝚊𝚍𝚘 𝚊ú𝚗`)
 
-    const MEDALS = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟']
-    const lineas = todos.map((u, i) => {
-      const n = u.name || nombreCorto(u.jid)
-      return `${MEDALS[i]} *${n}* — 🏆${u.tttWins||0} ❌${u.tttLosses||0} 🤝${u.tttDraws||0}`
-    }).join('\n')
+    const medallas = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟']
 
-    return conn.sendMessage(chatId, {
-      text: `*⌬┤ 🏆 ├⌬ RANKING GLOBAL TTT.*\n\n${lineas}`,
-      mentions: todos.map(u => u.jid)
+    const lista = users.map((u,i) =>
+      `${medallas[i]} *${u.name || nombre(u.jid)}* — 🏆${u.tttWins || 0} ❌${u.tttLosses || 0} 🤝${u.tttDraws || 0}`
+    ).join('\n')
+
+    return conn.sendMessage(chat, {
+      text:
+        `*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n` +
+        `✰ 𝚁𝚊𝚗𝚔𝚒𝚗𝚐 𝚃𝚃𝚃\n\n${lista}`,
+      mentions: users.map(u => u.jid)
     }, { quoted: m })
   }
 }
 
 handler.all = async (m, ctx) => {
   const { conn } = ctx
-  const chatId = m.chat
+  const chat = m.chat
   const sender = m.sender
-  const nombre = m.pushName || nombreCorto(sender)
-  const S = config.CURRENCY_SYMBOL
 
-  if (!partidas.has(chatId)) return
-  const p = partidas.get(chatId)
+  const p = partidas.get(chat)
+  if (!p || p.esperando) return
 
   const body = (m.body || '').trim()
-  if (!/^[1-9]$/.test(body)) return 
+  if (!/^[1-9]$/.test(body)) return
 
-  if (p.jugador1 !== sender && p.jugador2 !== sender) return 
-  if (p.esperando) return 
-  if (p.turno !== sender) return m.reply(`*⌬┤ ⛔ ├⌬ NO ES TU TURNO.*`)
+  if (![p.jugador1, p.jugador2].includes(sender)) return
 
-  const pos = POS_MAP[body]
+  if (p.turno !== sender)
+    return m.reply(`*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n✰ 𝙽𝚘 𝚎𝚜 𝚝𝚞 𝚝𝚞𝚛𝚗𝚘`)
+
+  const pos = POS[body]
+
   if (p.tablero[pos] !== ' ')
-    return m.reply(`*⌬┤ ✙ ├⌬ CASILLA OCUPADA.*\n> Elegí otra posición.`)
+    return m.reply(`*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n✰ 𝙲𝚊𝚜𝚒𝚕𝚕𝚊 𝚘𝚌𝚞𝚙𝚊𝚍𝚊`)
 
-  const fichaActual = p.vsIA
-    ? p.fichaJ1
-    : (sender === p.jugador1 ? p.fichaJ1 : p.fichaJ2)
-
-  p.tablero[pos] = fichaActual
+  p.tablero[pos] = p.vsIA || sender === p.jugador1 ? '✖' : '⭕'
   p.movs++
 
-  const ganadorJ = verificarGanador(p.tablero)
-  if (ganadorJ) {
-    partidas.delete(chatId)
+  let win = ganador(p.tablero)
 
-    const dc        = DIF_CONFIG[p.dif || 'facil']
-    const premioIA  = p.vsIA ? dc.premio : 0
-    const genosIA   = p.vsIA ? dc.genos  : 0
-    const premioPvP = (!p.vsIA && p.apuesta > 0) ? p.apuesta * 2 : 0
+  if (win) {
+    partidas.delete(chat)
 
-    await actualizarStats(sender, 'tttWins', 1)
-    if (premioIA > 0 || premioPvP > 0 || genosIA > 0)
-      await User.updateOne({ jid: sender }, { $inc: { genosCoins: premioIA + premioPvP, genos: genosIA } })
+    await stat(sender, 'tttWins')
 
-    if (!p.vsIA) {
-      const perdedor = sender === p.jugador1 ? p.jugador2 : p.jugador1
-      await actualizarStats(perdedor, 'tttLosses', 1)
-    }
+    if (p.vsIA && DIF[p.dificultad]?.premio)
+      await User.updateOne(
+        { jid: sender },
+        { $inc: { genosCoins: DIF[p.dificultad].premio } }
+      )
 
-    let txt = `*⌬┤ 🏆 ├⌬ ¡GANASTE!*\n> @${nombre} ganó con *${ganadorJ}* en ${p.movs} movidas\n`
-    if (premioIA > 0 || premioPvP > 0)
-      txt += `> 💰 *+${premioIA || premioPvP} ${S}* acreditados\n`
-    if (genosIA > 0)
-      txt += `> ✦ *+${genosIA} Genos* ganados 🎉\n`
-    txt += `\n${dibujarTablero(p.tablero)}`
+    if (!p.vsIA)
+      await stat(sender === p.jugador1 ? p.jugador2 : p.jugador1, 'tttLosses')
 
-    return conn.sendMessage(chatId, { text: txt, mentions: [sender] }, { quoted: m })
-  }
+    const S = config.CURRENCY_SYMBOL
+    const premio = p.vsIA ? DIF[p.dificultad].premio : 0
 
-  if (tableroLleno(p.tablero)) {
-    partidas.delete(chatId)
-    await actualizarStats(sender, 'tttDraws', 1)
-
-    if (p.apuesta > 0) {
-      await User.updateOne({ jid: p.jugador1 }, { $inc: { genosCoins: p.apuesta } })
-      if (!p.vsIA && p.jugador2)
-        await User.updateOne({ jid: p.jugador2 }, { $inc: { genosCoins: p.apuesta } })
-    }
-
-    let txt = `*⌬┤ 🤝 ├⌬ EMPATE.*\n> Nadie pudo ganar esta vez.`
-    if (p.apuesta > 0) txt += `\n> Se devuelven las apuestas.`
-    txt += `\n\n${dibujarTablero(p.tablero)}`
-
-    return conn.sendMessage(chatId, {
-      text: txt,
-      mentions: [p.jugador1, p.jugador2].filter(Boolean)
-    }, { quoted: m })
-  }
-
-  if (p.vsIA) {
-    const posIA = movIA(p.tablero, p.dif)
-    p.tablero[posIA] = p.fichaIA
-    p.movs++
-
-    const ganIA = verificarGanador(p.tablero)
-    if (ganIA) {
-      partidas.delete(chatId)
-      await actualizarStats(sender, 'tttLosses', 1)
-
-      let txt = `*⌬┤ 🤖 ├⌬ LA IA GANÓ.*\n> Jugó en *${posIA + 1}* y ganó.\n`
-      txt += `\n${dibujarTablero(p.tablero)}`
-
-      return conn.sendMessage(chatId, { text: txt, mentions: [sender] }, { quoted: m })
-    }
-
-    if (tableroLleno(p.tablero)) {
-      partidas.delete(chatId)
-      await actualizarStats(sender, 'tttDraws', 1)
-
-      let txt = `*⌬┤ 🤝 ├⌬ EMPATE.*\n> Nadie ganó.`
-      txt += `\n\n${dibujarTablero(p.tablero)}`
-
-      return conn.sendMessage(chatId, { text: txt, mentions: [sender] }, { quoted: m })
-    }
-
-    partidas.set(chatId, p)
-    return conn.sendMessage(chatId, {
-      text: `*⌬┤ 🤖 ├⌬ IA JUGÓ EN ${posIA + 1}.*\n\n${dibujarTablero(p.tablero)}\n\n> @${nombre} jugá enviando un número del *1* al *9*`,
+    return conn.sendMessage(chat, {
+      text:
+        `*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n` +
+        `✰ 𝙶𝚊𝚗𝚊𝚜𝚝𝚎\n\n` +
+        `✰ @${nombre(sender)} ganó con *${win}*\n` +
+        (premio ? `✰ 𝙿𝚛𝚎𝚖𝚒𝚘: *+${premio.toLocaleString()} ${S}*\n\n` : '\n') +
+        tablero(p.tablero),
       mentions: [sender]
     }, { quoted: m })
   }
 
-  const rivalJid = sender === p.jugador1 ? p.jugador2 : p.jugador1
-  p.turno = rivalJid
-  partidas.set(chatId, p)
+  if (lleno(p.tablero)) {
+    partidas.delete(chat)
+    await stat(sender, 'tttDraws')
 
-  return conn.sendMessage(chatId, {
-    text: `*⌬┤ ▶️ ├⌬ TURNO DE @${nombreCorto(rivalJid)}.*\n\n${dibujarTablero(p.tablero)}\n\n> @${nombreCorto(rivalJid)} jugá enviando un número del *1* al *9*`,
-    mentions: [rivalJid]
+    return conn.sendMessage(chat, {
+      text:
+        `*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n` +
+        `✰ 𝙴𝚖𝚙𝚊𝚝𝚎\n\n` +
+        tablero(p.tablero),
+      mentions: [sender]
+    }, { quoted: m })
+  }
+
+  if (p.vsIA) {
+    const ia = movimientoIA(p.tablero, p.dificultad)
+
+    p.tablero[ia] = '⭕'
+    p.movs++
+
+    win = ganador(p.tablero)
+
+    if (win) {
+      partidas.delete(chat)
+      await stat(sender, 'tttLosses')
+
+      return conn.sendMessage(chat, {
+        text:
+          `*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n` +
+          `✰ 𝙻𝚊 𝙸𝙰 𝚐𝚊𝚗ó\n\n` +
+          `✰ Jugada: *${ia + 1}*\n\n` +
+          tablero(p.tablero),
+        mentions: [sender]
+      }, { quoted: m })
+    }
+
+    if (lleno(p.tablero)) {
+      partidas.delete(chat)
+      await stat(sender, 'tttDraws')
+
+      return conn.sendMessage(chat, {
+        text:
+          `*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n` +
+          `✰ 𝙴𝚖𝚙𝚊𝚝𝚎\n\n` +
+          tablero(p.tablero),
+        mentions: [sender]
+      }, { quoted: m })
+    }
+
+    partidas.set(chat, p)
+
+    return conn.sendMessage(chat, {
+      text:
+        `*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n` +
+        `✰ 𝙻𝚊 𝙸𝙰 𝚓𝚞𝚐ó 𝚎𝚗 *${ia + 1}*\n\n` +
+        tablero(p.tablero) +
+        `\n\n✰ 𝚃𝚞 𝚝𝚞𝚛𝚗𝚘 — 𝚎𝚗𝚟í𝚊 𝚞𝚗 𝚗ú𝚖𝚎𝚛𝚘 𝚍𝚎𝚕 *1 𝚊𝚕 9*`,
+      mentions: [sender]
+    }, { quoted: m })
+  }
+
+  p.turno = sender === p.jugador1 ? p.jugador2 : p.jugador1
+  partidas.set(chat, p)
+
+  return conn.sendMessage(chat, {
+    text:
+      `*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*\n` +
+      `✰ 𝚃𝚞𝚛𝚗𝚘 𝚍𝚎 @${nombre(p.turno)}\n\n` +
+      tablero(p.tablero) +
+      `\n\n✰ 𝙴𝚗𝚟í𝚊 𝚞𝚗 𝚗ú𝚖𝚎𝚛𝚘 𝚍𝚎𝚕 *1 𝚊𝚕 9*`,
+    mentions: [p.turno]
   }, { quoted: m })
 }
 
-handler.help    = ['ttt ia <dif>', 'ttt @usuario [apuesta]']
-handler.tags    = ['fun']
+handler.help = [
+  'ttt',
+  'ttt ia <dificultad>',
+  'ttt @usuario'
+]
+
+handler.tags = ['fun']
+
 handler.command = [
-  'ttt', 'tictactoe',
-  'rendirse','surrender','desistir',
-  'aceptar','accept',
-  'rechazar','decline',
+  'ttt',
+  'tictactoe',
+  'aceptar',
+  'accept',
+  'rechazar',
+  'decline',
+  'rendirse',
+  'surrender',
+  'desistir',
   'tttstats',
-  'tttranking','tttrank'
+  'tttranking',
+  'tttr
 ]
 
 export default handler

@@ -7,26 +7,31 @@ import { join } from 'path'
 import { randomUUID } from 'crypto'
 
 
-/*
-|--------------------------------------------------------------------------
-| CONFIGURACIÓN
-|--------------------------------------------------------------------------
-*/
+// ═══════════════════════════════════════
+// ✰ SAITAMABOT • MEGA
+// ═══════════════════════════════════════
 
 const MAX_MB = 300
 
-const TMP_DIR = join(
-  process.cwd(),
-  'tmp',
-  'mega'
-)
+const TMP_DIR =
+  join(
+    process.cwd(),
+    'tmp',
+    'mega'
+  )
 
 
-/*
-|--------------------------------------------------------------------------
-| CREAR CARPETA TEMPORAL
-|--------------------------------------------------------------------------
-*/
+// ═══════════════════════════════════════
+// ✰ NOMBRE DEL BOT
+// ═══════════════════════════════════════
+
+const BOT_NAME =
+  '𝑺𝒂𝒊𝒕𝒂𝒎𝒂𝑩𝒐𝒕'
+
+
+// ═══════════════════════════════════════
+// ✰ CREAR CARPETA
+// ═══════════════════════════════════════
 
 await fs.promises.mkdir(
   TMP_DIR,
@@ -36,11 +41,9 @@ await fs.promises.mkdir(
 )
 
 
-/*
-|--------------------------------------------------------------------------
-| FORMATEAR TAMAÑO
-|--------------------------------------------------------------------------
-*/
+// ═══════════════════════════════════════
+// ✰ FORMATEAR TAMAÑO
+// ═══════════════════════════════════════
 
 function formatBytes(bytes = 0) {
 
@@ -75,11 +78,9 @@ function formatBytes(bytes = 0) {
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| LIMPIAR NOMBRE
-|--------------------------------------------------------------------------
-*/
+// ═══════════════════════════════════════
+// ✰ LIMPIAR NOMBRE
+// ═══════════════════════════════════════
 
 function cleanFileName(name) {
 
@@ -95,66 +96,17 @@ function cleanFileName(name) {
       ' '
     )
     .trim()
-    .slice(0, 180) ||
+    .slice(
+      0,
+      180
+    ) ||
     'archivo'
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| PROGRESO
-|--------------------------------------------------------------------------
-*/
-
-async function animarProgreso(
-  conn,
-  chatId,
-  key
-) {
-
-  for (
-    let i = 1;
-    i <= 10;
-    i++
-  ) {
-
-    const porcentaje =
-      i * 10
-
-    const barra =
-      '█'.repeat(i) +
-      '░'.repeat(10 - i)
-
-
-    await conn.sendMessage(
-      chatId,
-      {
-        edit: key,
-        text:
-`*⌬┤ ⏳ ├⌬ DESCARGANDO DESDE MEGA*
-
-> Progreso: *${porcentaje}%*
-> ${barra}`
-      }
-    ).catch(() => {})
-
-
-    await new Promise(
-      resolve =>
-        setTimeout(
-          resolve,
-          300
-        )
-    )
-  }
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| HANDLER
-|--------------------------------------------------------------------------
-*/
+// ═══════════════════════════════════════
+// ✰ HANDLER
+// ═══════════════════════════════════════
 
 const handler = async (
   m,
@@ -166,23 +118,13 @@ const handler = async (
   }
 ) => {
 
-  /*
-  |--------------------------------------------------------------------------
-  | OBTENER URL
-  |--------------------------------------------------------------------------
-  */
-
   let url =
-    text
-      ? text.trim()
-      : ''
+    text?.trim() || ''
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | BUSCAR URL EN MENSAJE CITADO
-  |--------------------------------------------------------------------------
-  */
+  // ═══════════════════════════════════
+  // ✰ ENLACE CITADO
+  // ═══════════════════════════════════
 
   if (
     !url &&
@@ -207,57 +149,51 @@ const handler = async (
   }
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | COMPROBAR URL
-  |--------------------------------------------------------------------------
-  */
+  // ═══════════════════════════════════
+  // ✰ SIN ENLACE
+  // ═══════════════════════════════════
 
   if (!url) {
 
     return m.reply(
-`╭━━━〔 📦 MEGA DOWNLOADER 〕━━━⬣
 
-✦ Enviá un enlace de Mega.
+`༺ 𝙼𝙴𝙶𝙰 ༻
 
-✧ También podés responder
-a un mensaje que tenga el enlace.
+✰ 𝚄𝚜𝚊:
+${usedPrefix}${command} <enlace>
 
-Ejemplo:
-${usedPrefix}${command} https://mega.nz/file/xxxxx
+✰ 𝙴𝚓𝚎𝚖𝚙𝚕𝚘:
+${usedPrefix}${command} https://mega.nz/file/...
 
-╰━━━━━━━━━━━━━━━━━━⬣`
+✰ ${BOT_NAME}`
     )
   }
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | VALIDAR MEGA
-  |--------------------------------------------------------------------------
-  */
+  // ═══════════════════════════════════
+  // ✰ URL INVÁLIDA
+  // ═══════════════════════════════════
 
   if (
-    !/^(https?:\/\/)?(www\.)?mega\.nz\//i.test(
+    !/^https?:\/\/(www\.)?mega\.nz\//i.test(
       url
     )
   ) {
 
     return m.reply(
-`╭━━━〔 ❌ LINK INVÁLIDO 〕━━━⬣
 
-> El enlace debe pertenecer a Mega.
+`༺ 𝙴𝙽𝙻𝙰𝙲𝙴 𝙸𝙽𝚅Á𝙻𝙸𝙳𝙾 ༻
 
-╰━━━━━━━━━━━━━━━━━━⬣`
+✰ 𝙳𝚎𝚋𝚎𝚜 𝚞𝚜𝚊𝚛 𝚞𝚗 𝚎𝚗𝚕𝚊𝚌𝚎 𝚍𝚎 𝙼𝙴𝙶𝙰.
+
+✰ ${BOT_NAME}`
     )
   }
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | REACCIÓN
-  |--------------------------------------------------------------------------
-  */
+  // ═══════════════════════════════════
+  // ✰ REACCIÓN
+  // ═══════════════════════════════════
 
   await conn.sendMessage(
     m.chat,
@@ -270,20 +206,18 @@ ${usedPrefix}${command} https://mega.nz/file/xxxxx
   ).catch(() => {})
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | MENSAJE DE PROGRESO
-  |--------------------------------------------------------------------------
-  */
+  // ═══════════════════════════════════
+  // ✰ MENSAJE INICIAL
+  // ═══════════════════════════════════
 
-  const progresoMsg =
+  const progressMsg =
     await m.reply(
-`*⌬┤ ⏳ ├⌬ OBTENIENDO ARCHIVO DE MEGA*
 
-> Progreso: *0%*
-> ░░░░░░░░░░
+`༺ 𝙼𝙴𝙶𝙰 ༻
 
-📌 Límite máximo: *${MAX_MB} MB*`
+✰ 𝙾𝚋𝚝𝚎𝚗𝚒𝚎𝚗𝚍𝚘 𝚊𝚛𝚌𝚑𝚒𝚟𝚘...
+
+✰ ${BOT_NAME}`
     )
 
 
@@ -292,11 +226,9 @@ ${usedPrefix}${command} https://mega.nz/file/xxxxx
 
   try {
 
-    /*
-    |--------------------------------------------------------------------------
-    | OBTENER ARCHIVO
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ OBTENER ARCHIVO
+    // ═════════════════════════════════
 
     const file =
       File.fromURL(url)
@@ -313,11 +245,9 @@ ${usedPrefix}${command} https://mega.nz/file/xxxxx
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | TAMAÑO
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ TAMAÑO
+    // ═════════════════════════════════
 
     const size =
       Number(
@@ -335,16 +265,14 @@ ${usedPrefix}${command} https://mega.nz/file/xxxxx
     ) {
 
       throw new Error(
-        `El archivo supera el límite de ${MAX_MB} MB. Tamaño: ${sizeMB.toFixed(2)} MB.`
+        `El archivo supera ${MAX_MB} MB.`
       )
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | NOMBRE
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ NOMBRE
+    // ═════════════════════════════════
 
     const fileName =
       cleanFileName(
@@ -352,11 +280,9 @@ ${usedPrefix}${command} https://mega.nz/file/xxxxx
       )
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | MIME
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ MIME
+    // ═════════════════════════════════
 
     const extension =
       fileName
@@ -372,24 +298,9 @@ ${usedPrefix}${command} https://mega.nz/file/xxxxx
       'application/octet-stream'
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | PROGRESO VISUAL
-    |--------------------------------------------------------------------------
-    */
-
-    await animarProgreso(
-      conn,
-      m.chat,
-      progresoMsg.key
-    )
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | ARCHIVO TEMPORAL
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ ARCHIVO TEMPORAL
+    // ═════════════════════════════════
 
     tmpPath =
       join(
@@ -398,11 +309,35 @@ ${usedPrefix}${command} https://mega.nz/file/xxxxx
       )
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | DESCARGAR
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ DESCARGAR
+    // ═════════════════════════════════
+
+    await conn.sendMessage(
+      m.chat,
+      {
+        react: {
+          text: '⬇️',
+          key: m.key
+        }
+      }
+    ).catch(() => {})
+
+
+    await conn.sendMessage(
+      m.chat,
+      {
+        edit: progressMsg.key,
+        text:
+
+`༺ 𝙳𝙴𝚂𝙲𝙰𝚁𝙶𝙰𝙽𝙳𝙾 ༻
+
+✰ ${fileName}
+
+✰ ${BOT_NAME}`
+      }
+    ).catch(() => {})
+
 
     await pipeline(
       file.download(),
@@ -412,11 +347,9 @@ ${usedPrefix}${command} https://mega.nz/file/xxxxx
     )
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | COMPROBAR ARCHIVO
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ COMPROBAR ARCHIVO
+    // ═════════════════════════════════
 
     const stat =
       await fs.promises.stat(
@@ -430,16 +363,26 @@ ${usedPrefix}${command} https://mega.nz/file/xxxxx
     ) {
 
       throw new Error(
-        'El archivo descargado está vacío o es inválido.'
+        'El archivo está vacío.'
       )
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | LEER ARCHIVO
-    |--------------------------------------------------------------------------
-    */
+    if (
+      stat.size /
+      (1024 * 1024) >
+      MAX_MB
+    ) {
+
+      throw new Error(
+        `El archivo supera ${MAX_MB} MB.`
+      )
+    }
+
+
+    // ═════════════════════════════════
+    // ✰ LEER ARCHIVO
+    // ═════════════════════════════════
 
     const buffer =
       await fs.promises.readFile(
@@ -447,37 +390,30 @@ ${usedPrefix}${command} https://mega.nz/file/xxxxx
       )
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | ENVIAR COMO DOCUMENTO
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ ENVIAR ARCHIVO
+    // ═════════════════════════════════
 
     await conn.sendMessage(
       m.chat,
       {
-        document: buffer,
+
+        document:
+          buffer,
 
         fileName,
 
-        mimetype: mimeType,
+        mimetype:
+          mimeType,
 
         caption:
-`╭━━━〔 ✅ MEGA 〕━━━⬣
 
-┃ 📂 *Archivo:*
-┃ ${fileName}
-┃
-┃ 📦 *Tamaño:*
-┃ ${formatBytes(stat.size)}
-┃
-┃ 🚀 *Tipo:*
-┃ ${mimeType}
-┃
-┃ 📥 *Estado:*
-┃ Descarga completada
-┃
-╰━━━━━━━━━━━━━━━━━━⬣`
+`༺ 𝙼𝙴𝙶𝙰 ༻
+
+✰ 𝙰𝚛𝚌𝚑𝚒𝚟𝚘 𝚕𝚒𝚜𝚝𝚘.
+
+✰ ${BOT_NAME}`
+
       },
       {
         quoted: m
@@ -485,11 +421,9 @@ ${usedPrefix}${command} https://mega.nz/file/xxxxx
     )
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | REACCIÓN FINAL
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ REACCIÓN FINAL
+    // ═════════════════════════════════
 
     await conn.sendMessage(
       m.chat,
@@ -502,39 +436,30 @@ ${usedPrefix}${command} https://mega.nz/file/xxxxx
     ).catch(() => {})
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | ACTUALIZAR PROGRESO
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ ACTUALIZAR MENSAJE
+    // ═════════════════════════════════
 
     await conn.sendMessage(
       m.chat,
       {
-        edit: progresoMsg.key,
+        edit: progressMsg.key,
         text:
-`*⌬┤ ✅ ├⌬ DESCARGA COMPLETADA*
 
-> 📂 ${fileName}
-> 📦 ${formatBytes(stat.size)}`
+`༺ 𝙳𝙴𝚂𝙲𝙰𝚁𝙶𝙰 𝙻𝙸𝚂𝚃𝙰 ༻
+
+✰ ${formatBytes(stat.size)}
+
+✰ ${BOT_NAME}`
       }
     ).catch(() => {})
 
 
   } catch (error) {
 
-    console.error(
-      '[MEGA ERROR]',
-      error?.message ||
-      error
-    )
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | REACCIÓN ERROR
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ REACCIÓN ERROR
+    // ═════════════════════════════════
 
     await conn.sendMessage(
       m.chat,
@@ -547,41 +472,42 @@ ${usedPrefix}${command} https://mega.nz/file/xxxxx
     ).catch(() => {})
 
 
-    return conn.sendMessage(
+    // ═════════════════════════════════
+    // ✰ ERROR
+    // ═════════════════════════════════
+
+    const errorText =
+      String(
+        error?.message ||
+        'Error desconocido.'
+      ).slice(
+        0,
+        200
+      )
+
+
+    await conn.sendMessage(
       m.chat,
       {
-        edit: progresoMsg.key,
+        edit: progressMsg.key,
         text:
-`*⌬┤ ❌ ├⌬ ERROR*
 
-> No se pudo descargar el archivo desde Mega.
+`༺ 𝙴𝚁𝚁𝙾𝚁 ༻
 
-⚠️ ${
-          error?.message ||
-          'Error desconocido.'
-        }`
+✰ 𝙽𝚘 𝚜𝚎 𝚙𝚞𝚍𝚘 𝚍𝚎𝚜𝚌𝚊𝚛𝚐𝚊𝚛.
+
+✰ ${errorText}
+
+✰ ${BOT_NAME}`
       }
-    ).catch(() =>
-      m.reply(
-`*⌬┤ ❌ ├⌬ ERROR.*
-
-> No se pudo descargar el archivo desde Mega.
-
-⚠️ ${
-          error?.message ||
-          'Error desconocido.'
-        }`
-      )
-    )
+    ).catch(() => {})
 
 
   } finally {
 
-    /*
-    |--------------------------------------------------------------------------
-    | ELIMINAR TEMPORAL
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ LIMPIAR TEMPORAL
+    // ═════════════════════════════════
 
     if (tmpPath) {
 
@@ -596,25 +522,28 @@ ${usedPrefix}${command} https://mega.nz/file/xxxxx
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| CONFIGURACIÓN DEL PLUGIN
-|--------------------------------------------------------------------------
-*/
+// ═══════════════════════════════════════
+// ✰ CONFIGURACIÓN
+// ═══════════════════════════════════════
 
 handler.help = [
   'mega <link>',
   'mg <link>'
 ]
 
+
 handler.command = [
   'mega',
   'mg'
 ]
 
+
 handler.tags = [
   'descargas'
 ]
+
+
+handler.register = false
 
 
 export default handler

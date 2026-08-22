@@ -1,99 +1,172 @@
 import axios from 'axios'
-import { createWriteStream, statSync, mkdirSync, readFileSync } from 'fs'
+import {
+  createWriteStream,
+  statSync,
+  mkdirSync,
+  readFileSync
+} from 'fs'
 import { rm } from 'fs/promises'
 import { pipeline } from 'stream/promises'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
-import { bookSearch, bookInfo } from '@axel-dev09/zen-dl'
+import {
+  bookSearch,
+  bookInfo
+} from '@axel-dev09/zen-dl'
 import config from '../../config.js'
 
-const TMP_DIR = join(process.cwd(), 'tmp', 'books')
 
-mkdirSync(TMP_DIR, {
-  recursive: true
-})
+// ═══════════════════════════════════════
+// ✰ SAITAMABOT • LIBROS
+// ═══════════════════════════════════════
+
+const TMP_DIR =
+  join(
+    process.cwd(),
+    'tmp',
+    'books'
+  )
+
+
+mkdirSync(
+  TMP_DIR,
+  {
+    recursive: true
+  }
+)
+
 
 const USER_AGENT =
   'Mozilla/5.0 (Linux; Android 11; Redmi Note 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36'
 
 
-/*
-|--------------------------------------------------------------------------
-| LIMPIAR NOMBRE
-|--------------------------------------------------------------------------
-*/
+// ═══════════════════════════════════════
+// ✰ LIMPIAR NOMBRE
+// ═══════════════════════════════════════
 
 function cleanFileName(value) {
-  return String(value || 'libro')
-    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
-    .replace(/\s+/g, ' ')
+
+  return String(
+    value || 'libro'
+  )
+    .replace(
+      /[<>:"/\\|?*\x00-\x1F]/g,
+      ''
+    )
+    .replace(
+      /\s+/g,
+      ' '
+    )
     .trim()
-    .slice(0, 150) || 'libro'
+    .slice(
+      0,
+      150
+    )
+    || 'libro'
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| DESCARGAR ARCHIVO
-|--------------------------------------------------------------------------
-*/
+// ═══════════════════════════════════════
+// ✰ DESCARGAR ARCHIVO
+// ═══════════════════════════════════════
 
-async function downloadFile(dlData, destPath) {
+async function downloadFile(
+  dlData,
+  destPath
+) {
+
   if (!dlData?.url) {
-    throw new Error('No existe un enlace de descarga.')
+
+    throw new Error(
+      'No existe un enlace de descarga.'
+    )
   }
 
-  const response = await axios.get(
-    dlData.url,
-    {
-      headers: {
-        ...(dlData.headers || {}),
-        'User-Agent': USER_AGENT
-      },
 
-      responseType: 'stream',
+  const response =
+    await axios.get(
+      dlData.url,
+      {
 
-      timeout: 120000,
+        headers: {
 
-      maxRedirects: 10,
+          ...(dlData.headers || {}),
 
-      maxContentLength: Infinity,
+          'User-Agent':
+            USER_AGENT
 
-      maxBodyLength: Infinity
-    }
-  )
+        },
+
+        responseType:
+          'stream',
+
+        timeout:
+          120000,
+
+        maxRedirects:
+          10,
+
+        maxContentLength:
+          Infinity,
+
+        maxBodyLength:
+          Infinity
+
+      }
+    )
+
 
   const contentType =
-    response.headers['content-type'] || ''
+    response.headers[
+      'content-type'
+    ] || ''
 
-  if (contentType.includes('text/html')) {
+
+  if (
+    contentType.includes(
+      'text/html'
+    )
+  ) {
+
     throw new Error(
       'El servidor devolvió HTML en lugar del archivo.'
     )
   }
 
+
   await pipeline(
     response.data,
-    createWriteStream(destPath)
+    createWriteStream(
+      destPath
+    )
   )
 
-  const { size } = statSync(destPath)
 
-  if (size < 1000) {
+  const {
+    size
+  } =
+    statSync(
+      destPath
+    )
+
+
+  if (
+    size < 1000
+  ) {
+
     throw new Error(
       `Archivo inválido (${size} bytes).`
     )
   }
 
+
   return size
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| HANDLER
-|--------------------------------------------------------------------------
-*/
+// ═══════════════════════════════════════
+// ✰ HANDLER PRINCIPAL
+// ═══════════════════════════════════════
 
 const handler = async (
   m,
@@ -105,28 +178,32 @@ const handler = async (
   }
 ) => {
 
-  let query = text
-    ? text.trim()
-    : ''
+  let query =
+    text
+      ? text.trim()
+      : ''
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | OBTENER TEXTO DEL MENSAJE CITADO
-  |--------------------------------------------------------------------------
-  */
+  // ═══════════════════════════════════
+  // ✰ OBTENER TEXTO CITADO
+  // ═══════════════════════════════════
 
-  if (!query && m.quoted) {
+  if (
+    !query &&
+    m.quoted
+  ) {
 
     const quotedText =
       m.quoted.body ||
       m.quoted.text ||
       ''
 
+
     const match =
       quotedText.match(
         /https?:\/\/[^\s]+/i
       )
+
 
     query =
       match
@@ -135,45 +212,66 @@ const handler = async (
   }
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | COMPROBAR CONSULTA
-  |--------------------------------------------------------------------------
-  */
+  // ═══════════════════════════════════
+  // ✰ COMPROBAR CONSULTA
+  // ═══════════════════════════════════
 
   if (!query) {
 
     return m.reply(
-`*⌬┤ ✙ ├⌬ USO.*
 
-> *${usedPrefix}${command} <nombre del libro o link>*
+`༺ 𝙻𝙸𝙱𝚁𝙾𝚂 ༻
 
-Ejemplo:
+✰ 𝙲𝚘𝚗𝚜𝚞𝚕𝚝𝚊 𝚛𝚎𝚚𝚞𝚎𝚛𝚒𝚍𝚊
 
-> ${usedPrefix}${command} Harry Potter`
+✰ 𝚄𝚜𝚊:
+${usedPrefix}${command} <nombre del libro>
+
+✰ 𝙴𝚓𝚎𝚖𝚙𝚕𝚘:
+${usedPrefix}${command} Harry Potter
+
+✰ ${config.botName || 'SaitamaBot'}`
     )
   }
 
 
-  const chatId = m.chat
+  const chatId =
+    m.chat
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | MENSAJE DE ESPERA
-  |--------------------------------------------------------------------------
-  */
+  // ═══════════════════════════════════
+  // ✰ REACCIÓN
+  // ═══════════════════════════════════
+
+  await conn.sendMessage(
+    chatId,
+    {
+      react: {
+        text: '🔎',
+        key: m.key
+      }
+    }
+  ).catch(() => {})
+
+
+  // ═══════════════════════════════════
+  // ✰ BUSCANDO
+  // ═══════════════════════════════════
 
   await m.reply(
-    '*⌬┤ 🔎 ├⌬ Buscando libro...*'
+
+`༺ 𝙻𝙸𝙱𝚁𝙾𝚂 ༻
+
+✰ 𝙱𝚞𝚜𝚌𝚊𝚗𝚍𝚘 𝚕𝚒𝚋𝚛𝚘...
+✰ 𝙾𝚋𝚝𝚎𝚗𝚒𝚎𝚗𝚍𝚘 𝚒𝚗𝚏𝚘𝚛𝚖𝚊𝚌𝚒ó𝚗...
+
+✰ ${config.botName || 'SaitamaBot'}`
   )
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | ARCHIVO TEMPORAL
-  |--------------------------------------------------------------------------
-  */
+  // ═══════════════════════════════════
+  // ✰ ARCHIVO TEMPORAL
+  // ═══════════════════════════════════
 
   const tmpPath =
     join(
@@ -187,18 +285,20 @@ Ejemplo:
     let info
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | BUSCAR / OBTENER LIBRO
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ OBTENER INFORMACIÓN
+    // ═════════════════════════════════
 
     if (
-      /lectulandia\.co/i.test(query)
+      /lectulandia\.co/i.test(
+        query
+      )
     ) {
 
       info =
-        await bookInfo(query)
+        await bookInfo(
+          query
+        )
 
     } else {
 
@@ -209,19 +309,28 @@ Ejemplo:
         )
 
 
-      if (!search?.length) {
+      if (
+        !search?.length
+      ) {
 
         return m.reply(
-`*⌬┤ ❌ ├⌬ NO ENCONTRADO.*
 
-> No se encontró ningún libro para:
+`༺ 𝙽𝚘 𝚎𝚗𝚌𝚘𝚗𝚝𝚛𝚊𝚍𝚘 ༻
 
-*${query}*`
+✰ 𝙽𝚘 𝚜𝚎 𝚎𝚗𝚌𝚘𝚗𝚝𝚛ó 𝚗𝚒𝚗𝚐ú𝚗 𝚕𝚒𝚋𝚛𝚘.
+
+✰ 𝙱ú𝚜𝚚𝚞𝚎𝚍𝚊:
+${query}
+
+✰ ${config.botName || 'SaitamaBot'}`
         )
       }
 
 
-      if (!search[0]?.url) {
+      if (
+        !search[0]?.url
+      ) {
+
         throw new Error(
           'El resultado no contiene URL.'
         )
@@ -236,23 +345,23 @@ Ejemplo:
 
 
     if (!info) {
+
       throw new Error(
         'No se pudo obtener la información del libro.'
       )
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | INFORMACIÓN DEL LIBRO
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ DATOS
+    // ═════════════════════════════════
 
     const title =
       cleanFileName(
         info.title ||
         'Libro'
       )
+
 
     const author =
       cleanFileName(
@@ -261,77 +370,109 @@ Ejemplo:
       )
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | PORTADA
-    |--------------------------------------------------------------------------
-    */
+    const genre =
+      cleanFileName(
+        info.genre ||
+        '-'
+      )
 
-    if (info.thumb) {
+
+    const year =
+      info.year ||
+      '-'
+
+
+    const description =
+      String(
+        info.description ||
+        'Sin descripción disponible.'
+      )
+
+
+    // ═════════════════════════════════
+    // ✰ PORTADA
+    // ═════════════════════════════════
+
+    if (
+      info.thumb
+    ) {
 
       try {
-
-        const description =
-          String(
-            info.description || ''
-          )
 
         await conn.sendMessage(
           chatId,
           {
+
             image: {
-              url: info.thumb
+              url:
+                info.thumb
             },
 
             caption:
-`*⌬┤ 📚 ├⌬ ${title}*
+`༺ 𝙻𝙸𝙱𝚁𝙾 ༻
 
-> 👤 *Autor:* ${author}
-> 📑 *Género:* ${info.genre || '-'}
-> 📅 *Publicado:* ${info.year || '-'}
+✰ 𝙽𝚘𝚖𝚋𝚛𝚎: ${title}
+✰ 𝙰𝚞𝚝𝚘𝚛: ${author}
+✰ 𝙶é𝚗𝚎𝚛𝚘: ${genre}
+✰ 𝙿𝚞𝚋𝚕𝚒𝚌𝚊𝚍𝚘: ${year}
 
-> 📖 ${description.slice(0, 500)}${description.length > 500 ? '...' : ''}`
+✰ 𝙳𝚎𝚜𝚌𝚛𝚒𝚙𝚌𝚒ó𝚗:
+${description.slice(
+  0,
+  500
+)}${description.length > 500 ? '...' : ''}
+
+✰ ${config.botName || 'SaitamaBot'}`
+
           },
           {
-            quoted: m
+            quoted:
+              m
           }
         )
 
       } catch {
-        // Si falla la portada, continúa con la descarga.
+        // Continúa si falla la portada.
       }
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | BUSCAR PDF / EPUB
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ BUSCAR PDF / EPUB
+    // ═════════════════════════════════
 
-    let downloadData = null
-    let extension = 'pdf'
-    let mimetype = 'application/pdf'
+    let downloadData =
+      null
+
+    let extension =
+      'pdf'
+
+    let mimetype =
+      'application/pdf'
 
 
-    if (info.download?.pdf) {
+    if (
+      info.download?.pdf?.url
+    ) {
 
       downloadData =
         info.download.pdf
 
-      extension = 'pdf'
+      extension =
+        'pdf'
 
       mimetype =
         'application/pdf'
 
     } else if (
-      info.download?.epub
+      info.download?.epub?.url
     ) {
 
       downloadData =
         info.download.epub
 
-      extension = 'epub'
+      extension =
+        'epub'
 
       mimetype =
         'application/epub+zip'
@@ -348,11 +489,9 @@ Ejemplo:
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | NOMBRE DEL ARCHIVO
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ NOMBRE DEL ARCHIVO
+    // ═════════════════════════════════
 
     const fileName =
       `${title} - ${author}.${extension}`
@@ -362,14 +501,31 @@ Ejemplo:
       `${tmpPath}.${extension}`
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | DESCARGAR
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ DESCARGANDO
+    // ═════════════════════════════════
+
+    await conn.sendMessage(
+      chatId,
+      {
+        react: {
+          text: '⬇️',
+          key: m.key
+        }
+      }
+    ).catch(() => {})
+
 
     await m.reply(
-      `*⌬┤ ⬇️ ├⌬ Descargando...*\n> 📚 ${title}`
+
+`༺ 𝙳𝙴𝚂𝙲𝙰𝚁𝙶𝙰 ༻
+
+✰ 𝙳𝚎𝚨𝚌𝚊𝚛𝚐𝚊𝚗𝚍𝚘...
+
+✰ 𝙻𝚒𝚋𝚛𝚘: ${title}
+✰ 𝙵𝚘𝚛𝚖𝚊𝚝𝚘: ${extension.toUpperCase()}
+
+✰ ${config.botName || 'SaitamaBot'}`
     )
 
 
@@ -379,66 +535,101 @@ Ejemplo:
     )
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | ENVIAR COMO DOCUMENTO
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ ENVIAR DOCUMENTO
+    // ═════════════════════════════════
 
     await conn.sendMessage(
       chatId,
       {
+
         document:
-          readFileSync(destPath),
+          readFileSync(
+            destPath
+          ),
 
         mimetype,
 
         fileName,
 
         caption:
-`*⌬┤ ✅ ├⌬ LIBRO LISTO.*
+`༺ 𝙻𝙸𝙱𝚁𝙾 𝙻𝙸𝚂𝚃𝙾 ༻
 
-> 📚 *Título:* ${title}
-> 👤 *Autor:* ${author}
-> 📁 *Formato:* ${extension.toUpperCase()}
+✰ 𝚃í𝚝𝚞𝚕𝚘: ${title}
+✰ 𝙰𝚞𝚝𝚘𝚛: ${author}
+✰ 𝙵𝚘𝚛𝚖𝚊𝚝𝚘: ${extension.toUpperCase()}
 
-> 🌸 ${config.botName || 'SaitamaBot'}`
+✰ 𝙰𝚛𝚌𝚑𝚒𝚟𝚘 𝚕𝚒𝚜𝚝𝚘.
+
+✰ ${config.botName || 'SaitamaBot'}`
+
       },
       {
-        quoted: m
+        quoted:
+          m
       }
     )
 
 
+    // ═════════════════════════════════
+    // ✰ REACCIÓN FINAL
+    // ═════════════════════════════════
+
+    await conn.sendMessage(
+      chatId,
+      {
+        react: {
+          text: '✅',
+          key: m.key
+        }
+      }
+    ).catch(() => {})
+
+
   } catch (error) {
 
-    console.error(
-      '[LIBRO ERROR]',
-      error?.message || error
-    )
+    // ═════════════════════════════════
+    // ✰ ERROR
+    // ═════════════════════════════════
+
+    await conn.sendMessage(
+      chatId,
+      {
+        react: {
+          text: '❌',
+          key: m.key
+        }
+      }
+    ).catch(() => {})
 
 
     return m.reply(
-`*⌬┤ ❌ ├⌬ ERROR.*
 
-> No se pudo procesar el libro.
+`༺ 𝙴𝚛𝚛𝚘𝚛 ༻
 
-⚠️ ${error?.message || 'Error desconocido'}`
+✰ 𝙽𝚘 𝚜𝚎 𝚙𝚞𝚍𝚘 𝚙𝚛𝚘𝚌𝚎𝚜𝚊𝚛 𝚎𝚕 𝚕𝚒𝚋𝚛𝚘.
+
+✰ 𝙳𝚎𝚝𝚊𝚕𝚕𝚎:
+${String(
+  error?.message ||
+  'Error desconocido'
+).slice(0, 500)}
+
+✰ ${config.botName || 'SaitamaBot'}`
     )
 
 
   } finally {
 
-    /*
-    |--------------------------------------------------------------------------
-    | LIMPIAR TEMPORALES
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ LIMPIAR TEMPORALES
+    // ═════════════════════════════════
 
     await rm(
       `${tmpPath}.pdf`,
       {
-        force: true
+        force:
+          true
       }
     ).catch(() => {})
 
@@ -446,31 +637,41 @@ Ejemplo:
     await rm(
       `${tmpPath}.epub`,
       {
-        force: true
+        force:
+          true
       }
     ).catch(() => {})
   }
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| CONFIGURACIÓN DEL PLUGIN
-|--------------------------------------------------------------------------
-*/
+// ═══════════════════════════════════════
+// ✰ CONFIGURACIÓN DEL PLUGIN
+// ═══════════════════════════════════════
 
 handler.help = [
+
   'libro <nombre>',
   'lectulandia <nombre>'
+
 ]
 
+
 handler.command = [
+
   'libro',
   'lectulandia'
+
 ]
+
 
 handler.tags = [
   'descargas'
 ]
+
+
+handler.register =
+  false
+
 
 export default handler

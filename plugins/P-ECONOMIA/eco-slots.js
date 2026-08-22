@@ -8,84 +8,146 @@ const SYMBOLS = [
   { s: '💎', w: 4,  m3: 20, m2: 3 },
   { s: '🔔', w: 7,  m3: 10, m2: 2 },
   { s: '🍉', w: 10, m3: 5,  m2: 1.5 },
-  { s: '🍇', w: 12, m3: 3,  m2: 1 },
-  { s: '🍋', w: 15, m3: 3,  m2: 1 },
-  { s: '🍒', w: 20, m3: 3,  m2: 1 }
+  { s: '🍇', w: 12, m3: 3, m2: 1 },
+  { s: '🍋', w: 15, m3: 3, m2: 1 },
+  { s: '🍒', w: 20, m3: 3, m2: 1 }
 ]
 
-function getRandomSymbol() {
-  const totalWeight = SYMBOLS.reduce((acc, curr) => acc + curr.w, 0)
+const getRandomSymbol = () => {
+  const totalWeight = SYMBOLS.reduce((total, item) => total + item.w, 0)
+
   let random = Math.random() * totalWeight
-  for (const sym of SYMBOLS) {
-    if (random < sym.w) return sym
-    random -= sym.w
+
+  for (const symbol of SYMBOLS) {
+    if (random < symbol.w) return symbol
+    random -= symbol.w
   }
+
   return SYMBOLS[SYMBOLS.length - 1]
+}
+
+const getHelp = (usedPrefix, command, config) => {
+  return `* 🎰  SAITAMA SLOTS*
+
+✰ 𝚄𝚜𝚘: *${usedPrefix + command} <apuesta>*
+✰ 𝙻í𝚖𝚒𝚝𝚎: *100 - 10,000 ${config.CURRENCY_NAME}*
+
+*🏆  𝙿𝚛𝚎𝚖𝚒𝚘𝚜*
+
+✰ 7️⃣7️⃣7️⃣ → *x50*
+✰ 💎💎💎 → *x20*
+✰ 🔔🔔🔔 → *x10*
+✰ 🍉🍉🍉 → *x5*
+✰ 🍒🍒🍒 → *x3*
+✰ 𝙳𝚘𝚜 𝚒𝚐𝚞𝚊𝚕𝚎𝚜 → *𝚙𝚛𝚎𝚖𝚒𝚘 𝚖𝚎𝚗𝚘𝚛*
+
+✰ 𝙲𝚘𝚘𝚕𝚍𝚘𝚠𝚗: *15 segundos*
+
+*${config.footer}*`
 }
 
 const handler = async (m, { conn, text, usedPrefix, command, userDb }) => {
   if (!userDb) return
 
-  const cooldown = 15000 
+  const cooldown = 15000
   const now = Date.now()
-  const remaining = cooldown - (now - (userDb.lastSlots || 0))
+  const elapsed = now - (userDb.lastSlots || 0)
 
-  if (remaining > 0) {
-    return m.reply(`*⌬┤ ⏳ ├⌬ MÁQUINA EN USO.*\n> Esperá *${Math.ceil(remaining / 1000)}s* para volver a tirar.`)
+  if (elapsed < cooldown) {
+    const remaining = cooldown - elapsed
+
+    return m.reply(
+      `*⏳ 𝙼Á𝚀𝚄𝙸𝙽𝙰 𝙴𝙽 𝚄𝚂𝙾*
+
+✰ 𝙴𝚜𝚙𝚎𝚛á: *${Math.ceil(remaining / 1000)}s*`
+    )
   }
 
-  const apuesta = parseInt(text)
+  const apuesta = Number.parseInt(String(text || '').trim(), 10)
+
   const minBet = 100
   const maxBet = 10000
 
-  if (isNaN(apuesta) || apuesta < minBet || apuesta > maxBet) {
-    let help = `*╔═══⌦ ✦ 🎰 ZEN-SLOTS ✦ ⌫═══╗*\n\n`
-             + `> ✍️ *Uso:* ${usedPrefix + command} <apuesta>\n`
-             + `> 💰 *Límites:* ${minBet} - ${maxBet} ${config.CURRENCY_NAME}\n\n`
-             + `*⌬┤ 🏆 TABLA DE PREMIOS ├⌬*\n`
-             + `> 7️⃣7️⃣7️⃣ = Apuesta x50\n`
-             + `> 💎💎💎 = Apuesta x20\n`
-             + `> 🔔🔔🔔 = Apuesta x10\n`
-             + `> 🍉🍉🍉 = Apuesta x5\n`
-             + `> 🍒🍒🍒 = Apuesta x3\n`
-             + `> 🍒🍒⬜ = Apuesta x1 (Recuperas)\n\n`
-             + `*╚══⌦ ${config.footer} ⌫══╝*`
-    return m.reply(help)
+  if (
+    Number.isNaN(apuesta) ||
+    apuesta < minBet ||
+    apuesta > maxBet
+  ) {
+    return m.reply(getHelp(usedPrefix, command, config))
   }
 
-  if (userDb.genosCoins < apuesta) {
-    return m.reply(`*⌬┤ ❌ ├⌬ FONDOS INSUFICIENTES.*\n> Tienes *${userDb.genosCoins}* ${config.CURRENCY_NAME}.`)
+  const saldo = Number(userDb.genosCoins) || 0
+
+  if (saldo < apuesta) {
+    return m.reply(
+      `* 𝙵𝙾𝙽𝙳𝙾𝚂 𝙸𝙽𝚂𝚄𝙵𝙸𝙲𝙸𝙴𝙽𝚃𝙴𝚂*
+
+✰ 𝚂𝚊𝚕𝚍𝚘: *${saldo} ${config.CURRENCY_NAME}*
+✰ 𝙰𝚙𝚞𝚎𝚜𝚝𝚊: *${apuesta} ${config.CURRENCY_NAME}*`
+    )
   }
 
-  userDb.genosCoins -= apuesta
+  // Se descuenta la apuesta inmediatamente
+  userDb.genosCoins = saldo - apuesta
   userDb.lastSlots = now
-  await User.updateOne({ jid: m.sender }, { $inc: { genosCoins: -apuesta }, $set: { lastSlots: now } })
 
-  const buildFrame = (r1, r2, r3, statusStr) => {
-    return `*╔═══⌦ ✦ 🎰 ZEN-SLOTS ✦ ⌫═══╗*\n\n`
-         + `> 👤 *Apostador:* @${m.sender.split('@')[0]}\n`
-         + `> 🪙 *Apostó:* ${apuesta} ${config.CURRENCY_SYMBOL}\n\n`
-         + `      [  ${r1}  |  ${r2}  |  ${r3}  ]\n\n`
-         + `${statusStr}\n`
-         + `*╚══⌦ ${config.footer} ⌫══╝*`
+  await User.updateOne(
+    { jid: m.sender },
+    {
+      $inc: {
+        genosCoins: -apuesta
+      },
+      $set: {
+        lastSlots: now
+      }
+    }
+  )
+
+  const buildFrame = (r1, r2, r3, status) => {
+    return `*🎰 𝚂𝙰𝙸𝚃𝙰𝙼𝙰 𝚂𝙻𝙾𝚃𝚂*
+
+✰ 𝙰𝚙𝚞𝚎𝚜𝚝𝚊: *${apuesta} ${config.CURRENCY_SYMBOL}*
+
+      *[ ${r1} | ${r2} | ${r3} ]*
+
+${status}
+
+*${config.footer}*`
   }
 
-  const msgContext = {
-    text: buildFrame('🌀', '🌀', '🌀', '> 🔄 _Tirando de la palanca..._'),
-    mentions: [m.sender]
-  }
-  const sentMsg = await conn.sendMessage(m.chat, msgContext, { quoted: m })
-  const msgKey = sentMsg.key
+  const sent = await conn.sendMessage(
+    m.chat,
+    {
+      text: buildFrame(
+        '🌀',
+        '🌀',
+        '🌀',
+        '✰ 𝙶𝚒𝚛𝚊𝚗𝚍𝚘 𝚕𝚘𝚜 𝚛𝚘𝚍𝚒𝚕𝚕𝚘𝚜...'
+      ),
+      mentions: [m.sender]
+    },
+    { quoted: m }
+  )
 
+  const msgKey = sent.key
+
+  // Animación
   for (let i = 0; i < 3; i++) {
     await sleep(700)
-    let t1 = getRandomSymbol().s
-    let t2 = getRandomSymbol().s
-    let t3 = getRandomSymbol().s
-    await conn.sendMessage(m.chat, { 
-      edit: msgKey, 
-      text: buildFrame(t1, t2, t3, '> 🎰 _Los rodillos están girando..._'),
-      mentions: [m.sender] 
+
+    const r1 = getRandomSymbol().s
+    const r2 = getRandomSymbol().s
+    const r3 = getRandomSymbol().s
+
+    await conn.sendMessage(m.chat, {
+      edit: msgKey,
+      text: buildFrame(
+        r1,
+        r2,
+        r3,
+        '✰ 𝙻𝚘𝚜 𝚛𝚘𝚍𝚒𝚕𝚕𝚘𝚜 𝚎𝚜𝚝á𝚗 𝚐𝚒𝚛𝚊𝚗𝚍𝚘...'
+      ),
+      mentions: [m.sender]
     })
   }
 
@@ -96,54 +158,135 @@ const handler = async (m, { conn, text, usedPrefix, command, userDb }) => {
   const res3 = getRandomSymbol()
 
   let multiplicador = 0
-  let matchSymbol = null
-  let mensajeFinal = ""
+  let mensajeFinal = ''
   let suerteAmuleto = false
 
-  if (res1.s === res2.s && res2.s === res3.s) {
+  // JACKPOT
+  if (
+    res1.s === res2.s &&
+    res2.s === res3.s
+  ) {
     multiplicador = res1.m3
-    matchSymbol = res1.s
-    mensajeFinal = `*🎁 ¡JACKPOT!* (3x ${matchSymbol})\n> 💰 ¡Ganaste **${apuesta * multiplicador}** ${config.CURRENCY_NAME}!`
-  } else if (res1.s === res2.s) {
+
+    mensajeFinal =
+      `*🏆 𝙹𝙰𝙲𝙺𝙿𝙾𝚃*
+
+✰ *3x ${res1.s}*
+
+✰ 𝙿𝚛𝚎𝚖𝚒𝚘: *${Math.floor(apuesta * multiplicador)} ${config.CURRENCY_NAME}*
+✰ 𝙼𝚞𝚕𝚝𝚒𝚙𝚕𝚒𝚌𝚊𝚍𝚘𝚛: *x${multiplicador}*`
+  }
+
+  // DOS IGUALES
+  else if (res1.s === res2.s) {
     multiplicador = res1.m2
-    matchSymbol = res1.s
-    mensajeFinal = `*✅ ¡PREMIO MENOR!* (2x ${matchSymbol})\n> 🪙 Recuperas/Ganas **${Math.floor(apuesta * multiplicador)}** ${config.CURRENCY_NAME}.`
-  } else if (res2.s === res3.s) {
+
+    mensajeFinal =
+      `*🎁 𝙿𝚁𝙴𝙼𝙸𝙾 𝙼𝙴𝙽𝙾𝚁*
+
+✰ *2x ${res1.s}*
+
+✰ 𝙿𝚛𝚎𝚖𝚒𝚘: *${Math.floor(apuesta * multiplicador)} ${config.CURRENCY_NAME}*
+✰ 𝙼𝚞𝚕𝚝𝚒𝚙𝚕𝚒𝚌𝚊𝚍𝚘𝚛: *x${multiplicador}*`
+  }
+
+  else if (res2.s === res3.s) {
     multiplicador = res2.m2
-    matchSymbol = res2.s
-    mensajeFinal = `*✅ ¡PREMIO MENOR!* (2x ${matchSymbol})\n> 🪙 Recuperas/Ganas **${Math.floor(apuesta * multiplicador)}** ${config.CURRENCY_NAME}.`
-  } else if (res1.s === res3.s) {
+
+    mensajeFinal =
+      `*🎁 𝙿𝚁𝙴𝙼𝙸𝙾 𝙼𝙴𝙽𝙾𝚁*
+
+✰ *2x ${res2.s}*
+
+✰ 𝙿𝚛𝚎𝚖𝚒𝚘: *${Math.floor(apuesta * multiplicador)} ${config.CURRENCY_NAME}*
+✰ 𝙼𝚞𝚕𝚝𝚒𝚙𝚕𝚒𝚌𝚊𝚍𝚘𝚛: *x${multiplicador}*`
+  }
+
+  else if (res1.s === res3.s) {
     multiplicador = res1.m2
-    matchSymbol = res1.s
-    mensajeFinal = `*✅ ¡PREMIO MENOR!* (2x ${matchSymbol})\n> 🪙 Recuperas/Ganas **${Math.floor(apuesta * multiplicador)}** ${config.CURRENCY_NAME}.`
-  } else if (userDb.inventory?.amulet === 'gambler' && Math.random() < 0.05) {
+
+    mensajeFinal =
+      `*🎁 𝙿𝚁𝙴𝙼𝙸𝙾 𝙼𝙴𝙽𝙾𝚁*
+
+✰ *2x ${res1.s}*
+
+✰ 𝙿𝚛𝚎𝚖𝚒𝚘: *${Math.floor(apuesta * multiplicador)} ${config.CURRENCY_NAME}*
+✰ 𝙼𝚞𝚕𝚝𝚒𝚙𝚕𝚒𝚌𝚊𝚍𝚘𝚛: *x${multiplicador}*`
+  }
+
+  // AMULETO
+  else if (
+    userDb.inventory?.amulet === 'gambler' &&
+    Math.random() < 0.05
+  ) {
     multiplicador = 1.5
-    matchSymbol = '🍒'
     suerteAmuleto = true
-    mensajeFinal = `*🎲 ¡TU AMULETO DEL TAHÚR TE SALVÓ!* (2x 🍒)\n> 🪙 Recuperas/Ganas **${Math.floor(apuesta * multiplicador)}** ${config.CURRENCY_NAME}.`
-  } else {
-    multiplicador = 0
-    mensajeFinal = `*💀 PERDISTE.*\n> Tus **${apuesta}** ${config.CURRENCY_NAME} se los queda el casino.`
+
+    mensajeFinal =
+      `*🎲 𝙰𝙼𝚄𝙻𝙴𝚃𝙾 𝙳𝙴𝙻 𝚃𝙰𝙷Ú𝚁*
+
+✰ 𝙴𝚕 𝚊𝚖𝚞𝚕𝚎𝚝𝚘 𝚌𝚊𝚖𝚋𝚒ó 𝚝𝚞 𝚜𝚞𝚎𝚛𝚝𝚎.
+
+✰ 𝙿𝚛𝚎𝚖𝚒𝚘: *${Math.floor(apuesta * multiplicador)} ${config.CURRENCY_NAME}*
+✰ 𝙼𝚞𝚕𝚝𝚒𝚙𝚕𝚒𝚌𝚊𝚍𝚘𝚛: *x${multiplicador}*`
   }
 
+  // PERDER
+  else {
+    mensajeFinal =
+      `*💀 𝙿𝙴𝚁𝙳𝙸𝚂𝚃𝙴*
+
+✰ 𝙽𝚘 𝚑𝚞𝚋𝚘 𝚌𝚘𝚖𝚋𝚒𝚗𝚊𝚌𝚒ó𝚗 𝚐𝚊𝚗𝚊𝚍𝚘𝚛𝚊.
+
+✰ 𝙿𝚎𝚛𝚍𝚒𝚜𝚝𝚎: *${apuesta} ${config.CURRENCY_NAME}*`
+  }
+
+  // Devuelve el premio completo
+  // porque la apuesta ya fue descontada.
   if (multiplicador > 0) {
-    const ganancia = Math.floor(apuesta * multiplicador)
-    userDb.genosCoins += ganancia
-    await User.updateOne({ jid: m.sender }, { $inc: { genosCoins: ganancia } })
+    const premio = Math.floor(apuesta * multiplicador)
+
+    userDb.genosCoins += premio
+
+    await User.updateOne(
+      { jid: m.sender },
+      {
+        $inc: {
+          genosCoins: premio
+        }
+      }
+    )
   }
 
-  await conn.sendMessage(m.chat, { 
-    edit: msgKey, 
-    text: suerteAmuleto
-      ? buildFrame('🍒', '🍒', res3.s, mensajeFinal)
-      : buildFrame(res1.s, res2.s, res3.s, mensajeFinal),
-    mentions: [m.sender] 
+  const resultadoFrame = suerteAmuleto
+    ? buildFrame(
+        '🍒',
+        '🍒',
+        res3.s,
+        mensajeFinal
+      )
+    : buildFrame(
+        res1.s,
+        res2.s,
+        res3.s,
+        mensajeFinal
+      )
+
+  await conn.sendMessage(m.chat, {
+    edit: msgKey,
+    text: resultadoFrame,
+    mentions: [m.sender]
   })
 }
 
 handler.help = ['slots <apuesta>']
 handler.tags = ['eco']
-handler.command = ['slots', 'tragamonedas', 'slot', 'apostar']
+handler.command = [
+  'slots',
+  'tragamonedas',
+  'slot',
+  'apostar'
+]
 handler.register = true
 
 export default handler

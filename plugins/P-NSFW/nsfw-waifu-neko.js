@@ -11,17 +11,17 @@ const handler = async (m, { conn, command }) => {
   const path = CATEGORIAS[command]
   if (!path) return
 
-  await m.react('🔞')
+  await m.react('✰')
   try {
     const r = await axios.get(`https://api.waifu.pics/nsfw/${path}`, { timeout: 10000 })
     if (!r.data?.url) throw new Error('Sin URL')
     
     await conn.sendMessage(m.chat, {
       image: { url: r.data.url },
-      caption: `🔞 *${command.toUpperCase()}*`,
+      caption: `✰ *${command.toUpperCase()}*`,
     }, { quoted: m })
   } catch (e) {
-    m.reply(`*⌬┤ ❌ ├⌬ ERROR.*\n> No se pudo obtener el contenido.`)
+    m.reply(`*✰ error*\n> No se pudo obtener el contenido.`)
   }
 }
 

@@ -4,113 +4,204 @@ import {
   IDIOMAS
 } from '../../lib/traductor.js'
 
-const handler = async (m, { conn, text }) => {
 
-  // ─────────────────────────────
-  // SIN TEXTO
-  // ─────────────────────────────
+// ═════════════════════════════════════
+// ✦ SAITAMABOT • TRADUCTOR
+// ═════════════════════════════════════
 
-  if (!text?.trim()) {
-    return m.reply(
-      `*⌬┤ 🌎 ├⌬ TRADUCTOR.*\n\n` +
-      `> Traduce cualquier mensaje a otro idioma.\n\n` +
-      `*Uso:*\n` +
-      `> #traducir en Hola mundo\n` +
-      `> #traductor fr Hola mundo\n` +
-      `> #translate japonés Hola mundo\n\n` +
-      `*También puedes responder a un mensaje:*\n` +
-      `> #traducir en\n\n` +
-      `*Idiomas disponibles:*\n` +
-      `> #idiomas`
-    )
+
+// ═════════════════════════════════════
+// ✦ HANDLER PRINCIPAL
+// ═════════════════════════════════════
+
+const handler = async (
+  m,
+  {
+    conn,
+    text
   }
-
-  // ─────────────────────────────
-  // SEPARAR IDIOMA Y TEXTO
-  // ─────────────────────────────
-
-  const partes = text.trim().split(/\s+/)
-
-  const idiomaEntrada = partes.shift()
-
-  const idioma = obtenerCodigoIdioma(idiomaEntrada)
-
-  if (!idioma) {
-    return m.reply(
-      `*⌬┤ ❌ ├⌬ IDIOMA NO VÁLIDO.*\n\n` +
-      `> Idioma recibido: *${idiomaEntrada}*\n\n` +
-      `> Usa *#idiomas* para ver todos los idiomas disponibles.`
-    )
-  }
-
-  // ─────────────────────────────
-  // TEXTO ESCRITO
-  // ─────────────────────────────
-
-  let textoTraducir = partes.join(' ').trim()
-
-  // ─────────────────────────────
-  // TEXTO DEL MENSAJE RESPONDIDO
-  // ─────────────────────────────
-
-  if (!textoTraducir && m.quoted) {
-  const q = m.quoted
-
-  textoTraducir =
-    q.text ||
-    q.caption ||
-    q.msg?.text ||
-    q.msg?.caption ||
-    q.msg?.conversation ||
-    q.message?.conversation ||
-    q.message?.extendedTextMessage?.text ||
-    q.message?.imageMessage?.caption ||
-    q.message?.videoMessage?.caption ||
-    q.message?.documentMessage?.caption ||
-    ''
-}
-
-  if (!textoTraducir) {
-    return m.reply(
-      `*⌬┤ ❌ ├⌬ SIN TEXTO.*\n\n` +
-      `> Escribe el texto después del idioma.\n\n` +
-      `*Ejemplo:*\n` +
-      `> #traducir en Hola amigo\n\n` +
-      `O responde a un mensaje con:\n` +
-      `> #traducir en`
-    )
-  }
-
-  // ─────────────────────────────
-  // TRADUCIENDO
-  // ─────────────────────────────
-
-  await m.reply(
-    `*⌬┤ ⏳ ├⌬ TRADUCIENDO...*\n` +
-    `> 🌎 Idioma: *${IDIOMAS[idioma]}*`
-  )
+) => {
 
   try {
 
-    const resultado = await traducir(
-      textoTraducir,
-      idioma
+    // ═══════════════════════════════
+    // ✦ SIN TEXTO
+    // ═══════════════════════════════
+
+    if (!text?.trim()) {
+
+      return m.reply(
+`༺ ✦ 𝚃𝚁𝙰𝙳𝚄𝙲𝚃𝙾𝚁 ✦ ༻
+
+> ✦ Traduce cualquier mensaje a otro idioma.
+
+༺ ✦ 𝚄𝚂𝙾 ✦ ༻
+
+> ✦ #traducir en Hola mundo
+> ✦ #traductor fr Hola mundo
+> ✦ #translate japonés Hola mundo
+
+༺ ✦ 𝚃𝚁𝙰𝙳𝚄𝙲𝙸𝚁 𝚄𝙽 𝙼𝙴𝙽𝚂𝙰𝙹𝙴 ✦ ༻
+
+> ✦ Responde al mensaje que quieras traducir.
+> ✦ #traducir en
+
+༺ ✦ 𝙸𝙳𝙸𝙾𝙼𝙰𝚂 ✦ ༻
+
+> ✦ Usa #idiomas para ver todos los idiomas disponibles.`
+      )
+
+    }
+
+
+    // ═══════════════════════════════
+    // ✦ SEPARAR IDIOMA Y TEXTO
+    // ═══════════════════════════════
+
+    const partes =
+      text
+        .trim()
+        .split(/\s+/)
+
+
+    const idiomaEntrada =
+      partes.shift()
+
+
+    const idioma =
+      obtenerCodigoIdioma(
+        idiomaEntrada
+      )
+
+
+    // ═══════════════════════════════
+    // ✦ IDIOMA NO VÁLIDO
+    // ═══════════════════════════════
+
+    if (!idioma) {
+
+      return m.reply(
+`༺ ✦ 𝙸𝙳𝙸𝙾𝙼𝙰 𝙽𝙾 𝚅Á𝙻𝙸𝙳𝙾 ✦ ༻
+
+> ✦ Idioma recibido:
+> *${idiomaEntrada}*
+
+> ✦ Usa *#idiomas* para consultar todos los idiomas disponibles.`
+      )
+
+    }
+
+
+    // ═══════════════════════════════
+    // ✦ TEXTO ESCRITO
+    // ═══════════════════════════════
+
+    let textoTraducir =
+      partes
+        .join(' ')
+        .trim()
+
+
+    // ═══════════════════════════════
+    // ✦ TEXTO DEL MENSAJE RESPONDIDO
+    // ═══════════════════════════════
+
+    if (
+      !textoTraducir &&
+      m.quoted
+    ) {
+
+      const q =
+        m.quoted
+
+      textoTraducir =
+        q.text ||
+        q.caption ||
+        q.msg?.text ||
+        q.msg?.caption ||
+        q.msg?.conversation ||
+        q.message?.conversation ||
+        q.message?.extendedTextMessage?.text ||
+        q.message?.imageMessage?.caption ||
+        q.message?.videoMessage?.caption ||
+        q.message?.documentMessage?.caption ||
+        ''
+
+    }
+
+
+    // ═══════════════════════════════
+    // ✦ SIN TEXTO
+    // ═══════════════════════════════
+
+    if (!textoTraducir) {
+
+      return m.reply(
+`༺ ✦ 𝚂𝙸𝙽 𝚃𝙴𝚇𝚃𝙾 ✦ ༻
+
+> ✦ Escribe el texto después del idioma.
+
+༺ ✦ 𝙴𝙹𝙴𝙼𝙿𝙻𝙾 ✦ ༻
+
+> ✦ #traducir en Hola amigo
+
+༺ ✦ 𝙼𝙴𝙽𝚂𝙰𝙹𝙴 𝚁𝙴𝚂𝙿𝙾𝙽𝙳𝙸𝙳𝙾 ✦ ༻
+
+> ✦ También puedes responder a un mensaje con:
+> ✦ #traducir en`
+      )
+
+    }
+
+
+    // ═══════════════════════════════
+    // ✦ TRADUCIENDO
+    // ═══════════════════════════════
+
+    await m.reply(
+`༺ ✦ 𝚃𝚁𝙰𝙳𝚄𝙲𝙸𝙴𝙽𝙳𝙾 ✦ ༻
+
+> ✦ Idioma:
+> *${IDIOMAS[idioma]}*
+
+> ✦ Código:
+> *${idioma}*`
     )
 
-    // ───────────────────────────
-    // RESPUESTA
-    // ───────────────────────────
+
+    // ═══════════════════════════════
+    // ✦ PROCESAR TRADUCCIÓN
+    // ═══════════════════════════════
+
+    const resultado =
+      await traducir(
+        textoTraducir,
+        idioma
+      )
+
+
+    // ═══════════════════════════════
+    // ✦ RESPUESTA
+    // ═══════════════════════════════
 
     const respuesta =
-      `*⌬┤ 🌎 ├⌬ TRADUCCIÓN.*\n\n` +
-      `> 📝 *Original:*\n` +
-      `> ${textoTraducir}\n\n` +
-      `> 🌐 *Idioma:* ${resultado.idioma}\n` +
-      `> 🔤 *Código:* ${resultado.codigo}\n\n` +
-      `> 💬 *Traducción:*\n` +
-      `> ${resultado.texto}`
+`༺ ✦ 𝚃𝚁𝙰𝙳𝚄𝙲𝙲𝙸Ó𝙽 ✦ ༻
 
-    return m.reply(respuesta)
+༺ ✦ 𝙾𝚁𝙸𝙶𝙸𝙽𝙰𝙻 ✦ ༻
+> ✦ ${textoTraducir}
+༺ ✦ 𝙸𝙳𝙸𝙾𝙼𝙰 ✦ ༻
+
+> ✦ ${resultado.idioma}
+> ✦ Código: *${resultado.codigo}*
+༺ ✦ 𝚃𝚁𝙰𝙳𝚄𝙲𝙲𝙸Ó𝙽 ✦ ༻
+> ✦ ${resultado.texto}
+
+༺ ✦ 𝚂𝙰𝙸𝚃𝙰𝙼𝙰𝙱𝙾𝚃 ✦ ༻`
+
+    return m.reply(
+      respuesta
+    )
+
 
   } catch (e) {
 
@@ -119,24 +210,45 @@ const handler = async (m, { conn, text }) => {
       e
     )
 
-    if (e.message === 'RESPUESTA_INVALIDA') {
+
+    // ═══════════════════════════════
+    // ✦ ERROR DE API
+    // ═══════════════════════════════
+
+    if (
+      e.message ===
+      'RESPUESTA_INVALIDA'
+    ) {
+
       return m.reply(
-        `*⌬┤ ❌ ├⌬ ERROR DE API.*\n\n` +
-        `> La API no devolvió una traducción válida.`
+`༺ ✦ 𝙴𝚁𝚁𝙾𝚁 𝙳𝙴 𝙰𝙿𝙸 ✦ ༻
+
+> ✦ La API no devolvió una traducción válida.
+> ✦ Intenta nuevamente en unos segundos.`
       )
+
     }
 
+
+    // ═══════════════════════════════
+    // ✦ ERROR GENERAL
+    // ═══════════════════════════════
+
     return m.reply(
-      `*⌬┤ ❌ ├⌬ ERROR.*\n\n` +
-      `> No se pudo traducir el mensaje.\n` +
-      `> Intenta nuevamente en unos segundos.`
+`༺ ✦ 𝙴𝚁𝚁𝙾𝚁 ✦ ༻
+
+> ✦ No se pudo traducir el mensaje.
+> ✦ Intenta nuevamente en unos segundos.`
     )
+
   }
+
 }
 
-// ─────────────────────────────
-// CONFIGURACIÓN DEL PLUGIN
-// ─────────────────────────────
+
+// ═════════════════════════════════════
+// ✦ CONFIGURACIÓN
+// ═════════════════════════════════════
 
 handler.help = [
   'traducir <idioma> <texto>',

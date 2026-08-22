@@ -5,12 +5,14 @@ import os from 'os'
 import { rm } from 'fs/promises'
 import config from '../../config.js'
 
-// =========================================================
-// 𝐒𝐀𝐈𝐓𝐀𝐌𝐀𝐁𝐎𝐓 • 𝐘𝐎𝐔𝐓𝐔𝐁𝐄 𝐌𝐏𝟒
-// =========================================================
+
+// ═══════════════════════════════════════
+// ✰ SAITAMABOT • YOUTUBE MP4
+// ═══════════════════════════════════════
 
 const FAA_API =
   'https://api-faa.my.id/faa/ytplayvid'
+
 
 const TMP_DIR =
   path.join(
@@ -18,19 +20,42 @@ const TMP_DIR =
     'saitamabot-mp4'
   )
 
+
 const USER_AGENT =
   'Mozilla/5.0 (Linux; Android 11) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36'
 
+
 const API_TIMEOUT =
   60 * 1000
+
 
 const DOWNLOAD_TIMEOUT =
   30 * 60 * 1000
 
 
-// =========================================================
-// 𝐕𝐀𝐋𝐎𝐑 → 𝐓𝐄𝐗𝐓𝐎
-// =========================================================
+// ═══════════════════════════════════════
+// ✰ NOMBRE DEL BOT
+// ═══════════════════════════════════════
+
+const BOT_NAME =
+  '𝑺𝒂𝒊𝒕𝒂𝒎𝒂𝑩𝒐𝒕'
+
+
+// ═══════════════════════════════════════
+// ✰ CREAR CARPETA
+// ═══════════════════════════════════════
+
+await fs.promises.mkdir(
+  TMP_DIR,
+  {
+    recursive: true
+  }
+)
+
+
+// ═══════════════════════════════════════
+// ✰ VALOR → TEXTO
+// ═══════════════════════════════════════
 
 function textValue(
   value,
@@ -42,15 +67,19 @@ function textValue(
     value === null ||
     value === ''
   ) {
+
     return fallback
   }
+
 
   if (
     typeof value === 'string' ||
     typeof value === 'number'
   ) {
+
     return String(value)
   }
+
 
   if (
     typeof value === 'object'
@@ -67,6 +96,7 @@ function textValue(
       value.formatted ||
       value.display
 
+
     if (possible) {
 
       return textValue(
@@ -76,13 +106,14 @@ function textValue(
     }
   }
 
+
   return fallback
 }
 
 
-// =========================================================
-// 𝐘𝐎𝐔𝐓𝐔𝐁𝐄 𝐈𝐃
-// =========================================================
+// ═══════════════════════════════════════
+// ✰ YOUTUBE ID
+// ═══════════════════════════════════════
 
 function getYouTubeId(
   url = ''
@@ -93,6 +124,7 @@ function getYouTubeId(
     const u =
       new URL(url)
 
+
     if (
       u.hostname.includes(
         'youtube.com'
@@ -102,19 +134,27 @@ function getYouTubeId(
       const id =
         u.searchParams.get('v')
 
+
       if (id) {
+
         return id
       }
+
 
       const match =
         u.pathname.match(
           /\/(?:shorts|embed)\/([^/?]+)/
         )
 
-      if (match?.[1]) {
+
+      if (
+        match?.[1]
+      ) {
+
         return match[1]
       }
     }
+
 
     if (
       u.hostname ===
@@ -128,13 +168,14 @@ function getYouTubeId(
 
   } catch {}
 
+
   return null
 }
 
 
-// =========================================================
-// 𝐌𝐈𝐍𝐈𝐀𝐓𝐔𝐑𝐀 𝐃𝐄 𝐘𝐎𝐔𝐓𝐔𝐁𝐄
-// =========================================================
+// ═══════════════════════════════════════
+// ✰ MINIATURA
+// ═══════════════════════════════════════
 
 function getThumbnail(
   youtubeUrl = ''
@@ -145,9 +186,12 @@ function getThumbnail(
       youtubeUrl
     )
 
+
   if (!id) {
+
     return null
   }
+
 
   return (
     `https://i.ytimg.com/vi/` +
@@ -156,28 +200,33 @@ function getThumbnail(
 }
 
 
-// =========================================================
-// 𝐎𝐁𝐓𝐄𝐍𝐄𝐑 𝐌𝐈𝐍𝐈𝐀𝐓𝐔𝐑𝐀
-// =========================================================
+// ═══════════════════════════════════════
+// ✰ OBTENER MINIATURA
+// ═══════════════════════════════════════
 
 async function getThumbnailBuffer(
   url
 ) {
 
   if (!url) {
+
     return null
   }
+
 
   try {
 
     const controller =
       new AbortController()
 
+
     const timer =
       setTimeout(
-        () => controller.abort(),
+        () =>
+          controller.abort(),
         API_TIMEOUT
       )
+
 
     try {
 
@@ -185,42 +234,60 @@ async function getThumbnailBuffer(
         await fetch(
           url,
           {
-            method: 'GET',
+
+            method:
+              'GET',
 
             headers: {
+
               'User-Agent':
                 USER_AGENT,
 
               'Accept':
                 'image/jpeg,image/*,*/*'
+
             },
 
             signal:
               controller.signal
+
           }
         )
 
-      if (!response.ok) {
+
+      if (
+        !response.ok
+      ) {
+
         return null
       }
 
+
       const arrayBuffer =
         await response.arrayBuffer()
+
 
       const buffer =
         Buffer.from(
           arrayBuffer
         )
 
-      if (!buffer.length) {
+
+      if (
+        !buffer.length
+      ) {
+
         return null
       }
+
 
       return buffer
 
     } finally {
 
-      clearTimeout(timer)
+      clearTimeout(
+        timer
+      )
     }
 
   } catch {
@@ -230,9 +297,9 @@ async function getThumbnailBuffer(
 }
 
 
-// =========================================================
-// 𝐍𝐎𝐌𝐁𝐑𝐄 𝐒𝐄𝐆𝐔𝐑𝐎
-// =========================================================
+// ═══════════════════════════════════════
+// ✰ NOMBRE SEGURO
+// ═══════════════════════════════════════
 
 function safeName(
   name
@@ -242,27 +309,32 @@ function safeName(
     name ||
     'youtube-video'
   )
+
     .replace(
       /[\\/:*?"<>|]/g,
       ''
     )
+
     .replace(
       /\s+/g,
       ' '
     )
+
     .trim()
+
     .slice(
       0,
       100
     )
+
     ||
     'youtube-video'
 }
 
 
-// =========================================================
-// 𝐓𝐀𝐌𝐀Ñ𝐎
-// =========================================================
+// ═══════════════════════════════════════
+// ✰ FORMATO DE TAMAÑO
+// ═══════════════════════════════════════
 
 function formatSize(
   bytes
@@ -275,10 +347,12 @@ function formatSize(
     return 'Desconocido'
   }
 
+
   const mb =
     bytes /
     1024 /
     1024
+
 
   if (
     mb < 1024
@@ -289,6 +363,7 @@ function formatSize(
     )
   }
 
+
   return (
     `${(
       mb / 1024
@@ -297,9 +372,9 @@ function formatSize(
 }
 
 
-// =========================================================
-// 𝐁𝐔𝐒𝐂𝐀𝐑 𝐕𝐈𝐃𝐄𝐎 𝐂𝐎𝐍 𝐅𝐀𝐀
-// =========================================================
+// ═══════════════════════════════════════
+// ✰ BUSCAR VIDEO
+// ═══════════════════════════════════════
 
 async function searchVideo(
   query
@@ -311,14 +386,18 @@ async function searchVideo(
       query
     )
 
+
   const controller =
     new AbortController()
 
+
   const timer =
     setTimeout(
-      () => controller.abort(),
+      () =>
+        controller.abort(),
       API_TIMEOUT
     )
+
 
   try {
 
@@ -326,25 +405,33 @@ async function searchVideo(
       await fetch(
         apiUrl,
         {
-          method: 'GET',
+
+          method:
+            'GET',
 
           headers: {
+
             'User-Agent':
               USER_AGENT,
 
             'Accept':
               'application/json'
+
           },
 
           signal:
             controller.signal
+
         }
       )
+
 
     const body =
       await response.text()
 
+
     let data
+
 
     try {
 
@@ -354,9 +441,10 @@ async function searchVideo(
     } catch {
 
       throw new Error(
-        'La API FAA no devolvió JSON válido'
+        'La API no devolvió JSON válido.'
       )
     }
+
 
     if (
       !response.ok
@@ -369,6 +457,7 @@ async function searchVideo(
       )
     }
 
+
     if (
       !data?.status
     ) {
@@ -376,27 +465,30 @@ async function searchVideo(
       throw new Error(
         data?.message ||
         data?.error ||
-        'FAA no encontró el vídeo'
+        'No se encontró el vídeo.'
       )
     }
+
 
     if (
       !data?.result
     ) {
 
       throw new Error(
-        'FAA no devolvió result'
+        'La API no devolvió información.'
       )
     }
+
 
     if (
       !data.result.download_url
     ) {
 
       throw new Error(
-        'FAA no devolvió download_url'
+        'La API no devolvió el enlace de descarga.'
       )
     }
+
 
     return data.result
 
@@ -409,9 +501,9 @@ async function searchVideo(
 }
 
 
-// =========================================================
-// 𝐃𝐄𝐒𝐂𝐀𝐑𝐆𝐀𝐑 𝐕𝐈𝐃𝐄𝐎
-// =========================================================
+// ═══════════════════════════════════════
+// ✰ DESCARGAR VIDEO
+// ═══════════════════════════════════════
 
 async function downloadVideo(
   url,
@@ -421,13 +513,17 @@ async function downloadVideo(
   const controller =
     new AbortController()
 
+
   const timer =
     setTimeout(
-      () => controller.abort(),
+      () =>
+        controller.abort(),
       DOWNLOAD_TIMEOUT
     )
 
+
   let file = null
+
 
   try {
 
@@ -435,14 +531,18 @@ async function downloadVideo(
       await fetch(
         url,
         {
-          method: 'GET',
+
+          method:
+            'GET',
 
           headers: {
+
             'User-Agent':
               USER_AGENT,
 
             'Accept':
               'video/mp4,video/*,*/*'
+
           },
 
           redirect:
@@ -450,8 +550,10 @@ async function downloadVideo(
 
           signal:
             controller.signal
+
         }
       )
+
 
     if (
       !response.ok
@@ -462,14 +564,16 @@ async function downloadVideo(
       )
     }
 
+
     if (
       !response.body
     ) {
 
       throw new Error(
-        'El servidor no devolvió el vídeo'
+        'El servidor no devolvió el vídeo.'
       )
     }
+
 
     await fs.promises.mkdir(
       path.dirname(output),
@@ -478,52 +582,80 @@ async function downloadVideo(
       }
     )
 
+
     file =
       fs.createWriteStream(
         output
       )
 
-    await new Promise(
-      (resolve, reject) => {
 
-        let finished = false
+    await new Promise(
+      (
+        resolve,
+        reject
+      ) => {
+
+        let finished =
+          false
+
 
         const finish =
           () => {
 
-            if (finished) {
+            if (
+              finished
+            ) {
+
               return
             }
 
-            finished = true
+
+            finished =
+              true
+
+
             resolve()
           }
+
 
         const fail =
           error => {
 
-            if (finished) {
+            if (
+              finished
+            ) {
+
               return
             }
 
-            finished = true
-            reject(error)
+
+            finished =
+              true
+
+
+            reject(
+              error
+            )
           }
+
 
         response.body.on(
           'error',
           fail
         )
 
+
         file.on(
           'error',
           fail
         )
 
+
         file.on(
           'finish',
           finish
         )
+
 
         response.body.pipe(
           file
@@ -531,19 +663,22 @@ async function downloadVideo(
       }
     )
 
+
     const stat =
       await fs.promises.stat(
         output
       )
+
 
     if (
       !stat.isFile()
     ) {
 
       throw new Error(
-        'El archivo descargado no es válido'
+        'El archivo no es válido.'
       )
     }
+
 
     if (
       stat.size < 10000
@@ -554,12 +689,16 @@ async function downloadVideo(
         {
           force: true
         }
-      ).catch(() => {})
+      ).catch(
+        () => {}
+      )
+
 
       throw new Error(
-        'El vídeo descargado está vacío o es inválido'
+        'El vídeo está vacío o es inválido.'
       )
     }
+
 
     return stat
 
@@ -568,6 +707,7 @@ async function downloadVideo(
     clearTimeout(
       timer
     )
+
 
     if (
       file &&
@@ -580,9 +720,9 @@ async function downloadVideo(
 }
 
 
-// =========================================================
-// 𝐇𝐀𝐍𝐃𝐋𝐄𝐑
-// =========================================================
+// ═══════════════════════════════════════
+// ✰ HANDLER
+// ═══════════════════════════════════════
 
 const handler = async (
   m,
@@ -600,44 +740,54 @@ const handler = async (
     ).trim()
 
 
-  // =======================================================
-  // 𝐒𝐈𝐍 𝐁Ú𝐒𝐐𝐔𝐄𝐃𝐀
-  // =======================================================
+  // ═══════════════════════════════════
+  // ✰ SIN CONSULTA
+  // ═══════════════════════════════════
 
   if (!query) {
 
     return m.reply(
 
-`𝙔𝙤𝙪𝙏𝙪𝙗𝙚 𝙈𝙋𝟰
+`༺ 𝚈𝙾𝚄𝚃𝚄𝙱𝙴 𝙼𝙿𝟺 ༻
 
-𝙀𝙨𝙘𝙧𝙞𝙗𝙚 𝙚𝙡 𝙣𝙤𝙢𝙗𝙧𝙚 𝙙𝙚𝙡 𝙫í𝙙𝙚𝙤.
+✰ 𝚄𝚜𝚊:
+${usedPrefix}${command} <video>
 
-𝙀𝙟𝙚𝙢𝙥𝙡𝙤:
+✰ 𝙴𝚓𝚎𝚖𝚙𝚕𝚘:
+${usedPrefix}${command} Shakira
 
-${usedPrefix}${command} Shakira La La La
-
-${config.botName || 'SaitamaBot'}`
+✰ ${BOT_NAME}`
     )
   }
 
 
-  // =======================================================
-  // 𝐑𝐄𝐀𝐂𝐂𝐈Ó𝐍
-  // =======================================================
+  // ═══════════════════════════════════
+  // ✰ REACCIÓN
+  // ═══════════════════════════════════
 
   await conn.sendMessage(
     m.chat,
     {
+
       react: {
-        text: '⏳',
-        key: m.key
+
+        text:
+          '⏳',
+
+        key:
+          m.key
+
       }
+
     }
-  ).catch(() => {})
+  ).catch(
+    () => {}
+  )
 
 
   const id =
     Date.now()
+
 
   const videoFile =
     path.join(
@@ -656,9 +806,9 @@ ${config.botName || 'SaitamaBot'}`
     )
 
 
-    // =====================================================
-    // 𝐁𝐔𝐒𝐂𝐀𝐑 𝐂𝐎𝐍 𝐅𝐀𝐀
-    // =====================================================
+    // ═════════════════════════════════
+    // ✰ BUSCAR
+    // ═════════════════════════════════
 
     const result =
       await searchVideo(
@@ -666,9 +816,9 @@ ${config.botName || 'SaitamaBot'}`
       )
 
 
-    // =====================================================
-    // 𝐃𝐀𝐓𝐎𝐒 𝐐𝐔𝐄 𝐃𝐄𝐕𝐔𝐄𝐋𝐕𝐄 𝐋𝐀 𝐀𝐏𝐈
-    // =====================================================
+    // ═════════════════════════════════
+    // ✰ INFORMACIÓN
+    // ═════════════════════════════════
 
     const title =
       textValue(
@@ -676,11 +826,13 @@ ${config.botName || 'SaitamaBot'}`
         'YouTube Video'
       )
 
+
     const youtube =
       textValue(
         result.searched_url,
         'No disponible'
       )
+
 
     const format =
       textValue(
@@ -689,14 +841,15 @@ ${config.botName || 'SaitamaBot'}`
       )
 
 
-    // =====================================================
-    // 𝐌𝐈𝐍𝐈𝐀𝐓𝐔𝐑𝐀
-    // =====================================================
+    // ═════════════════════════════════
+    // ✰ MINIATURA
+    // ═════════════════════════════════
 
     const thumbnail =
       getThumbnail(
         youtube
       )
+
 
     const thumbnailBuffer =
       await getThumbnailBuffer(
@@ -704,25 +857,24 @@ ${config.botName || 'SaitamaBot'}`
       )
 
 
-    // =====================================================
-    // 𝐂𝐀𝐏𝐓𝐈𝐎𝐍 𝐂𝐎𝐑𝐓𝐎
-    // =====================================================
+    // ═════════════════════════════════
+    // ✰ MENSAJE
+    // ═════════════════════════════════
 
     const caption =
-`𝙔𝙤𝙪𝙏𝙪𝙗𝙚
+`༺ 𝚈𝙾𝚄𝚃𝚄𝙱𝙴 ༻
 
-𝙏í𝙩𝙪𝙡𝙤: ${title}
-𝙀𝙣𝙡𝙖𝙘𝙚: ${youtube}
-𝙁𝙤𝙧𝙢𝙖𝙩𝙤: ${format.toUpperCase()}
+✰ 𝚃í𝚝𝚞𝚕𝚘: ${title}
+✰ 𝙵𝚘𝚛𝚖𝚊𝚝𝚘: ${format.toUpperCase()}
 
-𝘿𝙚𝙨𝙘𝙖𝙧𝙜𝙖𝙣𝙙𝙤 𝙫í𝙙𝙚𝙤...
+✰ 𝙳𝚎𝚜𝚌𝚊𝚛𝚐𝚊𝚗𝚍𝚘...
 
-${config.botName || 'SaitamaBot'}`
+✰ ${BOT_NAME}`
 
 
-    // =====================================================
-    // 𝐄𝐍𝐕𝐈𝐀𝐑 𝐌𝐈𝐍𝐈𝐀𝐓𝐔𝐑𝐀 + 𝐈𝐍𝐅𝐎
-    // =====================================================
+    // ═════════════════════════════════
+    // ✰ ENVIAR MINIATURA
+    // ═════════════════════════════════
 
     if (
       thumbnailBuffer
@@ -731,15 +883,19 @@ ${config.botName || 'SaitamaBot'}`
       await conn.sendMessage(
         m.chat,
         {
+
           image:
             thumbnailBuffer,
 
           caption:
             caption
+
         },
         {
+
           quoted:
             m
+
         }
       )
 
@@ -751,9 +907,9 @@ ${config.botName || 'SaitamaBot'}`
     }
 
 
-    // =====================================================
-    // 𝐃𝐄𝐒𝐂𝐀𝐑𝐆𝐀𝐑 𝐌𝐏𝟒
-    // =====================================================
+    // ═════════════════════════════════
+    // ✰ DESCARGAR
+    // ═════════════════════════════════
 
     const stat =
       await downloadVideo(
@@ -762,25 +918,23 @@ ${config.botName || 'SaitamaBot'}`
       )
 
 
-    // =====================================================
-    // 𝐂𝐀𝐏𝐓𝐈𝐎𝐍 𝐅𝐈𝐍𝐀𝐋
-    // =====================================================
+    // ═════════════════════════════════
+    // ✰ CAPTION FINAL
+    // ═════════════════════════════════
 
     const videoCaption =
-`𝙔𝙤𝙪𝙏𝙪𝙗𝙚
+`༺ 𝚈𝙾𝚄𝚃𝚄𝙱𝙴 ༻
 
-𝙏í𝙩𝙪𝙡𝙤: ${title}
-𝙀𝙣𝙡𝙖𝙘𝙚: ${youtube}
+✰ 𝙰𝚛𝚌𝚑𝚒𝚟𝚘: ${safeName(title)}.mp4
+✰ 𝚃𝚊𝚖𝚊ñ𝚘: ${formatSize(stat.size)}
+✰ 𝙵𝚘𝚛𝚖𝚊𝚝𝚘: MP4
 
-𝙏𝙖𝙢𝙖ñ𝙤: ${formatSize(stat.size)}
-𝙁𝙤𝙧𝙢𝙖𝙩𝙤: MP4
-
-${config.botName || 'SaitamaBot'}`
+✰ ${BOT_NAME}`
 
 
-    // =====================================================
-    // 𝐄𝐍𝐕𝐈𝐀𝐑 𝐕𝐈𝐃𝐄𝐎
-    // =====================================================
+    // ═════════════════════════════════
+    // ✰ MENSAJE VIDEO
+    // ═════════════════════════════════
 
     const videoMessage = {
 
@@ -797,12 +951,13 @@ ${config.botName || 'SaitamaBot'}`
 
       caption:
         videoCaption
+
     }
 
 
-    // =====================================================
-    // 𝐌𝐈𝐍𝐈𝐀𝐓𝐔𝐑𝐀 𝐃𝐄𝐋 𝐕𝐈𝐃𝐄𝐎
-    // =====================================================
+    // ═════════════════════════════════
+    // ✰ MINIATURA VIDEO
+    // ═════════════════════════════════
 
     if (
       thumbnailBuffer
@@ -817,116 +972,152 @@ ${config.botName || 'SaitamaBot'}`
       m.chat,
       videoMessage,
       {
+
         quoted:
           m
+
       }
     )
 
 
-    // =====================================================
-    // 𝐋𝐈𝐌𝐏𝐈𝐀𝐑
-    // =====================================================
-
-    await rm(
-      videoFile,
-      {
-        force: true
-      }
-    ).catch(() => {})
-
-
-    // =====================================================
-    // 𝐑𝐄𝐀𝐂𝐂𝐈Ó𝐍 𝐅𝐈𝐍𝐀𝐋
-    // =====================================================
+    // ═════════════════════════════════
+    // ✰ REACCIÓN FINAL
+    // ═════════════════════════════════
 
     await conn.sendMessage(
       m.chat,
       {
+
         react: {
-          text: '✅',
-          key: m.key
+
+          text:
+            '✅',
+
+          key:
+            m.key
+
         }
+
       }
-    ).catch(() => {})
+    ).catch(
+      () => {}
+    )
+
 
   } catch (error) {
 
-    // =====================================================
-    // 𝐋𝐈𝐌𝐏𝐈𝐀𝐑
-    // =====================================================
+    // ═════════════════════════════════
+    // ✰ LIMPIAR
+    // ═════════════════════════════════
 
     await rm(
       videoFile,
       {
-        force: true
+        force:
+          true
       }
-    ).catch(() => {})
+    ).catch(
+      () => {}
+    )
 
 
-    // =====================================================
-    // 𝐑𝐄𝐀𝐂𝐂𝐈Ó𝐍
-    // =====================================================
+    // ═════════════════════════════════
+    // ✰ REACCIÓN
+    // ═════════════════════════════════
 
     await conn.sendMessage(
       m.chat,
       {
+
         react: {
-          text: '❌',
-          key: m.key
+
+          text:
+            '❌',
+
+          key:
+            m.key
+
         }
+
       }
-    ).catch(() => {})
+    ).catch(
+      () => {}
+    )
 
 
-    // =====================================================
-    // 𝐄𝐑𝐑𝐎𝐑
-    // =====================================================
+    // ═════════════════════════════════
+    // ✰ ERROR
+    // ═════════════════════════════════
 
     return m.reply(
 
-`𝙀𝙧𝙧𝙤𝙧 𝙈𝙋𝟰
+`༺ 𝙴𝚁𝚁𝙾𝚁 𝙼𝙿𝟺 ༻
 
-𝙉𝙤 𝙨𝙚 𝙥𝙪𝙙𝙤 𝙙𝙚𝙨𝙘𝙖𝙧𝙜𝙖𝙧 𝙚𝙡 𝙫í𝙙𝙚𝙤.
+✰ 𝙽𝚘 𝚜𝚎 𝚙𝚞𝚍𝚘 𝚍𝚎𝚜𝚌𝚊𝚛𝚐𝚊𝚛.
 
-${String(
-  error?.message ||
-  error ||
-  'Error desconocido'
-).slice(0, 500)}
+✰ ${
+      String(
+        error?.message ||
+        error ||
+        'Error desconocido.'
+      ).slice(
+        0,
+        200
+      )
+    }
 
-${config.botName || 'SaitamaBot'}`
+✰ ${BOT_NAME}`
     )
 
+
   } finally {
+
+    // ═════════════════════════════════
+    // ✰ ELIMINAR TEMPORAL
+    // ═════════════════════════════════
 
     await rm(
       videoFile,
       {
-        force: true
+        force:
+          true
       }
-    ).catch(() => {})
+    ).catch(
+      () => {}
+    )
   }
 }
 
 
-// =========================================================
-// 𝐂𝐎𝐍𝐅𝐈𝐆𝐔𝐑𝐀𝐂𝐈Ó𝐍
-// =========================================================
+// ═══════════════════════════════════════
+// ✰ CONFIGURACIÓN
+// ═══════════════════════════════════════
 
 handler.help = [
-  'mp4 <nombre>',
-  'video <nombre>'
+
+  'mp4 <video>',
+  'video <video>'
+
 ]
+
+
+handler.command = [
+
+  'mp4',
+  'mp4dl',
+  'video',
+  'videodl'
+
+]
+
 
 handler.tags = [
   'descargas'
 ]
 
-handler.command = [
-  'mp4',
-  'mp4dl',
-  'video',
-  'videodl'
-]
+
+handler.register =
+  false
+
 
 export default handler

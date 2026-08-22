@@ -3,11 +3,12 @@ import { Jimp } from 'jimp'
 
 const handler = async (m, { conn }) => {
   const msg = m.quoted || m
-  const mtype = msg.mtype
 
-  if (mtype !== 'imageMessage') {
+  if (msg.mtype !== 'imageMessage') {
     return m.reply(
-      `*⌬┤ ⚠️ ├⌬ IMAGEN REQUERIDA.*\n> Respondé una imagen para usarla como foto del grupo.`
+`*✰ 𝙸𝙼𝙰𝙶𝙴𝙽 𝚁𝙴𝚀𝚄𝙴𝚁𝙸𝙳𝙰 ༻*
+
+> ✰ Respondé a una imagen para cambiar la foto del grupo.`
     )
   }
 
@@ -16,16 +17,12 @@ const handler = async (m, { conn }) => {
     const stream = await downloadContentFromMessage(imageMsg, 'image')
 
     const chunks = []
-    for await (const chunk of stream) {
-      chunks.push(chunk)
-    }
+    for await (const chunk of stream) chunks.push(chunk)
 
     const buffer = Buffer.concat(chunks)
-
     const img = await Jimp.read(buffer)
 
-    const width = img.bitmap.width
-    const height = img.bitmap.height
+    const { width, height } = img.bitmap
     const size = Math.min(width, height)
 
     img.crop({
@@ -35,31 +32,37 @@ const handler = async (m, { conn }) => {
       h: size
     })
 
-    img.resize({
-      w: 640,
-      h: 640
-    })
+    img.resize({ w: 640, h: 640 })
 
     const finalBuffer = await img.getBuffer('image/jpeg')
 
     await conn.updateProfilePicture(m.chat, finalBuffer)
 
-    m.reply(
-      `*⌬┤ ✅ ├⌬ FOTO ACTUALIZADA.*\n▢ La foto del grupo fue cambiada correctamente.`
+    return m.reply(
+`*✰ 𝙵𝙾𝚃𝙾 𝙰𝙲𝚃𝚄𝙰𝙻𝙸𝚉𝙰𝙳𝙰 ༻*
+
+> ✰ La foto del grupo fue cambiada correctamente.`
     )
 
   } catch (e) {
-    console.error(e)
+    return m.reply(
+`*✰ 𝙴𝚁𝚁𝙾𝚁 ༻*
 
-    m.reply(
-      `*⌬┤ ❌ ├⌬ ERROR.*\n> ${e.message}`
+> ✰ No se pudo cambiar la foto del grupo.
+> ✰ ${e.message}`
     )
   }
 }
 
 handler.help = ['fotog']
 handler.tags = ['group']
-handler.command = ['fotog', 'setfoto', 'groupfoto']
+
+handler.command = [
+  'fotog',
+  'setfoto',
+  'groupfoto'
+]
+
 handler.groupOnly = true
 handler.adminOnly = true
 handler.botAdminOnly = true

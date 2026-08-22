@@ -1,7 +1,7 @@
 import config from '../../config.js'
 
-const normalizeToTag = (name) => {
-  return name
+const normalizeToTag = (name = '') => {
+  return String(name)
     .replace(/[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDC00-\uDFFF]/g, '')
     .trim()
     .toLowerCase()
@@ -11,51 +11,115 @@ const normalizeToTag = (name) => {
     .replace(/[^a-z0-9_]/g, '')
 }
 
+const getCollectionEntries = (collection) => {
+  if (!collection) return []
+
+  if (collection instanceof Map) {
+    return Array.from(collection.entries())
+  }
+
+  if (typeof collection.toJSON === 'function') {
+    return Object.entries(collection.toJSON())
+  }
+
+  if (typeof collection === 'object') {
+    return Object.entries(collection)
+  }
+
+  return []
+}
+
 const handler = async (m, { conn, command, userDb }) => {
   if (!userDb) return
 
   const isBestiary = ['bestiario', 'bestiary', 'cazas'].includes(command)
-  const collection = isBestiary ? userDb.bestiary : userDb.aquarium
-  const title = isBestiary ? 'BESTIARIO' : 'PECERA'
-  const emoji = isBestiary ? '🐾' : '🐟'
-  const action = isBestiary ? 'cazar' : 'pescar'
 
-  let items = []
+  const collection = isBestiary
+    ? userDb.bestiary
+    : userDb.aquarium
 
-  if (collection) {
-    if (collection instanceof Map) {
-      items = Array.from(collection.entries())
-    } else if (typeof collection.toJSON === 'function') {
-      items = Object.entries(collection.toJSON())
-    } else {
-      items = Object.entries(collection)
-    }
+  const title = isBestiary
+    ? '𝙱𝙴𝚂𝚃𝙸𝙰𝚁𝙸𝙾'
+    : '𝙿𝙴𝙲𝙴𝚁𝙰'
+
+  const symbol = isBestiary ? '🐾' : '🐟'
+
+  const action = isBestiary
+    ? '𝚌𝚊𝚣𝚊𝚛'
+    : '𝚙𝚎𝚜𝚌𝚊𝚛'
+
+  let items = getCollectionEntries(collection)
+
+  items = items.filter(([key, value]) => {
+    if (!key) return false
+    if (key.startsWith('$')) return false
+    if (key.startsWith('_')) return false
+    if (key === 'init') return false
+
+    const cantidad = Number(value)
+
+    return Number.isFinite(cantidad) && cantidad > 0
+  })
+
+  if (!items.length) {
+    return m.reply(
+      `༺ ✰ 𝙲𝙾𝙻𝙴𝙲𝙲𝙸𝙾́𝙽 ✰ ༻\n\n` +
+      `✰ 𝚃𝚞 ${title.toLowerCase()} está vacío.\n\n` +
+      `> ✰ ¡Sal a ${action} algo para comenzar tu colección!`
+    )
   }
 
-  items = items.filter(([key]) => !key.startsWith('$') && !key.startsWith('_') && key !== 'init')
+  items.sort((a, b) => Number(b[1]) - Number(a[1]))
 
-  if (items.length === 0) return m.reply(`*⌬┤ ${emoji} ├⌬ TU ${title} ESTÁ VACÍO.*\n> ¡Sal a ${action} algo para empezar tu colección!`)
+  const numero = String(m.sender).split('@')[0]
 
-  items.sort((a, b) => b[1] - a[1])
+  let txt =
+    `༺ ✰ ${title} ${symbol} ✰ ༻\n\n` +
+    `✰ 𝙳𝚞𝚎𝚗̃𝚘: @${numero}\n` +
+    `✰ 𝙳𝚎𝚜𝚌𝚞𝚋𝚛𝚒𝚖𝚒𝚎𝚗𝚝𝚘𝚜: ${items.length}\n\n` +
+    `༺ ✰ 𝙻𝙸𝚂𝚃𝙰𝙳𝙾 ✰ ༻\n\n`
 
-  let txt = `*╔═══⌦ ✦ ${emoji} ${title} ✦ ⌫═══╗*\n\n`
-  txt += `> 👤 *Dueño:* @${m.sender.split('@')[0]}\n`
-  txt += `> 📊 *Descubrimientos:* ${items.length}\n\n`
-  txt += `*📜 LISTADO DE CAPTURAS:*\n`
-
-  items.forEach(([name, count]) => {
+  items.forEach(([name, count], index) => {
     const tag = normalizeToTag(name)
-    txt += `> *${name}* \`[${tag}]\` — x${count}\n`
+
+    txt +=
+      `✰ ${index + 1}. *${name}*\n` +
+      `> ✰ 𝙴𝚝𝚒𝚚𝚞𝚎𝚝𝚊: \`${tag || 'sin_tag'}\`\n` +
+      `> ✰ 𝙲𝚊𝚗𝚝𝚒𝚍𝚊𝚍: x${count}\n\n`
   })
-  txt += `\n> 💡 _¡Vende tus capturas usando el comando *!contratos* para obtener cuantiosas sumas de ${config.CURRENCY_NAME} y ${config.PREMIUM_NAME}!_\n`
-  txt += `*╚══⌦ ${config.footer} ⌫══╝*`
-  
-  await conn.sendMessage(m.chat, { text: txt, mentions: [m.sender] }, { quoted: m })
+
+  txt +=
+    `༺ ✰ 𝙸𝙽𝙵𝙾 ✰ ༻\n\n` +
+    `> ✰ 𝚅𝚎𝚗𝚍𝚎 𝚝𝚞𝚜 𝚌𝚊𝚙𝚝𝚞𝚛𝚊𝚜 𝚌𝚘𝚗 *${config.CURRENCY_NAME}* ` +
+    `𝚢 *${config.PREMIUM_NAME}* usando el sistema de contratos.\n\n` +
+    `༺ ✰ ${config.footer} ✰ ༻`
+
+  await conn.sendMessage(
+    m.chat,
+    {
+      text: txt,
+      mentions: [m.sender]
+    },
+    { quoted: m }
+  )
 }
 
-handler.help = ['bestiario', 'pecera']
+handler.help = [
+  'bestiario',
+  'pecera'
+]
+
 handler.tags = ['eco']
-handler.command = ['bestiario', 'bestiary', 'cazas', 'pecera', 'peces', 'aquarium']
+
+handler.command = [
+  'bestiario',
+  'bestiary',
+  'cazas',
+  'pecera',
+  'peces',
+  'aquarium'
+]
+
 handler.register = true
 
 export default handler

@@ -1,51 +1,150 @@
-import { seedsCatalog, recipes, getFarmData } from '../../lib/games/rpg/rpgFarm.js'
+import {
+  seedsCatalog,
+  recipes,
+  getFarmData
+} from '../../lib/games/rpg/rpgFarm.js'
 
 const handler = async (m, { usedPrefix }) => {
+
+  // ═══════════════════════════════════════
+  // 🌾 OBTENER DATOS DE LA GRANJA
+  // ═══════════════════════════════════════
+
   const farm = await getFarmData(m.sender)
-  
-  const hasHarvest = farm.harvest && farm.harvest.length > 0
-  const hasFood = farm.food && farm.food.length > 0
-  const hasSeeds = farm.seeds && Object.values(farm.seeds).some(a => a > 0)
+
+  const hasHarvest =
+    Array.isArray(farm.harvest) &&
+    farm.harvest.length > 0
+
+  const hasFood =
+    Array.isArray(farm.food) &&
+    farm.food.length > 0
+
+  const hasSeeds =
+    farm.seeds &&
+    Object.values(farm.seeds).some(amount => amount > 0)
+
+  // ═══════════════════════════════════════
+  // 📦 GRANERO VACÍO
+  // ═══════════════════════════════════════
 
   if (!hasHarvest && !hasFood && !hasSeeds) {
-    return m.reply(`*⌬┤ 🌾 ├⌬ GRANERO VACÍO.*\n> No tenés nada guardado. ¡Comprá semillas y empezá a plantar!`)
+    return m.reply(
+`༺ ✰ GRANERO VACÍO ✰ ༻
+
+> ✰ No tenés nada guardado.
+> ✰ Comprá semillas y empezá a plantar.`
+    )
   }
 
-  let texto = `*⌬┤ 🌾 ├⌬ TU GRANERO*\n\n`
+  let texto =
+`༺ ✰ TU GRANERO ✰ ༻
+
+`
+
+  // ═══════════════════════════════════════
+  // 🌱 SEMILLAS
+  // ═══════════════════════════════════════
 
   if (hasSeeds) {
-    texto += `*🌱 Semillas:*\n`
-    for (const [item, amt] of Object.entries(farm.seeds)) {
-      if (amt > 0) texto += `> ${seedsCatalog[item]?.emoji || '🌱'} ${item.toUpperCase()}: *${amt}*\n`
+
+    texto +=
+`༺ ✰ SEMILLAS ✰ ༻
+
+`
+
+    for (const [item, amount] of Object.entries(farm.seeds)) {
+
+      if (amount > 0) {
+        texto +=
+`> ✰ ${seedsCatalog[item]?.emoji || '🌱'} ${item.toUpperCase()}: *${amount}*
+`
+      }
     }
-    texto += `\n`
+
+    texto += '\n'
   }
+
+  // ═══════════════════════════════════════
+  // 📦 COSECHAS
+  // ═══════════════════════════════════════
 
   if (hasHarvest) {
-    texto += `*📦 Cosechas (Crudas):*\n`
-    farm.harvest.forEach(h => {
-      texto += `> ${seedsCatalog[h.item]?.emoji || '📦'} ${h.item.toUpperCase()}: *${h.amount}*\n`
+
+    texto +=
+`༺ ✰ COSECHAS ✰ ༻
+
+`
+
+    farm.harvest.forEach(harvest => {
+
+      texto +=
+`> ✰ ${seedsCatalog[harvest.item]?.emoji || '📦'} ${harvest.item.toUpperCase()}: *${harvest.amount}*
+`
     })
-    texto += `\n`
+
+    texto += '\n'
   }
+
+  // ═══════════════════════════════════════
+  // 🍲 COMIDA PREPARADA
+  // ═══════════════════════════════════════
 
   if (hasFood) {
-    texto += `*🍲 Comida Preparada:*\n`
-    farm.food.forEach(f => {
-      const recipeKey = Object.keys(recipes).find(k => recipes[k].gives.food === f.item)
-      const emoji = recipeKey ? recipes[recipeKey].emoji : '🍽️'
-      texto += `> ${emoji} ${f.item.toUpperCase()}: *${f.amount}*\n`
+
+    texto +=
+`༺ ✰ COMIDA PREPARADA ✰ ༻
+
+`
+
+    farm.food.forEach(food => {
+
+      const recipeKey = Object.keys(recipes).find(
+        key => recipes[key].gives.food === food.item
+      )
+
+      const emoji = recipeKey
+        ? recipes[recipeKey].emoji
+        : '🍽️'
+
+      texto +=
+`> ✰ ${emoji} ${food.item.toUpperCase()}: *${food.amount}*
+`
     })
-    texto += `\n`
+
+    texto += '\n'
   }
 
-  texto += `> 🍳 Recetas: *${usedPrefix}recetas*\n> 💰 Vender: *${usedPrefix}venderfarm*`
-  
+  // ═══════════════════════════════════════
+  // 🔗 ACCIONES
+  // ═══════════════════════════════════════
+
+  texto +=
+`༺ ✰ ACCIONES ✰ ༻
+
+> ✰ 🍳 Recetas: *${usedPrefix}recetas*
+> ✰ 💰 Vender: *${usedPrefix}venderfarm*`
+
   return m.reply(texto)
 }
 
-handler.help = ['granero']
-handler.tags = ['rpg']
-handler.command = ['granero', 'almacen']
+// ═══════════════════════════════════════
+// 📚 CONFIGURACIÓN
+// ═══════════════════════════════════════
+
+handler.help = [
+  'granero'
+]
+
+handler.tags = [
+  'rpg'
+]
+
+handler.command = [
+  'granero',
+  'almacen'
+]
+
 handler.register = true
+
 export default handler

@@ -2,14 +2,11 @@ import axios from 'axios'
 import config from '../../config.js'
 
 // ═════════════════════════════════════
-// 📱 SAITAMABOT • APTOIDE SEARCH
+// ✰ SAITAMABOT • APTOIDE
 // ═════════════════════════════════════
 
-// Cache de búsquedas
-global.aptoideCache =
-  global.aptoideCache || {}
+global.aptoideCache = global.aptoideCache || {}
 
-// API
 const APTOIDE_SEARCH =
   'https://luxinfinity.vercel.app/api/aptoide/search'
 
@@ -18,22 +15,13 @@ const APTOIDE_INFO =
 
 
 // ═════════════════════════════════════
-// 🧹 LIMPIAR NOMBRE
+// ✰ LIMPIAR NOMBRE
 // ═════════════════════════════════════
 
 function cleanFileName(name) {
-
-  return String(
-    name || 'Aplicacion'
-  )
-    .replace(
-      /[<>:"/\\|?*\x00-\x1F]/g,
-      ''
-    )
-    .replace(
-      /\s+/g,
-      ' '
-    )
+  return String(name || 'Aplicacion')
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
+    .replace(/\s+/g, ' ')
     .trim()
     .slice(0, 120)
     || 'Aplicacion'
@@ -41,31 +29,25 @@ function cleanFileName(name) {
 
 
 // ═════════════════════════════════════
-// 🔎 BUSCAR APLICACIONES
+// ✰ BUSCAR APLICACIONES
 // ═════════════════════════════════════
 
 async function searchAptoide(query) {
-
-  const response =
-    await axios.get(
-      APTOIDE_SEARCH,
-      {
-        params: {
-          query,
-          limit: 10
-        },
-
-        timeout: 60000
-      }
-    )
+  const response = await axios.get(
+    APTOIDE_SEARCH,
+    {
+      params: {
+        query,
+        limit: 10
+      },
+      timeout: 60000
+    }
+  )
 
   if (
     !response.data?.status ||
-    !Array.isArray(
-      response.data?.data
-    )
+    !Array.isArray(response.data?.data)
   ) {
-
     return []
   }
 
@@ -74,28 +56,24 @@ async function searchAptoide(query) {
 
 
 // ═════════════════════════════════════
-// 📱 INFORMACIÓN DE APP
+// ✰ INFORMACIÓN DE APP
 // ═════════════════════════════════════
 
 async function getAppInfo(packageId) {
-
-  const response =
-    await axios.get(
-      APTOIDE_INFO,
-      {
-        params: {
-          query: packageId
-        },
-
-        timeout: 60000
-      }
-    )
+  const response = await axios.get(
+    APTOIDE_INFO,
+    {
+      params: {
+        query: packageId
+      },
+      timeout: 60000
+    }
+  )
 
   if (
     !response.data?.status ||
     !response.data?.data
   ) {
-
     return null
   }
 
@@ -104,44 +82,31 @@ async function getAppInfo(packageId) {
 
 
 // ═════════════════════════════════════
-// 📥 DESCARGAR APK
+// ✰ DESCARGAR APK
 // ═════════════════════════════════════
 
 async function downloadApk(url) {
+  const response = await axios.get(
+    url,
+    {
+      responseType: 'arraybuffer',
+      timeout: 300000,
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
 
-  const response =
-    await axios.get(
-      url,
-      {
-        responseType:
-          'arraybuffer',
-
-        timeout:
-          300000,
-
-        maxContentLength:
-          Infinity,
-
-        maxBodyLength:
-          Infinity,
-
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Linux; Android 11) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36'
-        }
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Linux; Android 11) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36'
       }
-    )
+    }
+  )
 
-  const buffer =
-    Buffer.from(
-      response.data
-    )
+  const buffer = Buffer.from(response.data)
 
   if (
     !buffer.length ||
     buffer.length < 1000
   ) {
-
     throw new Error(
       'El archivo APK está vacío o es inválido.'
     )
@@ -152,7 +117,7 @@ async function downloadApk(url) {
 
 
 // ═════════════════════════════════════
-// 📱 ENVIAR INFORMACIÓN + BOTONES
+// ✰ TARJETA DE APLICACIÓN
 // ═════════════════════════════════════
 
 async function sendAppCard(
@@ -163,45 +128,37 @@ async function sendAppCard(
   usedPrefix
 ) {
 
-  const app =
-    results[index]
+  const app = results[index]
 
   if (!app) {
-
     return m.reply(
-      '❌ No existe ese resultado.'
+      `✰ 𝙽𝚘 𝚎𝚡𝚒𝚜𝚝𝚎 𝚎𝚜𝚎 𝚛𝚎𝚜𝚞𝚕𝚝𝚊𝚍𝚘`
     )
   }
-
 
   const title =
     app.title ||
     app.name ||
     'Aplicación'
 
-
   const version =
     app.version ||
-    'Desconocida'
-
+    'N/A'
 
   const size =
     app.size ||
-    'Desconocido'
-
+    'N/A'
 
   const rating =
     app.rating ||
-    'Sin rating'
-
+    'N/A'
 
   const packageId =
     app.id ||
     app.package ||
     app.packageName ||
     app.package_id ||
-    ''
-
+    'N/A'
 
   const thumbnail =
     app.thumb ||
@@ -212,38 +169,29 @@ async function sendAppCard(
 
 
   const infoText =
-`╭━━━〔 📱 𝐀𝐏𝐓𝐎𝐈𝐃𝐄 〕━━━⬣
-┃
-┃ ✦ 𝐈𝐍𝐅𝐎𝐑𝐌𝐀𝐂𝐈Ó𝐍
-┃
-┃ 📱 𝐍𝐨𝐦𝐛𝐫𝐞 ❯ ${title}
-┃ 📦 𝐏𝐚𝐪𝐮𝐞𝐭𝐞 ❯ ${packageId || 'Desconocido'}
-┃ 🔖 𝐕𝐞𝐫𝐬𝐢ó𝐧 ❯ ${version}
-┃ ⚖️ 𝐓𝐚𝐦𝐚ñ𝐨 ❯ ${size}
-┃ ⭐ 𝐑𝐚𝐭𝐢𝐧𝐠 ❯ ${rating}
-┃
-┃ ✧ 𝐑𝐞𝐬𝐮𝐥𝐭𝐚𝐝𝐨 ❯ ${index + 1}/${results.length}
-┃
-┃ ╰─➤ 𝐄𝐥𝐢𝐠𝐞 𝐮𝐧𝐚 𝐨𝐩𝐜𝐢ó𝐧
-┃
-╰━━━━━━━━━━━━━━━━━━⬣
+`༺ ✰ 𝙰𝙿𝚃𝙾𝙸𝙳𝙴 ✰ ༻
 
-🌸 ${config.botName || 'SaitamaBot'}`
+> ✰ 𝙽𝚘𝚖𝚋𝚛𝚎: ${title}
+> ✰ 𝙿𝚊𝚚𝚞𝚎𝚝𝚎: ${packageId}
+> ✰ 𝚅𝚎𝚛𝚜𝚒ó𝚗: ${version}
+> ✰ 𝚃𝚊𝚖𝚊ñ𝚘: ${size}
+> ✰ 𝚁𝚊𝚝𝚒𝚗𝚐: ${rating}
+
+༺ ✰ ${index + 1}/${results.length} ✰ ༻`
 
 
   // ═══════════════════════════════
-  // 🔘 BOTONES
+  // ✰ BOTONES
   // ═══════════════════════════════
 
   const buttons = [
-
     {
       buttonId:
         `${usedPrefix}apkselect ${index}`,
 
       buttonText: {
         displayText:
-          `📥 Descargar APK`
+          '✰ 𝙳𝚎𝚜𝚌𝚊𝚛𝚐𝚊𝚛'
       },
 
       type: 1
@@ -255,32 +203,28 @@ async function sendAppCard(
 
       buttonText: {
         displayText:
-          `➡️ Siguiente`
+          '✰ 𝚂𝚒𝚐𝚞𝚒𝚎𝚗𝚝𝚎'
       },
 
       type: 1
     }
-
   ]
 
 
   // ═══════════════════════════════
-  // 🖼️ CON IMAGEN
+  // ✰ CON IMAGEN
   // ═══════════════════════════════
 
   if (thumbnail) {
 
     return conn.sendMessage(
-
       m.chat,
-
       {
         image: {
           url: thumbnail
         },
 
-        caption:
-          infoText,
+        caption: infoText,
 
         footer:
           config.botName ||
@@ -288,31 +232,23 @@ async function sendAppCard(
 
         buttons,
 
-        headerType:
-          4
+        headerType: 4
       },
-
       {
-        quoted:
-          m
+        quoted: m
       }
-
     )
-
   }
 
 
   // ═══════════════════════════════
-  // 📝 SIN IMAGEN
+  // ✰ SIN IMAGEN
   // ═══════════════════════════════
 
   return conn.sendMessage(
-
     m.chat,
-
     {
-      text:
-        infoText,
+      text: infoText,
 
       footer:
         config.botName ||
@@ -320,21 +256,17 @@ async function sendAppCard(
 
       buttons,
 
-      headerType:
-        1
+      headerType: 1
     },
-
     {
-      quoted:
-        m
+      quoted: m
     }
-
   )
 }
 
 
 // ═════════════════════════════════════
-// 🎵 HANDLER
+// ✰ HANDLER
 // ═════════════════════════════════════
 
 const handler = async (
@@ -349,54 +281,37 @@ const handler = async (
 
   try {
 
-    const sender =
-      m.sender
+    const sender = m.sender
 
 
     // ═══════════════════════════════
-    // ➡️ SIGUIENTE
+    // ✰ SIGUIENTE
     // ═══════════════════════════════
 
-    if (
-      command === 'apknext'
-    ) {
+    if (command === 'apknext') {
 
       const session =
-        global.aptoideCache[
-          sender
-        ]
-
+        global.aptoideCache[sender]
 
       if (
         !session ||
         !session.results?.length
       ) {
-
         return m.reply(
-`╭━━━〔 ❌ SIN BÚSQUEDA 〕━━━⬣
+`༺ ✰ 𝚂𝙸𝙽 𝙱Ú𝚂𝚀𝚄𝙴𝙳𝙰 ✰ ༻
 
-No hay una búsqueda activa.
-
-Usa:
-
-${usedPrefix}apk WhatsApp
-
-╰━━━━━━━━━━━━━━━━━━⬣`
+> ✰ 𝚄𝚜𝚊: ${usedPrefix}apk WhatsApp`
         )
       }
 
-
       session.index++
-
 
       if (
         session.index >=
         session.results.length
       ) {
-
         session.index = 0
       }
-
 
       return sendAppCard(
         conn,
@@ -409,52 +324,40 @@ ${usedPrefix}apk WhatsApp
 
 
     // ═══════════════════════════════
-    // 📥 DESCARGAR RESULTADO
+    // ✰ SELECCIONAR APK
     // ═══════════════════════════════
 
-    if (
-      command === 'apkselect'
-    ) {
+    if (command === 'apkselect') {
 
       const session =
-        global.aptoideCache[
-          sender
-        ]
-
+        global.aptoideCache[sender]
 
       if (
         !session ||
         !session.results?.length
       ) {
-
         return m.reply(
-          '❌ La búsqueda expiró. Realiza otra búsqueda.'
+          `༺ ✰ 𝙱ú𝚜𝚚𝚞𝚎𝚍𝚊 𝚎𝚡𝚙𝚒𝚛𝚊𝚍𝚊 ✰ ༻`
         )
       }
 
-
       const index =
         Number(
-          String(text || '')
-            .trim()
+          String(text || '').trim()
         )
-
 
       if (
         !Number.isInteger(index) ||
         index < 0 ||
         index >= session.results.length
       ) {
-
         return m.reply(
-          '❌ Resultado inválido.'
+          `༺ ✰ 𝚁𝚎𝚜𝚞𝚕𝚝𝚊𝚍𝚘 𝚒𝚗𝚟á𝚕𝚒𝚍𝚘 ✰ ༻`
         )
       }
 
-
       const selected =
         session.results[index]
-
 
       const packageId =
         selected.id ||
@@ -462,50 +365,36 @@ ${usedPrefix}apk WhatsApp
         selected.packageName ||
         selected.package_id
 
-
       if (!packageId) {
-
         return m.reply(
-          '❌ Esta aplicación no tiene un identificador válido.'
+          `༺ ✰ 𝙿𝚊𝚚𝚞𝚎𝚝𝚎 𝚒𝚗𝚟á𝚕𝚒𝚍𝚘 ✰ ༻`
         )
       }
 
 
       await conn.sendMessage(
-
         m.chat,
-
         {
           react: {
             text: '⏳',
             key: m.key
           }
         }
-
       ).catch(() => {})
 
 
       await m.reply(
-`╭━━━〔 📱 𝐀𝐏𝐓𝐎𝐈𝐃𝐄 〕━━━⬣
+`༺ ✰ 𝙰𝙿𝙺 ✰ ༻
 
-⏳ Obteniendo información de la aplicación...
-
-📱 ${selected.title || selected.name || 'Aplicación'}
-
-╰━━━━━━━━━━━━━━━━━━⬣`
+> ✰ 𝙾𝚋𝚝𝚎𝚗𝚒𝚎𝚗𝚍𝚘 𝚒𝚗𝚏𝚘...
+> ✰ ${selected.title || selected.name || 'Aplicación'}`
       )
 
 
       const info =
-        await getAppInfo(
-          packageId
-        )
+        await getAppInfo(packageId)
 
-
-      if (
-        !info
-      ) {
-
+      if (!info) {
         throw new Error(
           'No se encontró información de la aplicación.'
         )
@@ -517,11 +406,7 @@ ${usedPrefix}apk WhatsApp
         info.dl ||
         info.url
 
-
-      if (
-        !downloadUrl
-      ) {
-
+      if (!downloadUrl) {
         throw new Error(
           'La aplicación no tiene una descarga disponible.'
         )
@@ -534,12 +419,10 @@ ${usedPrefix}apk WhatsApp
         selected.title ||
         'Aplicación'
 
-
       const version =
         info.version ||
         selected.version ||
-        'Desconocida'
-
+        'N/A'
 
       const thumb =
         info.thumb ||
@@ -551,59 +434,49 @@ ${usedPrefix}apk WhatsApp
 
 
       // ═══════════════════════════════
-      // 🖼️ INFORMACIÓN
+      // ✰ INFORMACIÓN
       // ═══════════════════════════════
+
+      const appInfoText =
+`༺ ✰ 𝙰𝙿𝙺 ✰ ༻
+
+> ✰ 𝙽𝚘𝚖𝚋𝚛𝚎: ${title}
+> ✰ 𝚅𝚎𝚛𝚜𝚒ó𝚗: ${version}
+> ✰ 𝚃𝚊𝚖𝚊ñ𝚘: ${info.size || 'N/A'}
+> ✰ 𝚁𝚊𝚝𝚒𝚗𝚐: ${info.rating || 'N/A'}
+> ✰ 𝙳𝚎𝚜𝚌𝚊𝚛𝚐𝚊𝚜: ${info.downloads || 'N/A'}
+> ✰ 𝙰𝚗𝚍𝚛𝚘𝚒𝚍: ${info.min_android || 'N/A'}
+
+༺ ✰ 𝙳𝚎𝚜𝚌𝚊𝚛𝚐𝚊𝚗𝚍𝚘... ✰ ༻`
+
 
       if (thumb) {
 
         await conn.sendMessage(
-
           m.chat,
-
           {
             image: {
-              url:
-                thumb
+              url: thumb
             },
 
             caption:
-`╭━━━〔 📱 𝐀𝐏𝐏 〕━━━⬣
-
-📱 *${title}*
-
-🔖 *Versión:* ${version}
-⚖️ *Tamaño:* ${info.size || 'Desconocido'}
-⭐ *Rating:* ${info.rating || 'Sin rating'}
-📥 *Descargas:* ${info.downloads || 'Desconocidas'}
-📱 *Android:* ${info.min_android || 'Desconocido'}
-🏗️ *Arquitectura:* ${info.arch || 'Desconocida'}
-
-⏳ Descargando APK...
-
-🌸 ${config.botName || 'SaitamaBot'}`
+              appInfoText
           },
-
           {
-            quoted:
-              m
+            quoted: m
           }
-
         )
 
       } else {
 
         await m.reply(
-`📱 *${title}*
-
-🔖 Versión: ${version}
-
-⏳ Descargando APK...`
+          appInfoText
         )
       }
 
 
       // ═══════════════════════════════
-      // 📥 DESCARGAR
+      // ✰ DESCARGAR
       // ═══════════════════════════════
 
       const apk =
@@ -617,17 +490,13 @@ ${usedPrefix}apk WhatsApp
 
 
       // ═══════════════════════════════
-      // 📤 ENVIAR APK
+      // ✰ ENVIAR APK
       // ═══════════════════════════════
 
       await conn.sendMessage(
-
         m.chat,
-
         {
-
-          document:
-            apk,
+          document: apk,
 
           mimetype:
             'application/vnd.android.package-archive',
@@ -635,44 +504,34 @@ ${usedPrefix}apk WhatsApp
           fileName,
 
           caption:
-`╭━━━〔 ✅ 𝐀𝐏𝐊 𝐋𝐈𝐒𝐓𝐎 〕━━━⬣
+`༺ ✰ 𝙰𝙿𝙺 𝙻𝙸𝚂𝚃𝙾 ✰ ༻
 
-📱 *${title}*
+> ✰ ${title}
+> ✰ 𝚅𝚎𝚛𝚜𝚒ó𝚗: ${version}
 
-🔖 *Versión:* ${version}
-
-📦 Archivo APK listo.
-
-🌸 ${config.botName || 'SaitamaBot'}`
+✰ 𝙰𝚛𝚌𝚑𝚒𝚟𝚘 𝚕𝚒𝚜𝚝𝚘`
         },
-
         {
-          quoted:
-            m
+          quoted: m
         }
-
       )
 
 
       await conn.sendMessage(
-
         m.chat,
-
         {
           react: {
             text: '✅',
             key: m.key
           }
         }
-
       ).catch(() => {})
-
 
     }
 
 
     // ═══════════════════════════════
-    // 🔎 BUSCAR
+    // ✰ BUSCAR
     // ═══════════════════════════════
 
     if (
@@ -681,50 +540,33 @@ ${usedPrefix}apk WhatsApp
     ) {
 
       const query =
-        String(
-          text || ''
-        ).trim()
-
+        String(text || '').trim()
 
       if (!query) {
-
         return m.reply(
-`╭━━━〔 📱 𝐀𝐏𝐓𝐎𝐈𝐃𝐄 〕━━━⬣
+`༺ ✰ 𝙰𝙿𝚃𝙾𝙸𝙳𝙴 ✰ ༻
 
-❌ Escribe el nombre de una aplicación.
-
-✧ Ejemplo:
-
-${usedPrefix}apk WhatsApp
-
-╰━━━━━━━━━━━━━━━━━━⬣`
+> ✰ 𝙴𝚜𝚌𝚛𝚒𝚋𝚎 𝚞𝚗𝚊 𝙰𝙿𝙺
+> ✰ 𝙴𝚓𝚎𝚖𝚙𝚕𝚘: ${usedPrefix}apk WhatsApp`
         )
       }
 
 
       await conn.sendMessage(
-
         m.chat,
-
         {
           react: {
             text: '🔎',
             key: m.key
           }
         }
-
       ).catch(() => {})
 
 
       await m.reply(
-`╭━━━〔 🔎 𝐁Ú𝐒𝐐𝐔𝐄𝐃𝐀 〕━━━⬣
+`༺ ✰ 𝙱Ú𝚂𝚀𝚄𝙴𝙳𝙰 ✰ ༻
 
-🔍 Buscando aplicaciones...
-
-📱 Consulta:
-${query}
-
-⏳ Espera un momento...`
+> ✰ 𝙱𝚞𝚜𝚌𝚊𝚗𝚍𝚘: ${query}`
       )
 
 
@@ -734,60 +576,36 @@ ${query}
         )
 
 
-      if (
-        !results.length
-      ) {
-
+      if (!results.length) {
         return m.reply(
-`╭━━━〔 ❌ SIN RESULTADOS 〕━━━⬣
+`༺ ✰ 𝚂𝙸𝙽 𝚁𝙴𝚂𝚄𝙻𝚃𝙰𝙳𝙾𝚂 ✰ ༻
 
-No encontré aplicaciones para:
-
-📱 *${query}*
-
-Intenta con otro nombre.
-
-╰━━━━━━━━━━━━━━━━━━⬣`
+> ✰ 𝙽𝚘 𝚎𝚗𝚌𝚘𝚗𝚝𝚛𝚊𝚍𝚘: ${query}`
         )
       }
 
 
       // ═══════════════════════════════
-      // 💾 GUARDAR BÚSQUEDA
+      // ✰ GUARDAR RESULTADOS
       // ═══════════════════════════════
 
-      global.aptoideCache[
-        sender
-      ] = {
-
+      global.aptoideCache[sender] = {
         query,
-
-        index:
-          0,
-
-        results:
-          results.slice(0, 10)
+        index: 0,
+        results: results.slice(0, 10)
       }
 
 
       // ═══════════════════════════════
-      // 📱 MOSTRAR PRIMER RESULTADO
+      // ✰ MOSTRAR
       // ═══════════════════════════════
 
       return sendAppCard(
-
         conn,
-
         m,
-
-        global.aptoideCache[
-          sender
-        ].results,
-
+        global.aptoideCache[sender].results,
         0,
-
         usedPrefix
-
       )
     }
 
@@ -802,40 +620,33 @@ Intenta con otro nombre.
 
 
     await conn.sendMessage(
-
       m.chat,
-
       {
         react: {
           text: '❌',
           key: m.key
         }
       }
-
     ).catch(() => {})
 
 
     return m.reply(
-`╭━━━〔 ❌ 𝐀𝐏𝐓𝐎𝐈𝐃𝐄 𝐄𝐑𝐑𝐎𝐑 〕━━━⬣
+`༺ ✰ 𝙰𝙿𝚃𝙾𝙸𝙳𝙴 ✰ ༻
 
-No se pudo completar la operación.
+> ✰ 𝙽𝚘 𝚜𝚎 𝚙𝚞𝚍𝚘 𝚌𝚘𝚖𝚙𝚕𝚎𝚝𝚊𝚛.
 
-⚠️ ${String(
+> ✰ ${String(
   error?.response?.data?.message ||
   error?.message ||
   'Error desconocido.'
-).slice(0, 500)}
-
-╰━━━━━━━━━━━━━━━━━━⬣
-
-🌸 ${config.botName || 'SaitamaBot'}`
+).slice(0, 300)}`
     )
   }
 }
 
 
 // ═════════════════════════════════════
-// ⚙️ CONFIGURACIÓN
+// ✰ CONFIGURACIÓN
 // ═════════════════════════════════════
 
 handler.help = [

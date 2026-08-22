@@ -40,12 +40,12 @@ const PENETRAR_FRASES = [
 const handler = async (m, { conn, usedPrefix, command }) => {
   const target = m.mentionedJid?.[0] || m.quoted?.sender
 
-  if (!target && command !== 'tocarse') return m.reply(`*[ ⚠️ ] Tenés que mencionar o responder a alguien.*\n> Ej: *${usedPrefix}${command}* @usuario`)
+  if (!target && command !== 'tocarse') return m.reply(`*✰ Tenés que mencionar o responder a alguien.*\n> Ej: *${usedPrefix}${command}* @usuario`)
 
   const name1 = m.pushName || m.sender.split('@')[0]
   const name2 = target ? `@${target.split('@')[0]}` : `@${m.sender.split('@')[0]}`
 
-  await m.react('🔞')
+  await m.react('✰')
 
   if (command === 'penetrar' || command === 'penetrado') {
     const frase    = PENETRAR_FRASES[Math.floor(Math.random() * PENETRAR_FRASES.length)].replace(/\{objetivo\}/g, name2)
@@ -54,7 +54,7 @@ const handler = async (m, { conn, usedPrefix, command }) => {
       const res = await axios.get(videoUrl, { responseType: 'arraybuffer', timeout: 20000 })
       await conn.sendMessage(m.chat, { video: Buffer.from(res.data), gifPlayback: true, caption: frase, mentions: [target] }, { quoted: m })
     } catch {
-      m.reply(`*[ ❗ ] Error al enviar el contenido.*`)
+      m.reply(`*✰ Error al enviar el contenido.*`)
     }
     return
   }
@@ -77,7 +77,7 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     const buf = Buffer.from(res.data)
     await conn.sendMessage(m.chat, { video: buf, gifPlayback: true, caption, mentions: target ? [target] : [m.sender] }, { quoted: m })
   } catch {
-    m.reply(`*[ ❗ ] Error al enviar el contenido.*`)
+    m.reply(`*✰ Error al enviar el contenido.*`)
   }
 }
 

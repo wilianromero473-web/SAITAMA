@@ -4,17 +4,8 @@ import path from 'path'
 import { rm } from 'fs/promises'
 import { pipeline } from 'stream/promises'
 
-// ═════════════════════════════════════
-// 🌸 SAITAMABOT • YTMP4 DOCUMENT
-// ═════════════════════════════════════
 // API 1 → StellarWA
 // API 2 → SylphyAPI
-// ═════════════════════════════════════
-
-
-// ═════════════════════════════════════
-// ⚙️ STELLARWA
-// ═════════════════════════════════════
 
 const STELLAR_API =
   'https://api.stellarwa.xyz'
@@ -22,29 +13,14 @@ const STELLAR_API =
 const STELLAR_KEY =
   'proyectsV2'
 
-
-// ═════════════════════════════════════
-// ⚙️ SYLPHY API
-// ═════════════════════════════════════
-
 const SYLPHY_API =
   'https://www.sylphyy.xyz/download/v2/ytmp4'
 
 const SYLPHY_KEY =
   'sylph-d7ed7664'
 
-
-// ═════════════════════════════════════
-// 🌐 USER AGENT
-// ═════════════════════════════════════
-
 const USER_AGENT =
   'Mozilla/5.0 (Linux; Android 15; Pixel 7) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36'
-
-
-// ═════════════════════════════════════
-// ⏱️ TIEMPOS
-// ═════════════════════════════════════
 
 const API_TIMEOUT =
   120000
@@ -53,14 +29,15 @@ const DOWNLOAD_TIMEOUT =
   600000
 
 
-// ═════════════════════════════════════
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 🧹 NOMBRE SEGURO
-// ═════════════════════════════════════
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 function safeFileName(title) {
 
   return String(
-    title || 'YouTube Video'
+    title ||
+    'YouTube Video'
   )
     .replace(
       /[<>:"/\\|?*\x00-\x1F]/g,
@@ -72,20 +49,24 @@ function safeFileName(title) {
     )
     .trim()
     .slice(0, 100)
-    || 'YouTube Video'
+    ||
+    'YouTube Video'
 }
 
 
-// ═════════════════════════════════════
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 🔗 NORMALIZAR URL
-// ═════════════════════════════════════
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 function normalizeYouTubeUrl(input) {
 
   const value =
-    String(input || '').trim()
+    String(
+      input || ''
+    ).trim()
 
   if (!value) {
+
     throw new Error(
       'Debes ingresar un enlace de YouTube.'
     )
@@ -94,16 +75,20 @@ function normalizeYouTubeUrl(input) {
   if (
     /^https?:\/\//i.test(value)
   ) {
+
     return value
   }
 
-  return `https://www.youtube.com/watch?v=${encodeURIComponent(value)}`
+  return (
+    'https://www.youtube.com/watch?v=' +
+    encodeURIComponent(value)
+  )
 }
 
 
-// ═════════════════════════════════════
-// 🌐 DESCARGAR STREAM
-// ═════════════════════════════════════
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 📥 DESCARGAR VIDEO
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 async function downloadToFile(
   downloadUrl,
@@ -111,6 +96,7 @@ async function downloadToFile(
 ) {
 
   if (!downloadUrl) {
+
     throw new Error(
       'La API no devolvió una URL de descarga.'
     )
@@ -120,7 +106,9 @@ async function downloadToFile(
     await axios.get(
       downloadUrl,
       {
-        responseType: 'stream',
+
+        responseType:
+          'stream',
 
         timeout:
           DOWNLOAD_TIMEOUT,
@@ -146,15 +134,20 @@ async function downloadToFile(
       }
     )
 
+
   await pipeline(
     response.data,
-    fs.createWriteStream(filePath)
+    fs.createWriteStream(
+      filePath
+    )
   )
+
 
   const stat =
     await fs.promises.stat(
       filePath
     )
+
 
   if (
     !stat.isFile() ||
@@ -166,13 +159,14 @@ async function downloadToFile(
     )
   }
 
+
   return stat
 }
 
 
-// ═════════════════════════════════════
-// 🌐 API 1 • STELLARWA
-// ═════════════════════════════════════
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🥇 SAIAPI1 • STELLARWA
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 async function fetchStellar(url) {
 
@@ -180,6 +174,7 @@ async function fetchStellar(url) {
     await axios.get(
       `${STELLAR_API}/dl/ytmp4`,
       {
+
         params: {
           url,
           quality: 'auto',
@@ -199,8 +194,10 @@ async function fetchStellar(url) {
       }
     )
 
+
   const data =
     response.data
+
 
   if (
     !data?.status ||
@@ -212,6 +209,7 @@ async function fetchStellar(url) {
       'StellarWA no devolvió el vídeo.'
     )
   }
+
 
   return {
 
@@ -232,9 +230,9 @@ async function fetchStellar(url) {
 }
 
 
-// ═════════════════════════════════════
-// 🌐 API 2 • SYLPHY
-// ═════════════════════════════════════
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🥈 SAIAPI2 • SYLPHY
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 async function fetchSylphy(url) {
 
@@ -242,6 +240,7 @@ async function fetchSylphy(url) {
     await axios.get(
       SYLPHY_API,
       {
+
         params: {
           url
         },
@@ -262,8 +261,10 @@ async function fetchSylphy(url) {
       }
     )
 
+
   const data =
     response.data
+
 
   if (
     !data?.status ||
@@ -275,6 +276,7 @@ async function fetchSylphy(url) {
       'SylphyAPI no devolvió el vídeo.'
     )
   }
+
 
   return {
 
@@ -295,45 +297,50 @@ async function fetchSylphy(url) {
 }
 
 
-// ═════════════════════════════════════
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 🔄 SISTEMA DE FALLBACK
-// ═════════════════════════════════════
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 async function getVideo(url) {
 
-  let stellarError = null
+  let stellarError =
+    null
 
-  // ═════════════════════════════════
-  // 🥇 INTENTO API 1
-  // ═════════════════════════════════
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // 🥇 API 1
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   try {
 
-    return await fetchStellar(url)
+    return await fetchStellar(
+      url
+    )
 
   } catch (error) {
 
     stellarError =
       error?.message ||
       'Error desconocido'
-
   }
 
 
-  // ═════════════════════════════════
-  // 🥈 INTENTO API 2
-  // ═════════════════════════════════
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // 🥈 API 2
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   try {
 
-    return await fetchSylphy(url)
+    return await fetchSylphy(
+      url
+    )
 
-  } catch (sylphyError) {
+  } catch (error) {
 
     throw new Error(
       `SaiAPI1: ${stellarError}\n` +
       `SaiAPI2: ${
-        sylphyError?.message ||
+        error?.message ||
         'Error desconocido'
       }`
     )
@@ -341,9 +348,9 @@ async function getVideo(url) {
 }
 
 
-// ═════════════════════════════════════
-// 🎯 HANDLER
-// ═════════════════════════════════════
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🎬 HANDLER
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 const handler = async (
   m,
@@ -356,32 +363,31 @@ const handler = async (
 ) => {
 
   const input =
-    String(text || '').trim()
+    String(
+      text || ''
+    ).trim()
 
 
-  // ═════════════════════════════════
-  // ❌ SIN URL
-  // ═════════════════════════════════
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ❌ SIN TEXTO
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   if (!input) {
 
     return m.reply(
-`╭━━━〔 📄 𝐘𝐓𝐌𝐏𝟒 𝐃𝐎𝐂𝐔𝐌𝐄𝐍𝐓 〕━━━⬣
+`༺ 𝚈𝚃𝙼𝙿𝟺 𝙳𝙾𝙲 ༻
 
-❗ *Falta el enlace de YouTube.*
+✰ 𝙵𝚊𝚕𝚝𝚊 𝚎𝚕 𝚎𝚗𝚕𝚊𝚌𝚎 𝚍𝚎 𝚈𝚘𝚞𝚃𝚞𝚋𝚎.
 
-📌 Ejemplo:
-
-${usedPrefix + command} https://youtu.be/xxxxx
-
-╰━━━━━━━━━━━━━━━━━━━━━━⬣`
+✰ 𝙴𝚓𝚎𝚖𝚙𝚕𝚘:
+${usedPrefix + command} https://youtu.be/xxxxx`
     )
   }
 
 
-  // ═════════════════════════════════
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // ⏳ REACCIÓN
-  // ═════════════════════════════════
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   await conn.sendMessage(
     m.chat,
@@ -415,9 +421,9 @@ ${usedPrefix + command} https://youtu.be/xxxxx
 
   try {
 
-    // ═══════════════════════════════
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // 🔗 URL
-    // ═══════════════════════════════
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     const ytUrl =
       normalizeYouTubeUrl(
@@ -425,9 +431,9 @@ ${usedPrefix + command} https://youtu.be/xxxxx
       )
 
 
-    // ═══════════════════════════════
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // 🔄 OBTENER VIDEO
-    // ═══════════════════════════════
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     const media =
       await getVideo(
@@ -435,9 +441,9 @@ ${usedPrefix + command} https://youtu.be/xxxxx
       )
 
 
-    // ═══════════════════════════════
-    // 📥 DESCARGAR ARCHIVO
-    // ═══════════════════════════════
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // 📥 DESCARGAR
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     try {
 
@@ -448,8 +454,8 @@ ${usedPrefix + command} https://youtu.be/xxxxx
 
     } catch (downloadError) {
 
-      // Si el enlace de SaiAPI1 falla,
-      // probar directamente SaiAPI2.
+      // Si falla Stellar,
+      // probar directamente Sylphy.
 
       if (
         media.api === 'SaiAPI1'
@@ -494,9 +500,9 @@ ${usedPrefix + command} https://youtu.be/xxxxx
     }
 
 
-    // ═══════════════════════════════
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // 📝 TÍTULO
-    // ═══════════════════════════════
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     const title =
       safeFileName(
@@ -504,31 +510,33 @@ ${usedPrefix + command} https://youtu.be/xxxxx
       )
 
 
-    // ═══════════════════════════════
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // 📄 CAPTION
-    // ═══════════════════════════════
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     const caption =
-`╭━━━〔 ✅ 𝐕𝐈𝐃𝐄𝐎 𝐃𝐄𝐒𝐂𝐀𝐑𝐆𝐀𝐃𝐎 〕━━━⬣
+`༺ 𝚈𝙾𝚄𝚃𝚄𝙱𝙴 𝙼𝙿𝟺 𝙳𝙾𝙲 ༻
 
-🎬 *${title}*
+✰ 𝚃í𝚝𝚞𝚕𝚘:
+${title}
+✰ 𝙲𝚊𝚕𝚒𝚍𝚊𝚍:
+${media.quality || 'Desconocida'}
+✰ 𝙵𝚘𝚛𝚖𝚊𝚝𝚘:
+MP4
+✰ 𝚃𝚒𝚙𝚘:
+Documento
+✰ 𝙰𝙿𝙸:
+${media.api}`
 
-🎞️ *Calidad:* ${media.quality}
-🌐 *API:* ${media.api}
-📄 *Formato:* MP4
 
-╰━━━━━━━━━━━━━━━━━━━━━━⬣
-
-🌸 𝙎𝙖𝙞𝙩𝙖𝙢𝙖𝘽𝙤𝙩-𝙎𝙏`
-
-
-    // ═══════════════════════════════
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // 📄 ENVIAR COMO DOCUMENTO
-    // ═══════════════════════════════
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     await conn.sendMessage(
       m.chat,
       {
+
         document:
           fs.readFileSync(
             filePath
@@ -541,16 +549,18 @@ ${usedPrefix + command} https://youtu.be/xxxxx
           `${title}.mp4`,
 
         caption
+
       },
       {
-        quoted: m
+        quoted:
+          m
       }
     )
 
 
-    // ═══════════════════════════════
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // ✅ REACCIÓN
-    // ═══════════════════════════════
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     await conn.sendMessage(
       m.chat,
@@ -565,9 +575,9 @@ ${usedPrefix + command} https://youtu.be/xxxxx
 
   } catch (error) {
 
-    // ═══════════════════════════════
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // ❌ REACCIÓN
-    // ═══════════════════════════════
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     await conn.sendMessage(
       m.chat,
@@ -580,36 +590,32 @@ ${usedPrefix + command} https://youtu.be/xxxxx
     ).catch(() => {})
 
 
-    // ═══════════════════════════════
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // ❌ ERROR
-    // ═══════════════════════════════
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     return m.reply(
-`╭━━━〔 ❌ 𝐘𝐓𝐌𝐏𝟒 𝐄𝐑𝐑𝐎𝐑 〕━━━╮
+`༺ 𝚈𝚃𝙼𝙿𝟺 𝙳𝙾𝙲 𝙴𝚁𝚁𝙾𝚁 ༻
 
-No se pudo descargar el vídeo.
+✰ 𝙽𝚘 𝚜𝚎 𝚙𝚞𝚍𝚘 𝚍𝚎𝚜𝚌𝚊𝚛𝚐𝚊𝚛 𝚎𝚕 𝚟í𝚍𝚎𝚘.
 
-⚠️ *Detalles:*
+✰ 𝙳𝚎𝚝𝚊𝚕𝚕𝚎𝚜:
 ${String(
   error?.message ||
   error ||
   'Error desconocido'
-).slice(0, 600)}
+).slice(0, 900)}
 
-🔄 Se intentaron:
+✰ 𝚂𝚎 𝚒𝚗𝚝𝚎𝚗𝚝𝚊𝚛𝚘𝚗:
 • SaiAPI1
-• SaiAPI2
-
-╰━━━━━━━━━━━━━━━━━━━━━━╯
-
-🌸 𝙎𝙖𝙞𝙩𝙖𝙢𝙖𝘽𝙤𝙩-𝙎𝙏`
+• SaiAPI2`
     )
 
   } finally {
 
-    // ═══════════════════════════════
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // 🧹 LIMPIAR TEMPORAL
-    // ═══════════════════════════════
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     await rm(
       filePath,
@@ -621,12 +627,13 @@ ${String(
 }
 
 
-// ═════════════════════════════════════
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // ⚙️ CONFIGURACIÓN
-// ═════════════════════════════════════
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 handler.help = [
-  'ytmp4doc <url>'
+  'ytmp4doc <url>',
+  'ytvdoc <url>'
 ]
 
 handler.tags = [
@@ -637,6 +644,5 @@ handler.command = [
   'ytmp4doc',
   'ytvdoc'
 ]
-
 
 export default handler

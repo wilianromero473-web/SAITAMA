@@ -3,11 +3,9 @@ import axios from 'axios'
 import config from '../../config.js'
 
 
-/*
-|--------------------------------------------------------------------------
-| CONFIGURACIÓN
-|--------------------------------------------------------------------------
-*/
+// ═════════════════════════════════════
+// ✰ SAITAMABOT • DEEZER
+// ═════════════════════════════════════
 
 const LUXINFINITY =
   'https://luxinfinity.vercel.app/api'
@@ -19,11 +17,9 @@ const USER_AGENT =
   'Mozilla/5.0 (Linux; Android 11; Redmi Note 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36'
 
 
-/*
-|--------------------------------------------------------------------------
-| FORMATEAR DURACIÓN
-|--------------------------------------------------------------------------
-*/
+// ═════════════════════════════════════
+// ✰ DURACIÓN
+// ═════════════════════════════════════
 
 function formatDuration(seconds) {
 
@@ -47,11 +43,9 @@ function formatDuration(seconds) {
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| API DEEZER
-|--------------------------------------------------------------------------
-*/
+// ═════════════════════════════════════
+// ✰ API DEEZER
+// ═════════════════════════════════════
 
 async function dzApi(endpoint) {
 
@@ -72,11 +66,32 @@ async function dzApi(endpoint) {
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| DESCARGAR DEEZER
-|--------------------------------------------------------------------------
-*/
+// ═════════════════════════════════════
+// ✰ LIMPIAR ARCHIVO
+// ═════════════════════════════════════
+
+function cleanFileName(value) {
+
+  return String(
+    value || 'audio'
+  )
+    .replace(
+      /[<>:"/\\|?*\x00-\x1F]/g,
+      ''
+    )
+    .replace(
+      /\s+/g,
+      ' '
+    )
+    .trim()
+    .slice(0, 100)
+    || 'audio'
+}
+
+
+// ═════════════════════════════════════
+// ✰ DESCARGAR DEEZER
+// ═════════════════════════════════════
 
 async function executeDeezerDownload(
   conn,
@@ -98,12 +113,6 @@ async function executeDeezerDownload(
 
   try {
 
-    /*
-    |--------------------------------------------------------------------------
-    | OBTENER INFORMACIÓN Y MP3
-    |--------------------------------------------------------------------------
-    */
-
     const response =
       await fetch(
         `${LUXINFINITY}/deezer?url=${encodeURIComponent(url)}`
@@ -112,7 +121,7 @@ async function executeDeezerDownload(
 
     if (!response.ok) {
       throw new Error(
-        `API respondió HTTP ${response.status}`
+        `API HTTP ${response.status}`
       )
     }
 
@@ -147,21 +156,17 @@ async function executeDeezerDownload(
       data.title ||
       'Canción'
 
-
     const artist =
       data.artist ||
       'Desconocido'
-
 
     const album =
       data.album ||
       'Desconocido'
 
-
     const duration =
       data.duration ||
-      'Desconocida'
-
+      'N/A'
 
     const cover =
       data.cover ||
@@ -169,22 +174,20 @@ async function executeDeezerDownload(
       null
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | INFORMACIÓN DE LA CANCIÓN
-    |--------------------------------------------------------------------------
-    */
+    // ═══════════════════════════════
+    // ✰ INFORMACIÓN
+    // ═══════════════════════════════
 
     const captionText =
-`*⌬┤ 🎵 ├⌬ ${title}*
+`༺ ✰ 𝙳𝙴𝙴𝚉𝙴𝚁 ✰ ༻
 
-> 👤 *Artista:* ${artist}
-> 💿 *Álbum:* ${album}
-> 📅 *Año:* ${data.year || '—'}
-> ⏱️ *Duración:* ${duration}
-> 🔗 ${url}
+> ✰ 𝙽𝚘𝚖𝚋𝚛𝚎: ${title}
+> ✰ 𝙰𝚛𝚝𝚒𝚜𝚝𝚊: ${artist}
+> ✰ Á𝚕𝚋𝚞𝚖: ${album}
+> ✰ 𝙰ñ𝚘: ${data.year || 'N/A'}
+> ✰ 𝙳𝚞𝚛𝚊𝚌𝚒ó𝚗: ${duration}
 
-> ⏳ Preparando archivo...`
+> ✰ 𝙿𝚛𝚎𝚙𝚊𝚛𝚊𝚗𝚍𝚘...`
 
 
     if (cover) {
@@ -205,11 +208,9 @@ async function executeDeezerDownload(
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | DESCARGAR MP3
-    |--------------------------------------------------------------------------
-    */
+    // ═══════════════════════════════
+    // ✰ DESCARGAR MP3
+    // ═══════════════════════════════
 
     const audioResponse =
       await fetch(data.mp3)
@@ -217,7 +218,7 @@ async function executeDeezerDownload(
 
     if (!audioResponse.ok) {
       throw new Error(
-        'No se pudo obtener el archivo MP3.'
+        'No se pudo obtener el MP3.'
       )
     }
 
@@ -233,26 +234,18 @@ async function executeDeezerDownload(
       audioBuffer.length < 1000
     ) {
       throw new Error(
-        'El archivo MP3 está vacío o es inválido.'
+        'El MP3 está vacío o es inválido.'
       )
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | NOMBRE DEL ARCHIVO
-    |--------------------------------------------------------------------------
-    */
 
     const fileName =
       `${cleanFileName(title)} - ${cleanFileName(artist)}.mp3`
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | ENVIAR COMO DOCUMENTO
-    |--------------------------------------------------------------------------
-    */
+    // ═══════════════════════════════
+    // ✰ ENVIAR MP3
+    // ═══════════════════════════════
 
     await conn.sendMessage(
       chatId,
@@ -265,28 +258,19 @@ async function executeDeezerDownload(
         fileName,
 
         caption:
-`*⌬┤ ✅ ├⌬ AUDIO LISTO.*
+`༺ ✰ 𝙰𝚄𝙳𝙸𝙾 𝙻𝙸𝚂𝚃𝙾 ✰ ༻
 
-> 🎵 *${title}*
-> 👤 *${artist}*
-> 💿 *${album}*
+> ✰ ${title}
+> ✰ ${artist}
+> ✰ 𝙵𝚘𝚛𝚖𝚊𝚝𝚘: MP3
 
-> 📁 Formato: MP3
-> 📄 Tipo: Documento
-
-> 🌸 ${config.botName || 'SaitamaBot'}`
+✰ ${config.botName || 'SaitamaBot'}`
       },
       {
         quoted: m
       }
     )
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | REACCIÓN FINAL
-    |--------------------------------------------------------------------------
-    */
 
     await conn.sendMessage(
       chatId,
@@ -319,45 +303,19 @@ async function executeDeezerDownload(
 
 
     return m.reply(
-`*⌬┤ ❌ ├⌬ ERROR.*
+`༺ ✰ 𝙴𝚁𝚁𝙾𝚁 ✰ ༻
 
-> No se pudo completar la descarga.
+> ✰ 𝙽𝚘 𝚜𝚎 𝚙𝚞𝚍𝚘 𝚌𝚘𝚖𝚙𝚕𝚎𝚝𝚊𝚛.
 
-⚠️ ${error?.message || 'Error desconocido'}`
+> ✰ ${error?.message || 'Error desconocido'}`
     )
   }
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| LIMPIAR NOMBRE
-|--------------------------------------------------------------------------
-*/
-
-function cleanFileName(value) {
-
-  return String(
-    value || 'audio'
-  )
-    .replace(
-      /[<>:"/\\|?*\x00-\x1F]/g,
-      ''
-    )
-    .replace(
-      /\s+/g,
-      ' '
-    )
-    .trim()
-    .slice(0, 100) || 'audio'
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| HANDLER PRINCIPAL
-|--------------------------------------------------------------------------
-*/
+// ═════════════════════════════════════
+// ✰ HANDLER
+// ═════════════════════════════════════
 
 const handler = async (
   m,
@@ -375,11 +333,9 @@ const handler = async (
       : ''
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | OBTENER LINK DEL MENSAJE CITADO
-  |--------------------------------------------------------------------------
-  */
+  // ═══════════════════════════════
+  // ✰ LINK CITADO
+  // ═══════════════════════════════
 
   if (
     !query &&
@@ -411,11 +367,9 @@ const handler = async (
     m.chat
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | DESCARGA DIRECTA
-  |--------------------------------------------------------------------------
-  */
+  // ═══════════════════════════════
+  // ✰ DESCARGA DIRECTA
+  // ═══════════════════════════════
 
   if (
     command === 'dzdl'
@@ -423,9 +377,9 @@ const handler = async (
 
     if (!query) {
       return m.reply(
-`*⌬┤ ✙ ├⌬ USO.*
+`༺ ✰ 𝚄𝚂𝙾 ✰ ༻
 
-> ${usedPrefix}dzdl <link de Deezer>`
+> ✰ ${usedPrefix}dzdl <link>`
       )
     }
 
@@ -437,7 +391,7 @@ const handler = async (
 
 
     await m.reply(
-      '*⌬┤ ⏳ ├⌬ DESCARGANDO...*'
+      `༺ ✰ 𝙳𝙴𝚂𝙲𝙰𝚁𝙶𝙰𝙽𝙳𝙾 ✰ ༻`
     )
 
 
@@ -450,35 +404,27 @@ const handler = async (
   }
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | AYUDA
-  |--------------------------------------------------------------------------
-  */
+  // ═══════════════════════════════
+  // ✰ AYUDA
+  // ═══════════════════════════════
 
   if (!query) {
 
     return m.reply(
-`*⌬┤ ✙ ├⌬ USO.*
+`༺ ✰ 𝙳𝙴𝙴𝚉𝙴𝚁 ✰ ༻
 
-> *${usedPrefix}deezer <canción o link>*
-
-> *${usedPrefix}dzalbum <álbum>*
-
-> *${usedPrefix}dzartist <artista>*
-
-> *${usedPrefix}dztracks <id>*
-
-> *${usedPrefix}dztop <id>*`
+> ✰ ${usedPrefix}deezer <canción/link>
+> ✰ ${usedPrefix}dzalbum <álbum>
+> ✰ ${usedPrefix}dzartist <artista>
+> ✰ ${usedPrefix}dztracks <id>
+> ✰ ${usedPrefix}dztop <id>`
     )
   }
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | BUSCAR ÁLBUM
-  |--------------------------------------------------------------------------
-  */
+  // ═══════════════════════════════
+  // ✰ ÁLBUMES
+  // ═══════════════════════════════
 
   if (
     [
@@ -488,7 +434,7 @@ const handler = async (
   ) {
 
     await m.reply(
-      '*⌬┤ 🔎 ├⌬ Buscando álbumes...*'
+      `༺ ✰ 𝙱𝚄𝚂𝙲𝙰𝙽𝙳𝙾 Á𝙻𝙱𝚄𝙼𝙴𝚂 ✰ ༻`
     )
 
 
@@ -503,9 +449,8 @@ const handler = async (
       if (
         !result?.data?.length
       ) {
-
         return m.reply(
-          '*⌬┤ ❌ ├⌬ SIN RESULTADOS.*'
+          `༺ ✰ 𝚂𝙸𝙽 𝚁𝙴𝚂𝚄𝙻𝚃𝙰𝙳𝙾𝚂 ✰ ༻`
         )
       }
 
@@ -514,10 +459,10 @@ const handler = async (
         result.data
           .map(
             (album, index) =>
-`*${index + 1}.* ${album.title} — _${album.artist?.name || 'Desconocido'}_
-> 🎵 ${album.nb_tracks || 0} tracks
-> 🆔 \`${album.id}\`
-> 🔗 ${album.link || ''}`
+`*${index + 1}.* ${album.title}
+> ✰ 𝙰𝚛𝚝𝚒𝚜𝚝𝚊: ${album.artist?.name || 'N/A'}
+> ✰ 𝚃𝚛𝚊𝚌𝚔𝚜: ${album.nb_tracks || 0}
+> ✰ 𝙸𝙳: ${album.id}`
           )
           .join('\n\n')
 
@@ -539,13 +484,13 @@ const handler = async (
             : {}),
 
           caption:
-`*⌬┤ 💿 ├⌬ ÁLBUMES*
+`༺ ✰ Á𝙻𝙱𝚄𝙼𝙴𝚂 ✰ ༻
 
-> 🔎 Búsqueda: *${query}*
+> ✰ 𝙱ú𝚜𝚚𝚞𝚎𝚍𝚊: ${query}
 
 ${lines}
 
-> 🌸 ${config.botName || 'SaitamaBot'}`
+✰ ${config.botName || 'SaitamaBot'}`
         },
         {
           quoted: m
@@ -560,19 +505,16 @@ ${lines}
         error?.message || error
       )
 
-
       return m.reply(
-        '*⌬┤ ❌ ├⌬ ERROR AL BUSCAR ÁLBUMES.*'
+        `༺ ✰ 𝙴𝚁𝚁𝙾𝚁 𝙰𝙻 𝙱𝚄𝚂𝙲𝙰𝚁 ✰ ༻`
       )
     }
   }
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | BUSCAR ARTISTA
-  |--------------------------------------------------------------------------
-  */
+  // ═══════════════════════════════
+  // ✰ ARTISTAS
+  // ═══════════════════════════════
 
   else if (
     [
@@ -582,7 +524,7 @@ ${lines}
   ) {
 
     await m.reply(
-      '*⌬┤ 🔎 ├⌬ Buscando artistas...*'
+      `༺ ✰ 𝙱𝚄𝚂𝙲𝙰𝙽𝙳𝙾 𝙰𝚁𝚃𝙸𝚂𝚃𝙰𝚂 ✰ ༻`
     )
 
 
@@ -597,9 +539,8 @@ ${lines}
       if (
         !result?.data?.length
       ) {
-
         return m.reply(
-          '*⌬┤ ❌ ├⌬ SIN RESULTADOS.*'
+          `༺ ✰ 𝚂𝙸𝙽 𝚁𝙴𝚂𝚄𝙻𝚃𝙰𝙳𝙾𝚂 ✰ ༻`
         )
       }
 
@@ -609,9 +550,8 @@ ${lines}
           .map(
             (artist, index) =>
 `*${index + 1}.* ${artist.name}
-> 👥 ${(artist.nb_fan || 0).toLocaleString()} fans
-> 🆔 \`${artist.id}\`
-> 🔗 ${artist.link || ''}`
+> ✰ 𝙵𝚊𝚗𝚜: ${(artist.nb_fan || 0).toLocaleString()}
+> ✰ 𝙸𝙳: ${artist.id}`
           )
           .join('\n\n')
 
@@ -633,13 +573,13 @@ ${lines}
             : {}),
 
           caption:
-`*⌬┤ 👤 ├⌬ ARTISTAS*
+`༺ ✰ 𝙰𝚁𝚃𝙸𝚂𝚃𝙰𝚂 ✰ ༻
 
-> 🔎 Búsqueda: *${query}*
+> ✰ 𝙱ú𝚜𝚚𝚞𝚎𝚍𝚊: ${query}
 
 ${lines}
 
-> 🌸 ${config.botName || 'SaitamaBot'}`
+✰ ${config.botName || 'SaitamaBot'}`
         },
         {
           quoted: m
@@ -654,19 +594,16 @@ ${lines}
         error?.message || error
       )
 
-
       return m.reply(
-        '*⌬┤ ❌ ├⌬ ERROR AL BUSCAR ARTISTAS.*'
+        `༺ ✰ 𝙴𝚁𝚁𝙾𝚁 𝙰𝙻 𝙱𝚄𝚂𝙲𝙰𝚁 ✰ ༻`
       )
     }
   }
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | TRACKS DE ÁLBUM
-  |--------------------------------------------------------------------------
-  */
+  // ═══════════════════════════════
+  // ✰ TRACKS
+  // ═══════════════════════════════
 
   else if (
     [
@@ -675,18 +612,16 @@ ${lines}
     ].includes(command)
   ) {
 
-    if (
-      !/^\d+$/.test(query)
-    ) {
+    if (!/^\d+$/.test(query)) {
 
       return m.reply(
-        '*⌬┤ ✙ ├⌬ FALTA EL ID DEL ÁLBUM.*'
+        `༺ ✰ 𝙵𝙰𝙻𝚃𝙰 𝙴𝙻 𝙸𝙳 ✰ ༻`
       )
     }
 
 
     await m.reply(
-      '*⌬┤ 🔎 ├⌬ Obteniendo tracks...*'
+      `༺ ✰ 𝙾𝙱𝚃𝙴𝙽𝙸𝙴𝙽𝙳𝙾 𝚃𝚁𝙰𝙲𝙺𝚂 ✰ ༻`
     )
 
 
@@ -701,9 +636,8 @@ ${lines}
       if (
         !album?.tracks?.data?.length
       ) {
-
         return m.reply(
-          '*⌬┤ ❌ ├⌬ NO SE ENCONTRARON TRACKS.*'
+          `༺ ✰ 𝚂𝙸𝙽 𝚃𝚁𝙰𝙲𝙺𝚂 ✰ ༻`
         )
       }
 
@@ -712,7 +646,7 @@ ${lines}
         album.tracks.data
           .map(
             (track, index) =>
-`*${index + 1}.* ${track.title} — _${formatDuration(track.duration)}_`
+`*${index + 1}.* ${track.title} — ${formatDuration(track.duration)}`
           )
           .join('\n')
 
@@ -734,13 +668,13 @@ ${lines}
             : {}),
 
           caption:
-`*⌬┤ 💿 ├⌬ ${album.title}*
+`༺ ✰ ${album.title} ✰ ༻
 
-> 👤 _${album.artist?.name || 'Desconocido'}_
+> ✰ ${album.artist?.name || 'Desconocido'}
 
 ${lines}
 
-> 🌸 ${config.botName || 'SaitamaBot'}`
+✰ ${config.botName || 'SaitamaBot'}`
         },
         {
           quoted: m
@@ -755,19 +689,16 @@ ${lines}
         error?.message || error
       )
 
-
       return m.reply(
-        '*⌬┤ ❌ ├⌬ ERROR AL OBTENER LOS TRACKS.*'
+        `༺ ✰ 𝙴𝚁𝚁𝙾𝚁 𝙰𝙻 𝙾𝙱𝚃𝙴𝙽𝙴𝚁 ✰ ༻`
       )
     }
   }
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | TOP DEL ARTISTA
-  |--------------------------------------------------------------------------
-  */
+  // ═══════════════════════════════
+  // ✰ TOP ARTISTA
+  // ═══════════════════════════════
 
   else if (
     [
@@ -776,18 +707,16 @@ ${lines}
     ].includes(command)
   ) {
 
-    if (
-      !/^\d+$/.test(query)
-    ) {
+    if (!/^\d+$/.test(query)) {
 
       return m.reply(
-        '*⌬┤ ✙ ├⌬ FALTA EL ID DEL ARTISTA.*'
+        `༺ ✰ 𝙵𝙰𝙻𝚃𝙰 𝙴𝙻 𝙸𝙳 ✰ ༻`
       )
     }
 
 
     await m.reply(
-      '*⌬┤ 🔎 ├⌬ Obteniendo top...*'
+      `༺ ✰ 𝙾𝙱𝚃𝙴𝙽𝙸𝙴𝙽𝙳𝙾 𝚃𝙾𝙿 ✰ ༻`
     )
 
 
@@ -805,12 +734,10 @@ ${lines}
         )
 
 
-      if (
-        !top?.data?.length
-      ) {
+      if (!top?.data?.length) {
 
         return m.reply(
-          '*⌬┤ ❌ ├⌬ NO SE ENCONTRARON CANCIONES.*'
+          `༺ ✰ 𝚂𝙸𝙽 𝙲𝙰𝙽𝙲𝙸𝙾𝙽𝙴𝚂 ✰ ༻`
         )
       }
 
@@ -819,7 +746,7 @@ ${lines}
         top.data
           .map(
             (track, index) =>
-`*${index + 1}.* ${track.title} — _${formatDuration(track.duration)}_`
+`*${index + 1}.* ${track.title} — ${formatDuration(track.duration)}`
           )
           .join('\n')
 
@@ -841,11 +768,11 @@ ${lines}
             : {}),
 
           caption:
-`*⌬┤ 🎤 ├⌬ TOP — ${artist.name}*
+`༺ ✰ 𝚃𝙾𝙿 — ${artist.name} ✰ ༻
 
 ${lines}
 
-> 🌸 ${config.botName || 'SaitamaBot'}`
+✰ ${config.botName || 'SaitamaBot'}`
         },
         {
           quoted: m
@@ -860,19 +787,16 @@ ${lines}
         error?.message || error
       )
 
-
       return m.reply(
-        '*⌬┤ ❌ ├⌬ ERROR AL OBTENER EL TOP.*'
+        `༺ ✰ 𝙴𝚁𝚁𝙾𝚁 𝙰𝙻 𝙾𝙱𝚃𝙴𝙽𝙴𝚁 ✰ ༻`
       )
     }
   }
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | DEEZER SEARCH / DESCARGA
-  |--------------------------------------------------------------------------
-  */
+  // ═══════════════════════════════
+  // ✰ SEARCH / DESCARGA
+  // ═══════════════════════════════
 
   else if (
     [
@@ -886,21 +810,17 @@ ${lines}
   ) {
 
     const isUrl =
-      /deezer\.com|deezer\.page\.link/i.test(
-        query
-      )
+      /deezer\.com|deezer\.page\.link/i.test(query)
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | LINK DIRECTO
-    |--------------------------------------------------------------------------
-    */
+    // ═══════════════════════════════
+    // ✰ LINK DIRECTO
+    // ═══════════════════════════════
 
     if (isUrl) {
 
       await m.reply(
-        '*⌬┤ ⏳ ├⌬ DESCARGANDO...*'
+        `༺ ✰ 𝙳𝙴𝚂𝙲𝙰𝚁𝙶𝙰𝙽𝙳𝙾 ✰ ༻`
       )
 
 
@@ -913,14 +833,12 @@ ${lines}
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | BUSCAR CANCIÓN
-    |--------------------------------------------------------------------------
-    */
+    // ═══════════════════════════════
+    // ✰ BUSCAR CANCIÓN
+    // ═══════════════════════════════
 
     await m.reply(
-      '*⌬┤ 🔎 ├⌬ Buscando canciones...*'
+      `༺ ✰ 𝙱𝚄𝚂𝙲𝙰𝙽𝙳𝙾 𝙲𝙰𝙽𝙲𝙸𝙾𝙽𝙴𝚂 ✰ ༻`
     )
 
 
@@ -950,16 +868,14 @@ ${lines}
       if (!results.length) {
 
         return m.reply(
-          '*⌬┤ ❌ ├⌬ SIN RESULTADOS.*'
+          `༺ ✰ 𝚂𝙸𝙽 𝚁𝙴𝚂𝚄𝙻𝚃𝙰𝙳𝙾𝚂 ✰ ༻`
         )
       }
 
 
-      /*
-      |--------------------------------------------------------------------------
-      | LISTA DE RESULTADOS
-      |--------------------------------------------------------------------------
-      */
+      // ═══════════════════════════════
+      // ✰ RESULTADOS
+      // ═══════════════════════════════
 
       const rows =
         results.map(
@@ -971,9 +887,7 @@ ${lines}
               'Canción'
 
 
-            if (
-              title.length > 24
-            ) {
+            if (title.length > 24) {
               title =
                 title.substring(0, 24) +
                 '...'
@@ -996,9 +910,7 @@ ${lines}
               `${artist} - ${album}`
 
 
-            if (
-              description.length > 72
-            ) {
+            if (description.length > 72) {
               description =
                 description.substring(0, 72) +
                 '...'
@@ -1007,7 +919,9 @@ ${lines}
 
             return {
               header: '',
+
               title,
+
               description,
 
               id:
@@ -1017,19 +931,13 @@ ${lines}
         )
 
 
-      /*
-      |--------------------------------------------------------------------------
-      | MENÚ
-      |--------------------------------------------------------------------------
-      */
-
       const infoText =
-`*⌬┤ 🎵 ├⌬ DEEZER SEARCH*
+`༺ ✰ 𝙳𝙴𝙴𝚉𝙴𝚁 ✰ ༻
 
-> 🔎 *Búsqueda:* ${query}
-> 🎵 *Resultados:* ${results.length}
+> ✰ 𝙱ú𝚜𝚚𝚞𝚎𝚍𝚊: ${query}
+> ✰ 𝚁𝚎𝚜𝚞𝚕𝚝𝚊𝚍𝚘𝚜: ${results.length}
 
-> Selecciona una canción para descargarla.`
+> ✰ 𝚂𝚎𝚕𝚎𝚌𝚌𝚒𝚘𝚗𝚊 𝚞𝚗𝚊 𝚌𝚊𝚗𝚌𝚒ó𝚗`
 
 
       const buttons = [
@@ -1038,12 +946,13 @@ ${lines}
 
           buttonParamsJson:
             JSON.stringify({
-              title: '🎶 VER RESULTADOS',
+              title:
+                '✰ 𝚅𝙴𝚁 𝚁𝙴𝚂𝚄𝙻𝚃𝙰𝙳𝙾𝚂',
 
               sections: [
                 {
                   title:
-                    '✧ Selecciona un Track ✧',
+                    '✰ 𝚂𝚎𝚕𝚎𝚌𝚌𝚒𝚘𝚗𝚊 𝚞𝚗 𝚃𝚛𝚊𝚌𝚔 ✰',
 
                   rows
                 }
@@ -1094,22 +1003,20 @@ ${lines}
 
 
       return m.reply(
-`*⌬┤ ❌ ├⌬ ERROR.*
+`༺ ✰ 𝙴𝚁𝚁𝙾𝚁 ✰ ༻
 
-> No se pudo realizar la búsqueda.
+> ✰ 𝙽𝚘 𝚜𝚎 𝚙𝚞𝚍𝚘 𝚛𝚎𝚊𝚕𝚒𝚣𝚊𝚛 𝚕𝚊 𝚋ú𝚜𝚚𝚞𝚎𝚍𝚊.
 
-⚠️ ${error?.message || 'Error desconocido'}`
+> ✰ ${error?.message || 'Error desconocido'}`
       )
     }
   }
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| CONFIGURACIÓN DEL PLUGIN
-|--------------------------------------------------------------------------
-*/
+// ═════════════════════════════════════
+// ✰ CONFIGURACIÓN
+// ═════════════════════════════════════
 
 handler.help = [
   'deezer <búsqueda/link>',

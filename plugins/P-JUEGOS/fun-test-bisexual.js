@@ -1,58 +1,174 @@
 const partidas = new Map()
 
-const diag = [
-  { max: 0,   text: '*Diagnóstico:* 100% Monosexual. Estás firmemente de un solo lado (totalmente hétero o totalmente gay/lesbiana). No hay confusión acá. 🚶‍♂️🚶‍♀️' },
-  { max: 20,  text: '*Diagnóstico:* Curiosidad leve. Sabés reconocer la belleza en cualquier género, pero a la hora de enamorarte o ir a la cama, tirás para un solo lado. 👍' },
-  { max: 45,  text: '*Diagnóstico:* Flexibilidad activada. Mayormente te gusta un género, pero hubo un par de excepciones que te dejaron pensando. 👀🍷' },
-  { max: 65,  text: '*Diagnóstico:* El Bi-Cycle te tiene de hijo. Una semana sos 100% hétero y a la siguiente te replanteás toda tu vida. Síndrome del impostor bisexual. ⚖️🚴' },
-  { max: 85,  text: '*Diagnóstico:* Oficialmente de los dos bandos. No podés sentarte derecho, hacés pistolitas con las manos y sufrís de pánico al ver a una pareja linda. 💜💙' },
-  { max: 100, text: '*Diagnóstico:* 100% BISEXUAL SUPREMO. Amante del caos. Te enamorás de la persona, del alma y del físico sin importar nada. Sos el terror de las decisiones. 👑🔥🌈' }
+const RESULTADOS = [
+  { max: 20, text: '*Resultado:* Tu afinidad romántica parece bastante tranquila. 💙 Te tomás las cosas con calma y no necesitás etiquetarte.' },
+  { max: 40, text: '*Resultado:* Tenés una personalidad romántica curiosa. 💜 Te gusta conocer personas y descubrir qué conexión existe.' },
+  { max: 60, text: '*Resultado:* Tu corazón es bastante flexible. 💙💜 Para vos, la conexión y la confianza pueden importar mucho.' },
+  { max: 80, text: '*Resultado:* Sos bastante abierto/a a nuevas conexiones. ✨ La personalidad parece pesar mucho para vos.' },
+  { max: 100, text: '*Resultado:* Modo corazón abierto activado. 💜💙 Te importa mucho la conexión emocional y conocer a la persona antes de juzgar.' }
 ]
 
-const preguntasHombre = [
-  { q: "1. Ves a una pareja por la calle donde ambos son hermosos. ¿Qué pensás?", opts: [{ text: "Miro a la chica y pienso 'qué suertudo el pibe'.", val: 0 }, { text: "Miro a los dos y digo 'fua, qué facheros son'.", val: 5 }, { text: "Entro en crisis porque no sé a cuál de los dos le daría primero.", val: 10 }] },
-  { q: "2. ¿Alguna vez experimentaste el famoso 'Bi-Cycle'?", opts: [{ text: "No, mis gustos no cambian nunca.", val: 0 }, { text: "A veces tengo épocas donde miro un poco más a los chicos.", val: 5 }, { text: "Sí, un día soy Ricky Martin y al otro Romeo Santos.", val: 10 }] },
-  { q: "3. ¿Te pondrías ropa considerada 'andrógina' o femenina?", opts: [{ text: "Ni loco, soy 100% masculino.", val: 0 }, { text: "Depende, capaz pintarme las uñas o anillos.", val: 5 }, { text: "Me pongo una falda si me combina con el outfit.", val: 10 }] },
-  { q: "4. Estás con tus amigos más facheros. Vos:", opts: [{ text: "Los trato de bros, punto.", val: 0 }, { text: "Admito que tienen facha, sin miedo.", val: 5 }, { text: "Les daría un beso de buenas noches a mis compas.", val: 10 }] },
-  { q: "5. ¿Cuál fue tu crush famoso de la infancia?", opts: [{ text: "Megan Fox, obvio.", val: 0 }, { text: "Brad Pitt y Angelina Jolie a la vez.", val: 5 }, { text: "Ryan Reynolds, sin pensarlo dos veces.", val: 10 }] },
-  { q: "6. ¿Cómo te sentás habitualmente?", opts: [{ text: "Normal, recto o abierto.", val: 0 }, { text: "Medio cruzado a veces.", val: 5 }, { text: "Me es físicamente imposible sentarme derecho como un adulto normal.", val: 10 }] },
-  { q: "7. ¿Alguna vez tuviste un 'pánico gay/hetero' repentino?", opts: [{ text: "Nunca, soy un libro abierto y claro.", val: 0 }, { text: "A veces me pregunto si no seré 100% de un lado.", val: 5 }, { text: "Todos los días dudo de qué me gusta realmente.", val: 10 }] },
-  { q: "8. Si pudieras tener un trío, sería:", opts: [{ text: "Yo y dos chicas, el sueño.", val: 0 }, { text: "Yo y dos hombres, si me pinta.", val: 5 }, { text: "Mixto. Un poco de todo, como en el buffet.", val: 10 }] },
-  { q: "9. ¿Qué hacés con las manos cuando estás nervioso o posás para fotos?", opts: [{ text: "Las meto en los bolsillos o me cruzo de brazos.", val: 0 }, { text: "Hablo un poco con las manos.", val: 5 }, { text: "Hago pistolitas 👉👈 o el signo de la paz ✌️ todo el tiempo.", val: 10 }] },
-  { q: "10. ¿Cómo usás los puños de la camisa?", opts: [{ text: "Normales, cerrados.", val: 0 }, { text: "Arremangados hasta el codo.", val: 5 }, { text: "Arremangados justo a la mitad del antebrazo mostrando estética.", val: 10 }] },
-  { q: "11. Si pudieras elegir un porcentaje de atracción en tu vida, ¿cuál es?", opts: [{ text: "100% mujeres o 100% hombres.", val: 0 }, { text: "80/20. Tiro mucho más para un lado.", val: 5 }, { text: "50/50 y cambia drásticamente cada semana.", val: 10 }] },
-  { q: "12. Ves al protagonista masculino de una película de acción:", opts: [{ text: "Pienso 'ojalá tener ese físico'.", val: 0 }, { text: "Admiro su carisma y estilo.", val: 5 }, { text: "Me pregunto a qué sabrán sus labios.", val: 10 }] },
-  { q: "13. Sobre 'salir del clóset':", opts: [{ text: "Soy hétero, no necesito eso.", val: 0 }, { text: "Mis amigos íntimos saben que fluyo.", val: 5 }, { text: "Literalmente salgo y vuelvo a entrar al clóset de la confusión cada mes.", val: 10 }] },
-  { q: "14. En una fiesta, con un par de tragos de más:", opts: [{ text: "Trato de encarar chicas solamente.", val: 0 }, { text: "Bailo con mis amigos y me río.", val: 5 }, { text: "Beso a cualquier cosa linda que respire y me sonría.", val: 10 }] },
-  { q: "15. ¿Qué música domina tu playlist?", opts: [{ text: "Trap, Reggaeton o Rock pesado.", val: 0 }, { text: "Pop comercial o Indie tranqui.", val: 5 }, { text: "The Neighbourhood, Arctic Monkeys o Frank Ocean.", val: 10 }] },
-  { q: "16. ¿Qué chiste interno te define mejor?", opts: [{ text: "No tengo uno específico.", val: 0 }, { text: "Chistes de borrachos o tíos.", val: 5 }, { text: "'No sé sentarme ni tomar decisiones en la vida'.", val: 10 }] },
-  { q: "17. Tu estética visual preferida en redes:", opts: [{ text: "Fotos normales, asados o mi auto.", val: 0 }, { text: "Ropa aesthetic urbana.", val: 5 }, { text: "Eboy, ranas, hongos o luces de neón moradas/rosas.", val: 10 }] },
-  { q: "18. ¿Qué tipo de lentes de sol usás?", opts: [{ text: "Ray-Ban clásicos o ninguno.", val: 0 }, { text: "Gafas deportivas o de colores.", val: 5 }, { text: "Lentes con marco metálico finito, tipo retro.", val: 10 }] },
-  { q: "19. Sobre los villanos de las películas (Disney/Marvel):", opts: [{ text: "Los odio, quiero que gane el héroe.", val: 0 }, { text: "Son divertidos a veces.", val: 5 }, { text: "Tienen una energía bisexual increíble y me atraen.", val: 10 }] },
-  { q: "20. La de fuego: ¿Con quién pasarías la noche?", opts: [{ text: "Con la mujer de mis sueños (o el hombre si sos gay).", val: 0 }, { text: "Principalmente uno, pero acepto un comodín.", val: 5 }, { text: "Si hay química, me da exactamente igual lo que haya abajo.", val: 10 }] }
-]
-
-const preguntasMujer = [
-  { q: "1. Ves a una pareja donde ambos son hermosos. ¿Qué pensás?", opts: [{ text: "Miro al chico y pienso 'qué lindo que es'.", val: 0 }, { text: "Miro a los dos y digo 'hacen re linda pareja'.", val: 5 }, { text: "Entro en pánico porque no sé a cuál quiero más.", val: 10 }] },
-  { q: "2. ¿Te pasó preguntarte '¿Quiero SER ella o quiero ESTAR con ella?'", opts: [{ text: "No, siempre sé que solo envidio su ropa o pelo.", val: 0 }, { text: "A veces admiro tanto a una mujer que me confundo un segundo.", val: 5 }, { text: "Esa pregunta atormenta mi cabeza el 90% del tiempo.", val: 10 }] },
-  { q: "3. Tu tipo de pantalón favorito es:", opts: [{ text: "Calzas o jeans ajustados.", val: 0 }, { text: "Jeans mom o rectos.", val: 5 }, { text: "Cargo pants, corduroy o cualquier pantalón arremangado abajo.", val: 10 }] },
-  { q: "4. Respecto a tu cabello:", opts: [{ text: "Lo llevo largo y natural.", val: 0 }, { text: "Me lo tiño o corto normal.", val: 5 }, { text: "Tuve un bob, un mullet o me lo teñí a medias en crisis.", val: 10 }] },
-  { q: "5. Tu crush animado de la infancia fue:", opts: [{ text: "El Príncipe Eric o Aladdin.", val: 0 }, { text: "Kim Possible o Mulan.", val: 5 }, { text: "Shego de Kim Possible... definitivamente.", val: 10 }] },
-  { q: "6. Cuando tenés que saludar a alguien y te ponés incómoda:", opts: [{ text: "Doy un beso en la mejilla o la mano.", val: 0 }, { text: "Abrazo medio rápido.", val: 5 }, { text: "Hago la seña de la paz ✌️ y me río nerviosa.", val: 10 }] },
-  { q: "7. Sobre tus amistades femeninas cercanas:", opts: [{ text: "Las quiero como hermanas, punto.", val: 0 }, { text: "Somos muy unidas y cariñosas.", val: 5 }, { text: "A veces hay tanta tensión que no sé si somos amigas o qué.", val: 10 }] },
-  { q: "8. Tu artista musical de confort es:", opts: [{ text: "Taylor Swift, Ariana o Tini.", val: 0 }, { text: "Dua Lipa o Doja Cat.", val: 5 }, { text: "Clairo, The Neighbourhood (Sweater Weather) o Girl in Red.", val: 10 }] },
-  { q: "9. ¿Cómo usás tus anillos?", opts: [{ text: "Ninguno o solo uno de oro.", val: 0 }, { text: "Varios anillos finitos y delicados.", val: 5 }, { text: "Múltiples anillos gruesos de plata en varios dedos.", val: 10 }] },
-  { q: "10. Tu calzado del día a día:", opts: [{ text: "Zapatos altos, sandalias o zapatillas blancas impecables.", val: 0 }, { text: "Zapatillas deportivas comunes.", val: 5 }, { text: "Vans, Converse gastadas o Doc Martens.", val: 10 }] },
-  { q: "11. ¿Cuál es tu dinámica con 'chicos lindos' vs 'chicas lindas'?", opts: [{ text: "Los chicos me atraen, las chicas son amigas.", val: 0 }, { text: "Me caen bien todos, pero busco novio.", val: 5 }, { text: "Los chicos me gustan en teoría, pero las chicas me dan pánico real.", val: 10 }] },
-  { q: "12. ¿Cómo te sentás cuando estás relajada?", opts: [{ text: "Derechita o piernas cruzadas femeninas.", val: 0 }, { text: "Normal, como caiga.", val: 5 }, { text: "Como si no tuviera huesos o rodillas al pecho.", val: 10 }] },
-  { q: "13. Tu tipo de humor en internet es:", opts: [{ text: "Memes de Facebook o normales.", val: 0 }, { text: "Tik Toks de baile o comedia.", val: 5 }, { text: "Humor roto, irónico y chistes sobre no poder elegir nada.", val: 10 }] },
-  { q: "14. Si te dan a elegir entre un 'chico skater alt' o una 'chica alt/gótica':", opts: [{ text: "El chico skater toda la vida.", val: 0 }, { text: "Ninguno, me gustan más 'normales'.", val: 5 }, { text: "Cualquiera de los dos tiene el poder de arruinarme la vida y lo acepto.", val: 10 }] },
-  { q: "15. En un libro o película, te enamorás de:", opts: [{ text: "El héroe valiente.", val: 0 }, { text: "La protagonista fuerte.", val: 5 }, { text: "El villano incomprendido de moral gris... o la villana sádica.", val: 10 }] },
-  { q: "16. ¿Cómo es tu estilo de ropa en la semana?", opts: [{ text: "Siempre combinada y femenina.", val: 0 }, { text: "Ropa deportiva cómoda o tomboy.", val: 5 }, { text: "Me visto como Adam Sandler un día y como un hada al siguiente.", val: 10 }] },
-  { q: "17. ¿Gatos o Perros?", opts: [{ text: "Perros 100%.", val: 0 }, { text: "Gatos 100%.", val: 5 }, { text: "Soy bisexual... me gustan ambos y no me hagas elegir.", val: 10 }] },
-  { q: "18. Sobre morderse el labio o mover las manos:", opts: [{ text: "No tengo esos tics.", val: 0 }, { text: "A veces cuando dudo de algo.", val: 5 }, { text: "Literalmente no sé estar quieta, siempre hago pistolitas o me muerdo el labio.", val: 10 }] },
-  { q: "19. ¿Qué opinás de la estética de los vampiros?", opts: [{ text: "Me dan miedo, no me gustan.", val: 0 }, { text: "Son interesantes en las películas.", val: 5 }, { text: "Crepúsculo y The Vampire Diaries me hicieron dudar de toda mi existencia.", val: 10 }] },
-  { q: "20. La de fuego: ¿Qué te importa más en una persona para salir con ella?", opts: [{ text: "Que sea un buen hombre y masculino.", val: 0 }, { text: "Su personalidad, pero me tira más lo que ya conozco.", val: 5 }, { text: "Me enamoro del alma y de la persona, no importa lo que haya en los pantalones.", val: 10 }] }
+const preguntas = [
+  {
+    q: '1. Cuando conocés a alguien nuevo, ¿qué te llama más la atención?',
+    opts: [
+      { text: 'Su forma de hablar y comportarse.', val: 0 },
+      { text: 'Su personalidad y sentido del humor.', val: 5 },
+      { text: 'La conexión que siento desde el principio.', val: 10 }
+    ]
+  },
+  {
+    q: '2. ¿Qué tan importante es la personalidad para vos?',
+    opts: [
+      { text: 'Es importante, pero no lo es todo.', val: 0 },
+      { text: 'Es bastante importante.', val: 5 },
+      { text: 'Es lo más importante.', val: 10 }
+    ]
+  },
+  {
+    q: '3. ¿Qué preferís en una relación?',
+    opts: [
+      { text: 'Tranquilidad y estabilidad.', val: 0 },
+      { text: 'Diversión y confianza.', val: 5 },
+      { text: 'Una conexión emocional muy fuerte.', val: 10 }
+    ]
+  },
+  {
+    q: '4. ¿Qué hacés cuando alguien te demuestra interés?',
+    opts: [
+      { text: 'Me tomo mi tiempo para conocerlo/a.', val: 0 },
+      { text: 'Sigo la conversación y veo qué pasa.', val: 5 },
+      { text: 'Si existe conexión, me entusiasmo rápidamente.', val: 10 }
+    ]
+  },
+  {
+    q: '5. ¿Qué pesa más al elegir a alguien?',
+    opts: [
+      { text: 'La confianza.', val: 0 },
+      { text: 'La personalidad.', val: 5 },
+      { text: 'La conexión completa entre ambos.', val: 10 }
+    ]
+  },
+  {
+    q: '6. ¿Cómo reaccionás ante un crush?',
+    opts: [
+      { text: 'Intento mantener la calma.', val: 0 },
+      { text: 'Me pongo algo nervioso/a.', val: 5 },
+      { text: 'Mi cerebro deja de funcionar. 😂', val: 10 }
+    ]
+  },
+  {
+    q: '7. ¿Qué tipo de persona te atrae más?',
+    opts: [
+      { text: 'Alguien tranquilo/a.', val: 0 },
+      { text: 'Alguien divertido/a.', val: 5 },
+      { text: 'Alguien con quien pueda ser yo mismo/a.', val: 10 }
+    ]
+  },
+  {
+    q: '8. ¿Qué tan rápido confiás en alguien?',
+    opts: [
+      { text: 'Muy lentamente.', val: 0 },
+      { text: 'Depende de la persona.', val: 5 },
+      { text: 'Si conectamos, bastante rápido.', val: 10 }
+    ]
+  },
+  {
+    q: '9. ¿Qué preferís para una primera salida?',
+    opts: [
+      { text: 'Un lugar tranquilo.', val: 0 },
+      { text: 'Salir a caminar o conversar.', val: 5 },
+      { text: 'Una aventura o algo diferente.', val: 10 }
+    ]
+  },
+  {
+    q: '10. ¿Qué significa para vos una buena relación?',
+    opts: [
+      { text: 'Respeto y confianza.', val: 0 },
+      { text: 'Confianza, diversión y comunicación.', val: 5 },
+      { text: 'Sentir que somos un equipo.', val: 10 }
+    ]
+  },
+  {
+    q: '11. ¿Qué tan importante es poder hablar de todo?',
+    opts: [
+      { text: 'Importante.', val: 0 },
+      { text: 'Muy importante.', val: 5 },
+      { text: 'Fundamental.', val: 10 }
+    ]
+  },
+  {
+    q: '12. ¿Qué hacés cuando alguien te gusta?',
+    opts: [
+      { text: 'No digo nada inmediatamente.', val: 0 },
+      { text: 'Intento acercarme poco a poco.', val: 5 },
+      { text: 'Busco cualquier excusa para hablarle.', val: 10 }
+    ]
+  },
+  {
+    q: '13. ¿Qué valorás más?',
+    opts: [
+      { text: 'Lealtad.', val: 0 },
+      { text: 'Humor.', val: 5 },
+      { text: 'Comprensión emocional.', val: 10 }
+    ]
+  },
+  {
+    q: '14. Si alguien tiene gustos muy diferentes a los tuyos...',
+    opts: [
+      { text: 'Probablemente no tengamos mucho en común.', val: 0 },
+      { text: 'Intentaría conocer sus gustos.', val: 5 },
+      { text: 'Las diferencias pueden hacerlo interesante.', val: 10 }
+    ]
+  },
+  {
+    q: '15. ¿Qué te hace sentir más conectado/a con alguien?',
+    opts: [
+      { text: 'Pasar tiempo juntos.', val: 0 },
+      { text: 'Tener conversaciones profundas.', val: 5 },
+      { text: 'Poder ser completamente yo mismo/a.', val: 10 }
+    ]
+  },
+  {
+    q: '16. ¿Cómo reaccionás ante una discusión?',
+    opts: [
+      { text: 'Prefiero esperar a estar tranquilo/a.', val: 0 },
+      { text: 'Intento hablarlo.', val: 5 },
+      { text: 'Quiero solucionar el problema cuanto antes.', val: 10 }
+    ]
+  },
+  {
+    q: '17. ¿Qué tan importante es el sentido del humor?',
+    opts: [
+      { text: 'Está bueno, pero no es esencial.', val: 0 },
+      { text: 'Me encanta reírme con alguien.', val: 5 },
+      { text: 'Si no podemos reírnos juntos, no funciona. 😂', val: 10 }
+    ]
+  },
+  {
+    q: '18. ¿Qué tipo de conexión preferís?',
+    opts: [
+      { text: 'Una relación estable y tranquila.', val: 0 },
+      { text: 'Una relación divertida y cercana.', val: 5 },
+      { text: 'Una conexión profunda y especial.', val: 10 }
+    ]
+  },
+  {
+    q: '19. ¿Qué hacés si alguien no coincide con tus expectativas?',
+    opts: [
+      { text: 'Me alejo.', val: 0 },
+      { text: 'Intento entenderlo/a.', val: 5 },
+      { text: 'Acepto que nadie es perfecto.', val: 10 }
+    ]
+  },
+  {
+    q: '20. La pregunta final: ¿qué buscás realmente?',
+    opts: [
+      { text: 'Alguien con quien estar tranquilo/a.', val: 0 },
+      { text: 'Alguien con quien compartir buenos momentos.', val: 5 },
+      { text: 'Una conexión auténtica y especial.', val: 10 }
+    ]
+  }
 ]
 
 function generarBarra(paso, total) {
@@ -60,16 +176,35 @@ function generarBarra(paso, total) {
   return `[${'■'.repeat(llenos)}${'□'.repeat(10 - llenos)}] ${paso}/${total}`
 }
 
+function obtenerResultado(porcentaje) {
+  return RESULTADOS.find(r => porcentaje <= r.max)?.text || RESULTADOS[RESULTADOS.length - 1].text
+}
+
 async function enviarPregunta(sender, chat, conn) {
   const sesion = partidas.get(sender)
-  const lista = sesion.genero === 'hombre' ? preguntasHombre : preguntasMujer
-  const preg = lista[sesion.paso]
-  
-  let texto = `*💜 TEST BISEXUAL: ¿DE QUÉ LADO ESTÁS? 💙*\n> Progreso: ${generarBarra(sesion.paso, lista.length)}\n\n*${preg.q}*\n\n`
-  preg.opts.forEach((o, i) => { texto += `*[ ${i + 1} ]* ➣ ${o.text}\n` })
-  texto += '\n_Respondé con 1, 2 o 3 sin prefijo. Escribí "cancelar" para salir._'
-  
-  await conn.sendMessage(chat, { text: texto })
+
+  if (!sesion) return
+
+  const pregunta = preguntas[sesion.paso]
+
+  if (!pregunta) return
+
+  let texto =
+    `*💜 TEST DE AFINIDAD ROMÁNTICA 💙*\n` +
+    `> Progreso: ${generarBarra(sesion.paso, preguntas.length)}\n\n` +
+    `*${pregunta.q}*\n\n`
+
+  pregunta.opts.forEach((opcion, i) => {
+    texto += `*[ ${i + 1} ]* ➣ ${opcion.text}\n`
+  })
+
+  texto +=
+    `\n_Respondé con 1, 2 o 3 sin prefijo._\n` +
+    `_Escribí "cancelar" para salir._`
+
+  await conn.sendMessage(chat, {
+    text: texto
+  })
 }
 
 const handler = async (m, ctx) => {
@@ -77,76 +212,192 @@ const handler = async (m, ctx) => {
   const sender = m.sender
   const chatId = m.chat
 
-  if (partidas.has(sender)) return m.reply('*[ ⚠️ ] Ya tenés un test en curso. Respondé o escribí "cancelar".*')
-  
-  partidas.set(sender, { 
-    genero: null, paso: 0, puntaje: 0, calculando: false, chatId,
-    timer: setTimeout(() => {
-      partidas.delete(sender)
-      conn.sendMessage(chatId, { text: `*[ ⏰ ] @${m.pushName || sender.split('@')[0]}, el test se canceló por inactividad.*`, mentions: [sender] })
-    }, 60000) 
+  if (partidas.has(sender)) {
+    return m.reply(
+      `*[ ⚠️ ] Ya tenés un test en curso.*\n` +
+      `> Respondé la pregunta actual o escribí *cancelar*.`
+    )
+  }
+
+  const timer = setTimeout(() => {
+    if (!partidas.has(sender)) return
+
+    partidas.delete(sender)
+
+    conn.sendMessage(chatId, {
+      text:
+        `*[ ⏰ ] TEST CANCELADO.*\n` +
+        `> El test se canceló por 60 segundos de inactividad.`
+    }).catch(() => {})
+  }, 60_000)
+
+  partidas.set(sender, {
+    paso: 0,
+    puntaje: 0,
+    calculando: false,
+    chatId,
+    timer
   })
 
-  await conn.sendMessage(chatId, { text: `*💜 TEST DE BISEXUALIDAD 💙*\n\nAntes de empezar, decime tu género para adaptar las 20 preguntas:\n\n*[ 1 ]* ➣ Soy Varón 👨\n*[ 2 ]* ➣ Soy Mujer 👩\n\n_Respondé con 1 o 2 sin usar prefijo._` }, { quoted: m })
+  await conn.sendMessage(
+    chatId,
+    {
+      text:
+        `*💜 TEST DE AFINIDAD ROMÁNTICA 💙*\n\n` +
+        `Este test es solo por diversión y no determina tu orientación ` +
+        `ni tu identidad.\n\n` +
+        `Vas a responder *20 preguntas*.\n\n` +
+        `*[ 1 ]* ➣ Empezar\n` +
+        `*[ 2 ]* ➣ Cancelar\n\n` +
+        `_Respondé con 1 o 2 sin usar prefijo._`
+    },
+    { quoted: m }
+  )
+
+  partidas.get(sender).inicio = true
 }
 
 handler.all = async (m, ctx) => {
   const { conn } = ctx
   const sender = m.sender
-  
+
   if (!partidas.has(sender)) return
+
   const sesion = partidas.get(sender)
-  if (sesion.chatId !== m.chat || sesion.calculando) return
+
+  if (!sesion) return
+
+  if (sesion.chatId !== m.chat) return
+
+  if (sesion.calculando) return
 
   const txt = (m.body || '').trim().toLowerCase()
+
   if (!txt) return
-  
+
   if (['cancelar', 'salir', 'cancel'].includes(txt)) {
     clearTimeout(sesion.timer)
     partidas.delete(sender)
-    return conn.sendMessage(m.chat, { text: '*[ 🛑 ] Test cancelado. Huiste de la verdad.*' }, { quoted: m })
+
+    return conn.sendMessage(
+      m.chat,
+      {
+        text: `*[ 🛑 ] TEST CANCELADO.*\n> Saliste del test.`
+      },
+      { quoted: m }
+    )
   }
 
-  const num = parseInt(txt)
-  if (isNaN(num)) return
+  const num = Number(txt)
 
-  if (!sesion.genero) {
-    if (num === 1 || num === 2) {
-      sesion.genero = num === 1 ? 'hombre' : 'mujer'
+  if (!Number.isInteger(num)) return
+
+  if (sesion.inicio) {
+    if (num === 2) {
       clearTimeout(sesion.timer)
-      sesion.timer = setTimeout(() => { partidas.delete(sender); conn.sendMessage(m.chat, { text: `*[ ⏰ ] El test se canceló por inactividad.*` }) }, 60000)
-      return await enviarPregunta(sender, m.chat, conn)
+      partidas.delete(sender)
+
+      return conn.sendMessage(
+        m.chat,
+        {
+          text: `*[ 🛑 ] TEST CANCELADO.*\n> No se inició el test.`
+        },
+        { quoted: m }
+      )
     }
+
+    if (num !== 1) return
+
+    sesion.inicio = false
+    clearTimeout(sesion.timer)
+
+    sesion.timer = setTimeout(() => {
+      partidas.delete(sender)
+
+      conn.sendMessage(m.chat, {
+        text: `*[ ⏰ ] TEST CANCELADO.*\n> El test terminó por inactividad.`
+      }).catch(() => {})
+    }, 60_000)
+
+    return enviarPregunta(sender, m.chat, conn)
+  }
+
+  const pregunta = preguntas[sesion.paso]
+
+  if (!pregunta) return
+
+  if (num < 1 || num > pregunta.opts.length) {
+    return m.reply(
+      `*[ ⚠️ ] OPCIÓN INVÁLIDA.*\n` +
+      `> Elegí *1, 2 o 3*.`
+    )
+  }
+
+  clearTimeout(sesion.timer)
+
+  sesion.puntaje += pregunta.opts[num - 1].val
+  sesion.paso++
+
+  if (sesion.paso >= preguntas.length) {
+    sesion.calculando = true
+
+    const porcentaje = Math.round(
+      (sesion.puntaje / (preguntas.length * 10)) * 100
+    )
+
+    await conn.sendMessage(
+      m.chat,
+      {
+        text:
+          `*[ ⏳ ] ANALIZANDO RESULTADOS...*\n\n` +
+          `> Calculando tu afinidad romántica...\n` +
+          `> Preparando el veredicto...`
+      },
+      { quoted: m }
+    )
+
+    setTimeout(async () => {
+      try {
+        const resultado = obtenerResultado(porcentaje)
+
+        const msg =
+          `*💜 RESULTADO DEL TEST 💙*\n\n` +
+          `> 📊 *AFINIDAD: ${porcentaje}%*\n\n` +
+          `${resultado}\n\n` +
+          `_Este resultado es solo recreativo y no define quién sos._`
+
+        await conn.sendMessage(m.chat, {
+          text: msg,
+          mentions: [sender]
+        })
+
+      } catch {}
+
+      partidas.delete(sender)
+    }, 3000)
+
     return
   }
 
-  const lista = sesion.genero === 'hombre' ? preguntasHombre : preguntasMujer
-  if (num < 1 || num > lista[sesion.paso].opts.length) return 
+  sesion.timer = setTimeout(() => {
+    partidas.delete(sender)
 
-  clearTimeout(sesion.timer)
-  sesion.puntaje += lista[sesion.paso].opts[num - 1].val
-  sesion.paso++
+    conn.sendMessage(m.chat, {
+      text: `*[ ⏰ ] TEST CANCELADO.*\n> Demoraste demasiado en responder.`
+    }).catch(() => {})
+  }, 60_000)
 
-  if (sesion.paso >= lista.length) {
-    sesion.calculando = true
-    const porcentaje = Math.round((sesion.puntaje / (lista.length * 10)) * 100)
-
-    await conn.sendMessage(m.chat, { text: '*[ ⏳ ] Analizando tu bi-panic y calculando el porcentaje...*\n_Tardará unos segundos en revelar el veredicto._' }, { quoted: m })
-
-    setTimeout(async () => {
-      const diagnostic = diag.find(d => porcentaje <= d.max).text
-      const msg = `*💜 EL VEREDICTO BISEXUAL 💙*\n\n> 📊 *TU PORCENTAJE ES: ${porcentaje}%*\n\n${diagnostic}`
-      await conn.sendMessage(m.chat, { text: msg })
-      partidas.delete(sender)
-    }, 5000)
-  } else {
-    sesion.timer = setTimeout(() => { partidas.delete(sender); conn.sendMessage(m.chat, { text: `*[ ⏰ ] El test se canceló por inactividad.*` }) }, 60000)
-    await enviarPregunta(sender, m.chat, conn)
-  }
+  await enviarPregunta(sender, m.chat, conn)
 }
 
-handler.help = ['testbisexual']
+handler.help = ['testafinidad']
 handler.tags = ['fun']
-handler.command = ['testbisexual', 'soybisexual', 'soybi']
+
+handler.command = [
+  'testafinidad',
+  'afinidad',
+  'testamor',
+  'testromantico'
+]
 
 export default handler

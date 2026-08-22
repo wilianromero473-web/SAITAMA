@@ -1,58 +1,199 @@
 import config from '../../config.js'
-import { getFarmData, TERRAINS, buyTerrain, buyPlot } from '../../lib/games/rpg/rpgFarm.js'
+import {
+  getFarmData,
+  TERRAINS,
+  buyTerrain,
+  buyPlot
+} from '../../lib/games/rpg/rpgFarm.js'
 
-const handler = async (m, { command, args, usedPrefix, userDb }) => {
+const handler = async (
+  m,
+  {
+    command,
+    usedPrefix,
+    userDb
+  }
+) => {
+
   if (!userDb) return
 
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // VER TERRENOS
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
   if (['terrenos', 'miterreno'].includes(command)) {
+
     const farm = await getFarmData(m.sender)
-    const current = TERRAINS.find(t => t.level === farm.terrainLevel)
-    const next = TERRAINS.find(t => t.level === farm.terrainLevel + 1)
-    
-    let txt = `*⌬┤ 🗺️ ├⌬ BIENES RAÍCES RURALES*\n\n`
-            + `> 🏡 *Terreno Nivel:* ${current.level}\n`
-            + `> 📏 *Capacidad:* ${farm.maxPlots} / ${current.capacity} Parcelas\n\n`
-    
-    const plotCost = 2000 + (farm.maxPlots * 1000)
-    
+
+    const current =
+      TERRAINS.find(
+        terrain => terrain.level === farm.terrainLevel
+      ) || TERRAINS[0]
+
+    const next =
+      TERRAINS.find(
+        terrain => terrain.level === farm.terrainLevel + 1
+      )
+
+    const plotCost =
+      2000 + (farm.maxPlots * 1000)
+
+    let txt =
+`*༺ ✰ 🗺️ BIENES RAÍCES RURALES ✰ ༻*
+
+> ✰ Terreno nivel: *${current.level}*
+> ✰ Capacidad: *${farm.maxPlots} / ${current.capacity}* parcelas
+
+*༺ ✰ 🌱 AMPLIAR PARCELAS ✰ ༻*
+
+`
+
     if (farm.maxPlots < current.capacity) {
-      txt += `*🌱 Ampliar Parcelas:*\n> Podés comprar 1 parcela más por *${plotCost} ${config.CURRENCY_SYMBOL}*.\n> *Uso:* ${usedPrefix}comprarparcela\n\n`
+
+      txt +=
+`> ✰ Podés comprar 1 parcela adicional.
+> ✰ Precio: *${plotCost} ${config.CURRENCY_SYMBOL}*
+> ✰ Uso: *${usedPrefix}comprarparcela*
+
+`
+
     } else {
-      txt += `*🌱 Ampliar Parcelas:*\n> Alcanzaste el límite de tu terreno. Necesitás comprar el siguiente nivel.\n\n`
+
+      txt +=
+`> ✰ Alcanzaste el límite de este terreno.
+> ✰ Comprá el siguiente nivel para continuar.
+
+`
     }
 
+    txt += `*༺ ✰ 🗺️ EXPANDIR TERRENO ✰ ༻*\n\n`
+
     if (next) {
-      txt += `*🗺️ Expandir Terreno:*\n> Terreno Nivel ${next.level} (Capacidad: ${next.capacity})\n> Costo: *${next.cost} ${config.CURRENCY_SYMBOL}*\n> *Uso:* ${usedPrefix}comprarterreno`
+
+      txt +=
+`> ✰ Próximo terreno: *Nivel ${next.level}*
+> ✰ Capacidad: *${next.capacity} parcelas*
+> ✰ Costo: *${next.cost} ${config.CURRENCY_SYMBOL}*
+> ✰ Uso: *${usedPrefix}comprarterreno*`
+
     } else {
-      txt += `*🗺️ Expandir Terreno:*\n> ¡Ya tenés el terreno más grande del juego!`
+
+      txt +=
+`> ✰ ¡Ya tenés el terreno más grande disponible!`
+
     }
 
     return m.reply(txt)
   }
 
-  if (['comprarterreno'].includes(command)) {
-    const res = await buyTerrain(m.sender)
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // COMPRAR TERRENO
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  if (command === 'comprarterreno') {
+
+    const res =
+      await buyTerrain(m.sender)
+
     if (!res.ok) {
-      if (res.reason === 'maxLevel') return m.reply(`*⌬┤ ❌ ├⌬ NIVEL MÁXIMO.*\n> Ya tienes el terreno más grande.`)
-      if (res.reason === 'noMoney') return m.reply(`*⌬┤ 💸 ├⌬ SIN FONDOS.*\n> Necesitás *${res.cost} ${config.CURRENCY_SYMBOL}* para comprar este terreno.`)
-      return m.reply('*⌬┤ ❌ · ERROR.*')
+
+      if (res.reason === 'maxLevel') {
+        return m.reply(
+`*༺ ✰ ❌ NIVEL MÁXIMO ✰ ༻*
+
+> ✰ Ya tenés el terreno más grande disponible.`
+        )
+      }
+
+      if (res.reason === 'noMoney') {
+        return m.reply(
+`*༺ ✰ 💸 SIN FONDOS ✰ ༻*
+
+> ✰ Necesitás *${res.cost} ${config.CURRENCY_SYMBOL}* para comprar este terreno.`
+        )
+      }
+
+      return m.reply(
+`*༺ ✰ ❌ ERROR ✰ ༻*
+
+> ✰ No se pudo comprar el terreno.`
+      )
     }
-    return m.reply(`*⌬┤ 🏡 ├⌬ TERRENO EXPANDIDO.*\n> Ahora tienes Terreno Nivel *${res.level}*.\n> Tu nueva capacidad máxima es de *${res.capacity} parcelas*.`)
+
+    return m.reply(
+`*༺ ✰ 🏡 TERRENO EXPANDIDO ✰ ༻*
+
+> ✰ Nuevo nivel: *${res.level}*
+> ✰ Capacidad máxima: *${res.capacity} parcelas*
+> ✰ La expansión se realizó correctamente.`
+    )
   }
 
-  if (['comprarparcela'].includes(command)) {
-    const res = await buyPlot(m.sender)
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // COMPRAR PARCELA
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  if (command === 'comprarparcela') {
+
+    const res =
+      await buyPlot(m.sender)
+
     if (!res.ok) {
-      if (res.reason === 'terrainFull') return m.reply(`*⌬┤ 🚫 ├⌬ LÍMITE ALCANZADO.*\n> No caben más parcelas en este terreno. Usá *${usedPrefix}comprarterreno* para expandirte.`)
-      if (res.reason === 'noMoney') return m.reply(`*⌬┤ 💸 ├⌬ SIN FONDOS.*\n> Necesitás *${res.cost} ${config.CURRENCY_SYMBOL}* para agregar una parcela.`)
-      return m.reply('*⌬┤ ❌ · ERROR.*')
+
+      if (res.reason === 'terrainFull') {
+        return m.reply(
+`*༺ ✰ 🚫 LÍMITE ALCANZADO ✰ ༻*
+
+> ✰ No caben más parcelas en tu terreno.
+> ✰ Usá *${usedPrefix}comprarterreno* para expandirte.`
+        )
+      }
+
+      if (res.reason === 'noMoney') {
+        return m.reply(
+`*༺ ✰ 💸 SIN FONDOS ✰ ༻*
+
+> ✰ Necesitás *${res.cost} ${config.CURRENCY_SYMBOL}* para agregar una parcela.`
+        )
+      }
+
+      return m.reply(
+`*༺ ✰ ❌ ERROR ✰ ༻*
+
+> ✰ No se pudo comprar la parcela.`
+      )
     }
-    return m.reply(`*⌬┤ 🌱 ├⌬ PARCELA AÑADIDA.*\n> Gastaste *${res.cost} ${config.CURRENCY_SYMBOL}*.\n> Ahora tienes un total de *${res.maxPlots} parcelas*.`)
+
+    return m.reply(
+`*༺ ✰ 🌱 PARCELA AÑADIDA ✰ ༻*
+
+> ✰ Costo: *${res.cost} ${config.CURRENCY_SYMBOL}*
+> ✰ Total de parcelas: *${res.maxPlots}*
+> ✰ Ya podés utilizarla para cultivar.`
+    )
   }
 }
 
-handler.help = ['terrenos', 'comprarterreno', 'comprarparcela']
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CONFIGURACIÓN
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+handler.help = [
+  'terrenos',
+  'miterreno',
+  'comprarterreno',
+  'comprarparcela'
+]
+
 handler.tags = ['rpg']
-handler.command = ['terrenos', 'miterreno', 'comprarterreno', 'comprarparcela']
+
+handler.command = [
+  'terrenos',
+  'miterreno',
+  'comprarterreno',
+  'comprarparcela'
+]
+
 handler.register = true
+
 export default handler

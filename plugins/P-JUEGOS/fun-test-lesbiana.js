@@ -1,124 +1,569 @@
 const partidas = new Map()
 
+// ═══════════════════════════════════════════════════════════════
+// 𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻
+// ✰ 𝚄𝚜𝚊
+// ═══════════════════════════════════════════════════════════════
+
 const diagnosticos = [
-  { max: 0,   text: '*Diagnóstico:* 100% Heterosexual. Reina de los varones. No hay rastros de tijeras en tu ADN. Estás a salvo. 🛡️👨' },
-  { max: 15,  text: '*Diagnóstico:* Heterosexual Premium. Admirás la belleza femenina, pero a la hora de la verdad, buscás un hombre. 💅✨' },
-  { max: 35,  text: '*Diagnóstico:* Bi-curiosa en negación. A veces te cruzás con una chica de pelo corto y te olvidás de cómo respirar. 👀🍷' },
-  { max: 55,  text: '*Diagnóstico:* Bisexual en crisis. Te gustan los chicos pero las mujeres te intimidan y te dejan sin palabras. ⚖️🔥' },
-  { max: 75,  text: '*Diagnóstico:* Clóset de cristal. Todos tus amigos ya lo saben. Escuchás a Girl in Red y vestís oversize. Salí de ahí. 🚪✂️' },
-  { max: 90,  text: '*Diagnóstico:* Oficialmente del bando. Sos torta, leñadora, dueña de 3 gatos y tu ex es tu mejor amiga. 🏳️‍🌈🐾' },
-  { max: 99,  text: '*Diagnóstico:* Leyenda Sáfica Inalcanzable. Tenés un mosquetón en las llaves y te mudás a las dos semanas con tu novia. 🚚💍' },
-  { max: 100, text: '*Diagnóstico:* 100% TIJERETA SUPREMA. CEO del lesbianismo. Entrás a un lugar y la heterosexualidad femenina colapsa. 👑✂️🌈' }
+  {
+    max: 0,
+    text: '*Diagnóstico:* Nivel Zen. Sos tranquila, observadora y preferís evitar el caos. 🧘✨'
+  },
+  {
+    max: 15,
+    text: '*Diagnóstico:* Personalidad tranquila. Te gusta disfrutar las cosas a tu ritmo y sin demasiado drama. 🌿'
+  },
+  {
+    max: 35,
+    text: '*Diagnóstico:* Personalidad equilibrada. Podés ser tranquila, pero también sabés cuándo divertirte. ⚖️✨'
+  },
+  {
+    max: 55,
+    text: '*Diagnóstico:* Aventurera moderada. Te gustan las experiencias nuevas, aunque primero necesitás pensarlo un poco. 🔥'
+  },
+  {
+    max: 75,
+    text: '*Diagnóstico:* Caos controlado. Tus amigos probablemente ya saben que con vos cualquier cosa puede pasar. 👀🔥'
+  },
+  {
+    max: 90,
+    text: '*Diagnóstico:* Protagonista oficial. Tenés mucha energía, confianza y una personalidad difícil de ignorar. ⭐'
+  },
+  {
+    max: 99,
+    text: '*Diagnóstico:* Leyenda absoluta. Sos una mezcla de creatividad, confianza y caos. 👑🔥'
+  },
+  {
+    max: 100,
+    text: '*Diagnóstico:* CAOS SUPREMO. Nadie sabe exactamente qué pasa por tu cabeza, pero definitivamente nunca sos aburrida. 💀👑✨'
+  }
 ]
 
+// ═══════════════════════════════════════════════════════════════
+// 𝙿𝚁𝙴𝙶𝚄𝙽𝚃𝙰𝚂
+// ═══════════════════════════════════════════════════════════════
+
 const preguntas = [
-  { q: "1. ¿Alguna vez miraste a una chica y pensaste 'ojalá me mirara'?", opts: [{ text: "Nunca, solo me atraen los hombres.", val: 0 }, { text: "Sí, como admiración estética.", val: 5 }, { text: "Sí, imaginando toda una vida juntas.", val: 10 }] },
-  { q: "2. Tu calzado favorito para salir es...", opts: [{ text: "Tacos o sandalias finas.", val: 0 }, { text: "Zapatillas urbanas normales.", val: 5 }, { text: "Borcegos, Doc Martens o Vans gastadas.", val: 10 }] },
-  { q: "3. ¿Cómo tenés las uñas normalmente?", opts: [{ text: "Largas, esculpidas y pintadas.", val: 0 }, { text: "Corta normal o francesitas.", val: 5 }, { text: "Muy cortas y súper prolijas... por las dudas.", val: 10 }] },
-  { q: "4. En una primera cita vos...", opts: [{ text: "Espero que él pague todo.", val: 0 }, { text: "Dividimos mitad y mitad.", val: 5 }, { text: "Le abro la puerta, le pago la cena y la acompaño a casa.", val: 10 }] },
-  { q: "5. ¿Qué mascotas preferís?", opts: [{ text: "Un perro grande y guardián.", val: 0 }, { text: "Un perro chiquito o un gato.", val: 5 }, { text: "Tres gatos rescatados, una iguana y un hurón.", val: 10 }] },
-  { q: "6. Tu música más escuchada en Spotify es...", opts: [{ text: "Reggaeton, Trap o Pop comercial.", val: 0 }, { text: "Indie Pop o Rock.", val: 5 }, { text: "Girl in Red, Clairo, Hayley Kiyoko o Billie Eilish.", val: 10 }] },
-  { q: "7. ¿Cuándo creés que es el momento para mudarse en pareja?", opts: [{ text: "Después de un par de años juntos.", val: 0 }, { text: "A los 6 meses más o menos.", val: 5 }, { text: "A la segunda semana de conocerla alquilamos el camión de mudanza.", val: 10 }] },
-  { q: "8. ¿Qué accesorio no te puede faltar?", opts: [{ text: "Collar de perlas o aros delicados.", val: 0 }, { text: "Un reloj bonito.", val: 5 }, { text: "Muchos anillos gruesos de plata y un mosquetón para las llaves.", val: 10 }] },
-  { q: "9. ¿Cómo definirías tu estilo de ropa ideal?", opts: [{ text: "Vestidos ajustados, polleras y tops.", val: 0 }, { text: "Jeans, remeras básicas y camperas.", val: 5 }, { text: "Camisas a cuadros, oversize y estética Adam Sandler.", val: 10 }] },
-  { q: "10. El vehículo de tus sueños es:", opts: [{ text: "Un auto deportivo descapotable.", val: 0 }, { text: "Un auto de ciudad, chico y lindo.", val: 5 }, { text: "Una camioneta Subaru Forester.", val: 10 }] },
-  { q: "11. De niña, tu personaje ficticio favorito era:", opts: [{ text: "Alguna princesa Disney.", val: 0 }, { text: "Mulan o Mérida.", val: 5 }, { text: "Marceline de Hora de Aventura o Shego.", val: 10 }] },
-  { q: "12. Se rompe algo en casa. ¿Qué hacés?", opts: [{ text: "Llamo a un hombre para que lo arregle.", val: 0 }, { text: "Intento arreglarlo con cinta o un cuchillo.", val: 5 }, { text: "Saco mi caja de herramientas completa y lo soluciono.", val: 10 }] },
-  { q: "13. ¿Qué deporte te atrae más?", opts: [{ text: "Patinaje artístico, baile o ninguno.", val: 0 }, { text: "Gimnasio o running.", val: 5 }, { text: "Fútbol femenino, Softbol o Roller Derby.", val: 10 }] },
-  { q: "14. ¿Cómo son tus grupos de amigas?", opts: [{ text: "Todas chicas hetero que hablan de chicos.", val: 0 }, { text: "Mixto, de todo un poco.", val: 5 }, { text: "Literalmente mi grupo de amigas son mis ex novias.", val: 10 }] },
-  { q: "15. ¿Cómo te sentás en una silla?", opts: [{ text: "Derechita y con las piernas cruzadas.", val: 0 }, { text: "Normal, relajada.", val: 5 }, { text: "Despatarrada, con una pierna arriba o como si no tuviera huesos.", val: 10 }] },
-  { q: "16. Tu relación con la astrología:", opts: [{ text: "No creo en esas pavadas.", val: 0 }, { text: "Sé mi signo solar y leo el horóscopo a veces.", val: 5 }, { text: "Sé mi carta astral completa, la tuya y la de mis gatos.", val: 10 }] },
-  { q: "17. ¿Qué corte de pelo te tienta hacerte?", opts: [{ text: "Dejármelo larguísimo y lacio.", val: 0 }, { text: "Un corte por los hombros o flequillo.", val: 5 }, { text: "Un mullet, wolf cut o raparme los costados.", val: 10 }] },
-  { q: "18. ¿Qué onda con los tatuajes?", opts: [{ text: "No me gustan, o tengo uno muy chiquito.", val: 0 }, { text: "Tengo un par de frases lindas.", val: 5 }, { text: "Tengo un bosque entero en el brazo o tatuajes stick and poke.", val: 10 }] },
-  { q: "19. Sobre el cuidado de las plantas:", opts: [{ text: "Se me mueren hasta los cactus.", val: 0 }, { text: "Tengo un par de suculentas que sobreviven.", val: 5 }, { text: "Soy madre de 40 plantas de interior y les hablo.", val: 10 }] },
-  { q: "20. La de fuego: ¿Por 1 millón de dólares, te acostarías con una chica hermosa?", opts: [{ text: "Ni por todo el oro, soy hétero.", val: 0 }, { text: "Cierro los ojos y cobro el millón.", val: 5 }, { text: "Yo PAGARÍA un millón para hacerlo.", val: 10 }] }
+  {
+    q: '1. Te invitan a una fiesta donde no conocés a nadie:',
+    opts: [
+      { text: 'Me quedo tranquila observando.', val: 0 },
+      { text: 'Hablo con algunas personas.', val: 5 },
+      { text: 'En poco tiempo ya conozco a todo el mundo.', val: 10 }
+    ]
+  },
+
+  {
+    q: '2. ¿Qué hacés cuando tenés un día libre?',
+    opts: [
+      { text: 'Me quedo descansando.', val: 0 },
+      { text: 'Juego, veo series o salgo.', val: 5 },
+      { text: 'Busco algo nuevo para hacer.', val: 10 }
+    ]
+  },
+
+  {
+    q: '3. Un amigo te propone una aventura inesperada:',
+    opts: [
+      { text: 'Paso, prefiero algo tranquilo.', val: 0 },
+      { text: 'Depende de qué sea.', val: 5 },
+      { text: '¡Vamos! ¿A qué esperamos?', val: 10 }
+    ]
+  },
+
+  {
+    q: '4. ¿Cómo reaccionás ante un problema?',
+    opts: [
+      { text: 'Me tomo mi tiempo para pensar.', val: 0 },
+      { text: 'Busco una solución.', val: 5 },
+      { text: 'Improviso y veo qué sucede.', val: 10 }
+    ]
+  },
+
+  {
+    q: '5. ¿Qué tipo de música escuchás?',
+    opts: [
+      { text: 'Música tranquila.', val: 0 },
+      { text: 'De todo un poco.', val: 5 },
+      { text: 'Música con mucha energía.', val: 10 }
+    ]
+  },
+
+  {
+    q: '6. Si ganás un premio inesperado:',
+    opts: [
+      { text: 'Lo guardo.', val: 0 },
+      { text: 'Compro algo que necesito.', val: 5 },
+      { text: 'Lo gasto en algo completamente inesperado.', val: 10 }
+    ]
+  },
+
+  {
+    q: '7. ¿Cómo sos trabajando en equipo?',
+    opts: [
+      { text: 'Prefiero seguir instrucciones.', val: 0 },
+      { text: 'Ayudo cuando hace falta.', val: 5 },
+      { text: 'Termino organizando al grupo.', val: 10 }
+    ]
+  },
+
+  {
+    q: '8. Tus amigos te describirían como:',
+    opts: [
+      { text: 'Tranquila.', val: 0 },
+      { text: 'Divertida.', val: 5 },
+      { text: 'La que siempre arma algo.', val: 10 }
+    ]
+  },
+
+  {
+    q: '9. Aparece un juego nuevo que parece divertido:',
+    opts: [
+      { text: 'Espero a ver si realmente vale la pena.', val: 0 },
+      { text: 'Lo pruebo cuando pueda.', val: 5 },
+      { text: 'Lo pruebo inmediatamente.', val: 10 }
+    ]
+  },
+
+  {
+    q: '10. ¿Qué hacés cuando te aburrís?',
+    opts: [
+      { text: 'Me quedo descansando.', val: 0 },
+      { text: 'Busco algo para entretenerme.', val: 5 },
+      { text: 'Invento cualquier cosa para divertirme.', val: 10 }
+    ]
+  },
+
+  {
+    q: '11. Te llega un mensaje inesperado:',
+    opts: [
+      { text: 'Lo respondo después.', val: 0 },
+      { text: 'Lo leo y respondo normalmente.', val: 5 },
+      { text: 'Respondo inmediatamente.', val: 10 }
+    ]
+  },
+
+  {
+    q: '12. ¿Qué emojis usás más?',
+    opts: [
+      { text: '👍 😂', val: 0 },
+      { text: '😊 ✨', val: 5 },
+      { text: '🔥 💀 😭 ✨', val: 10 }
+    ]
+  },
+
+  {
+    q: '13. Si alguien te reta a una competencia:',
+    opts: [
+      { text: 'Prefiero no competir.', val: 0 },
+      { text: 'Acepto si parece divertida.', val: 5 },
+      { text: 'Acepto. Voy a ganar.', val: 10 }
+    ]
+  },
+
+  {
+    q: '14. ¿Cómo tomás una decisión importante?',
+    opts: [
+      { text: 'La pienso bastante.', val: 0 },
+      { text: 'Comparo las opciones.', val: 5 },
+      { text: 'Confío en mi intuición.', val: 10 }
+    ]
+  },
+
+  {
+    q: '15. Si tus amigos organizan algo sorpresa:',
+    opts: [
+      { text: 'Me pongo nerviosa.', val: 0 },
+      { text: 'Me da curiosidad.', val: 5 },
+      { text: 'Estoy lista para cualquier cosa.', val: 10 }
+    ]
+  },
+
+  {
+    q: '16. ¿Qué tan competitiva sos?',
+    opts: [
+      { text: 'Casi nada.', val: 0 },
+      { text: 'Un poco.', val: 5 },
+      { text: 'Odio perder.', val: 10 }
+    ]
+  },
+
+  {
+    q: '17. ¿Qué preferís?',
+    opts: [
+      { text: 'Una tarde tranquila.', val: 0 },
+      { text: 'Salir con amigos.', val: 5 },
+      { text: 'Una aventura inolvidable.', val: 10 }
+    ]
+  },
+
+  {
+    q: '18. Si algo sale mal:',
+    opts: [
+      { text: 'Me detengo y analizo.', val: 0 },
+      { text: 'Intento solucionarlo.', val: 5 },
+      { text: 'Improviso hasta conseguirlo.', val: 10 }
+    ]
+  },
+
+  {
+    q: '19. ¿Qué tan impulsiva sos?',
+    opts: [
+      { text: 'Casi nunca.', val: 0 },
+      { text: 'A veces.', val: 5 },
+      { text: 'Muchas veces digo "después veo".', val: 10 }
+    ]
+  },
+
+  {
+    q: '20. La última: ¿Qué tan caótica considerás que sos?',
+    opts: [
+      { text: 'Bastante normal.', val: 0 },
+      { text: 'Tengo mis momentos.', val: 5 },
+      { text: 'No existe explicación posible.', val: 10 }
+    ]
+  }
 ]
+
+// ═══════════════════════════════════════════════════════════════
+// 𝙱𝙰𝚁𝚁𝙰 𝙳𝙴 𝙿𝚁𝙾𝙶𝚁𝙴𝚂𝙾
+// ═══════════════════════════════════════════════════════════════
 
 function generarBarra(paso, total) {
   const llenos = Math.round((paso / total) * 10)
+
   return `[${'■'.repeat(llenos)}${'□'.repeat(10 - llenos)}] ${paso}/${total}`
 }
 
+// ═══════════════════════════════════════════════════════════════
+// 𝚃𝙸𝙼𝙴𝚁
+// ═══════════════════════════════════════════════════════════════
+
+function iniciarTimer(sender, chatId, conn) {
+  const sesion = partidas.get(sender)
+
+  if (!sesion) return
+
+  clearTimeout(sesion.timer)
+
+  sesion.timer = setTimeout(async () => {
+    if (!partidas.has(sender)) return
+
+    partidas.delete(sender)
+
+    await conn.sendMessage(chatId, {
+      text:
+`*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*
+
+✰ 𝚄𝚜𝚊
+
+*⌬┤ ⏰ ├⌬ TIEMPO AGOTADO.*
+
+> El test fue cancelado automáticamente.`
+    })
+  }, 60000)
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 𝙴𝙽𝚅𝙸𝙰𝚁 𝙿𝚁𝙴𝙶𝚄𝙽𝚃𝙰
+// ═══════════════════════════════════════════════════════════════
+
 async function enviarPregunta(sender, chatId, conn) {
   const sesion = partidas.get(sender)
+
+  if (!sesion) return
+
   const preg = preguntas[sesion.paso]
-  let texto = `*👩‍❤️‍💋‍👩 TEST DEFINITIVO: ¿DE QUÉ LADO ESTÁS? 👩‍❤️‍💋‍👩*\n> Progreso: ${generarBarra(sesion.paso, preguntas.length)}\n\n*${preg.q}*\n\n`
-  preg.opts.forEach((o, i) => { texto += `*[ ${i + 1} ]* ➣ ${o.text}\n` })
-  texto += '\n> _Respondé con 1, 2 o 3 sin prefijo. Para salir escribí "cancelar"_'
-  await conn.sendMessage(chatId, { text: texto })
+
+  if (!preg) return
+
+  let texto =
+`*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*
+
+✰ 𝚄𝚜𝚊
+
+> Progreso: ${generarBarra(sesion.paso + 1, preguntas.length)}
+
+*${preg.q}*
+
+`
+
+  preg.opts.forEach((o, i) => {
+    texto += `*[ ${i + 1} ]* ➣ ${o.text}\n`
+  })
+
+  texto +=
+`
+> _Respondé con 1, 2 o 3 sin prefijo._
+> _Para salir escribí "cancelar"._`
+
+  await conn.sendMessage(chatId, {
+    text: texto
+  })
 }
+
+// ═══════════════════════════════════════════════════════════════
+// 𝙷𝙰𝙽𝙳𝙻𝙴𝚁
+// ═══════════════════════════════════════════════════════════════
 
 const handler = async (m, ctx) => {
   const { conn } = ctx
+
   const sender = m.sender
   const chatId = m.chat
 
-  if (partidas.has(sender)) return m.reply(`*⌬┤ ⚠️ ├⌬ YA TENÉS UN TEST ACTIVO.*`)
+  if (partidas.has(sender)) {
+    return m.reply(
+`*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*
 
-  partidas.set(sender, { 
-    estado: 'lobby', paso: 0, puntaje: 0, chatId, calculando: false,
-    timer: setTimeout(() => { partidas.delete(sender); conn.sendMessage(chatId, { text: `*⌬┤ ⏰ ├⌬ TIEMPO AGOTADO.*` }) }, 60000) 
+✰ 𝚄𝚜𝚊
+
+*⌬┤ ⚠️ ├⌬ YA TENÉS UN TEST ACTIVO.*
+
+> Terminá el test actual antes de iniciar otro.`
+    )
+  }
+
+  partidas.set(sender, {
+    estado: 'lobby',
+    paso: 0,
+    puntaje: 0,
+    chatId,
+    calculando: false,
+    timer: null
   })
 
-  await conn.sendMessage(chatId, { text: `*👩‍❤️‍💋‍👩 TEST DE ORIENTACIÓN: LA VERDAD ABSOLUTA 👩‍❤️‍💋‍👩*\n\n> Estás a punto de someterte al test sáfico definitivo. Serán *20 preguntas directas*.\n\n*¿Estás lista?*\n\n*[ 1 ]* ➣ Sí, iniciar el test 🔥\n*[ 2 ]* ➣ No (Cancelar) 🏃‍♀️\n\n> _Respondé con 1 o 2 sin prefijo_` }, { quoted: m })
+  iniciarTimer(sender, chatId, conn)
+
+  await conn.sendMessage(
+    chatId,
+    {
+      text:
+`*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*
+
+✰ 𝚄𝚜𝚊
+
+*⌬┤ ✦ ├⌬ TEST DE PERSONALIDAD*
+
+> Estás a punto de comenzar un test de *20 preguntas*.
+
+> Cada respuesta suma puntos y al final recibirás un resultado divertido basado en tus respuestas.
+
+*¿Estás lista?*
+
+*[ 1 ]* ➣ Sí, iniciar el test
+*[ 2 ]* ➣ No, cancelar
+
+> _Respondé con 1 o 2 sin prefijo._`
+    },
+    { quoted: m }
+  )
 }
+
+// ═══════════════════════════════════════════════════════════════
+// 𝙼𝙰𝙽𝙴𝙹𝙾 𝙳𝙴 𝚁𝙴𝚂𝙿𝚄𝙴𝚂𝚃𝙰𝚂
+// ═══════════════════════════════════════════════════════════════
 
 handler.all = async (m, ctx) => {
   const { conn } = ctx
   const sender = m.sender
-  
-  if (!partidas.has(sender)) return
-  const sesion = partidas.get(sender)
-  if (sesion.chatId !== m.chat || sesion.calculando) return
 
-  const txt = (m.body || '').trim().toLowerCase()
+  if (!partidas.has(sender)) return
+
+  const sesion = partidas.get(sender)
+
+  if (!sesion) return
+
+  if (sesion.chatId !== m.chat) return
+
+  if (sesion.calculando) return
+
+  const txt = String(m.body || '').trim().toLowerCase()
+
   if (!txt) return
 
+  // ═══════════════════════════════════════════════════════════
+  // 𝙲𝙰𝙽𝙲𝙴𝙻𝙰𝚁
+  // ═══════════════════════════════════════════════════════════
+
   if (['cancelar', 'salir', 'cancel'].includes(txt)) {
-    clearTimeout(sesion.timer); partidas.delete(sender)
-    return conn.sendMessage(m.chat, { text: `*⌬┤ 🛑 ├⌬ TEST CANCELADO.*\n> No quisiste ver la verdad.` }, { quoted: m })
+    clearTimeout(sesion.timer)
+
+    partidas.delete(sender)
+
+    return conn.sendMessage(
+      m.chat,
+      {
+        text:
+`*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*
+
+✰ 𝚄𝚜𝚊
+
+*⌬┤ 🛑 ├⌬ TEST CANCELADO.*
+
+> El test fue cancelado correctamente.`
+      },
+      { quoted: m }
+    )
   }
 
-  const num = parseInt(txt)
-  if (isNaN(num)) return 
+  const num = Number(txt)
+
+  if (!Number.isInteger(num)) return
+
+  // ═══════════════════════════════════════════════════════════
+  // 𝙻𝙾𝙱𝙱𝚈
+  // ═══════════════════════════════════════════════════════════
 
   if (sesion.estado === 'lobby') {
-    if (num === 2) { clearTimeout(sesion.timer); partidas.delete(sender); return conn.sendMessage(m.chat, { text: `*⌬┤ 🛑 ├⌬ TEST CANCELADO.*` }) }
+    if (num === 2) {
+      clearTimeout(sesion.timer)
+
+      partidas.delete(sender)
+
+      return conn.sendMessage(
+        m.chat,
+        {
+          text:
+`*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*
+
+✰ 𝚄𝚜𝚊
+
+*⌬┤ 🛑 ├⌬ TEST CANCELADO.*`
+        },
+        { quoted: m }
+      )
+    }
+
     if (num === 1) {
       sesion.estado = 'jugando'
-      clearTimeout(sesion.timer)
-      sesion.timer = setTimeout(() => { partidas.delete(sender); conn.sendMessage(m.chat, { text: `*⌬┤ ⏰ ├⌬ TIEMPO AGOTADO.*` }) }, 60000)
-      return await enviarPregunta(sender, m.chat, conn)
+      sesion.paso = 0
+      sesion.puntaje = 0
+
+      iniciarTimer(sender, m.chat, conn)
+
+      return enviarPregunta(
+        sender,
+        m.chat,
+        conn
+      )
     }
+
     return
   }
 
-  if (num < 1 || num > 3) return 
+  // ═══════════════════════════════════════════════════════════
+  // 𝙹𝚄𝙶𝙰𝙽𝙳𝙾
+  // ═══════════════════════════════════════════════════════════
+
+  if (sesion.estado !== 'jugando') return
+
+  if (num < 1 || num > 3) return
+
+  const preguntaActual = preguntas[sesion.paso]
+
+  if (!preguntaActual) return
+
+  const opcion = preguntaActual.opts[num - 1]
+
+  if (!opcion) return
 
   clearTimeout(sesion.timer)
-  sesion.puntaje += preguntas[sesion.paso].opts[num - 1].val
+
+  sesion.puntaje += opcion.val
   sesion.paso++
+
+  // ═══════════════════════════════════════════════════════════
+  // 𝙵𝙸𝙽
+  // ═══════════════════════════════════════════════════════════
 
   if (sesion.paso >= preguntas.length) {
     sesion.calculando = true
-    const porcentaje = Math.round((sesion.puntaje / 200) * 100)
 
-    await conn.sendMessage(m.chat, { text: `*⌬┤ ⏳ ├⌬ PROCESANDO RESPUESTAS...*\n> Calculando tu nivel de ✂️...` }, { quoted: m })
+    const porcentaje = Math.round(
+      (sesion.puntaje / 200) * 100
+    )
 
-    setTimeout(async () => {
-      const diagTexto = diagnosticos.find(d => porcentaje <= d.max).text
-      await conn.sendMessage(m.chat, { text: `*👩‍❤️‍💋‍👩 EL VEREDICTO DE LA VERDAD 👩‍❤️‍💋‍👩*\n\n> 📊 *TU PORCENTAJE ES: ${porcentaje}%*\n\n${diagTexto}` })
+    await conn.sendMessage(
+      m.chat,
+      {
+        text:
+`*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*
+
+✰ 𝚄𝚜𝚊
+
+*⌬┤ ⏳ ├⌬ PROCESANDO RESULTADO...*
+
+> Analizando tus respuestas...
+> Calculando tu nivel de personalidad...`
+      },
+      { quoted: m }
+    )
+
+    sesion.resultadoTimer = setTimeout(async () => {
+      if (!partidas.has(sender)) return
+
+      const diagnostico =
+        diagnosticos.find(d => porcentaje <= d.max)
+
+      const diagTexto =
+        diagnostico?.text ||
+        '*Diagnóstico:* Personalidad misteriosa. El sistema no pudo determinar tu nivel. 👀'
+
+      await conn.sendMessage(m.chat, {
+        text:
+`*𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻*
+
+✰ 𝚄𝚜𝚊
+
+*⌬┤ ✦ ├⌬ RESULTADO FINAL*
+
+> 📊 *PUNTAJE:* ${sesion.puntaje}/200
+> 📈 *PORCENTAJE:* ${porcentaje}%
+
+${diagTexto}
+
+> _Gracias por completar el test._`
+      })
+
+      clearTimeout(sesion.timer)
       partidas.delete(sender)
+
     }, 5000)
 
-  } else {
-    sesion.timer = setTimeout(() => { partidas.delete(sender); conn.sendMessage(m.chat, { text: `*⌬┤ ⏰ ├⌬ TIEMPO AGOTADO.*` }) }, 60000)
-    await enviarPregunta(sender, m.chat, conn)
+    return
   }
+
+  // ═══════════════════════════════════════════════════════════
+  // 𝙿𝚁𝙾𝚇𝙸𝙼𝙰 𝙿𝚁𝙴𝙶𝚄𝙽𝚃𝙰
+  // ═══════════════════════════════════════════════════════════
+
+  iniciarTimer(sender, m.chat, conn)
+
+  return enviarPregunta(
+    sender,
+    m.chat,
+    conn
+  )
 }
 
-handler.help = ['testlesbiana']
-handler.tags = ['fun']
-handler.command = ['soylesbiana', 'testlesbiana', 'tortatest']
+// ═══════════════════════════════════════════════════════════════
+// 𝙲𝙾𝙼𝙰𝙽𝙳𝙾𝚂
+// ═══════════════════════════════════════════════════════════════
+
+handler.help = [
+  'testpersonalidad',
+  'testpersonal'
+]
+
+handler.tags = [
+  'fun'
+]
+
+handler.command = [
+  'testpersonalidad',
+  'testpersonal'
+]
 
 export default handler

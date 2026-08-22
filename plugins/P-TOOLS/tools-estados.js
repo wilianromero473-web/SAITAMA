@@ -3,13 +3,18 @@ import { Buffer } from 'buffer'
 
 const handler = async (m, { conn }) => {
   try {
+
     if (!m.quoted) {
-      return m.reply('❌ Responde al estado (foto o video) con .estado')
+      return m.reply(
+`༺ ✰ SIN ESTADO ✰ ༻
+
+> ✰ Responde al estado que quieres descargar.
+> ✰ Compatible con fotos y videos.`
+      )
     }
 
     const q = m.quoted
 
-    // Detectar multimedia del estado
     const media =
       q.msg?.message?.videoMessage ||
       q.msg?.message?.imageMessage ||
@@ -17,18 +22,31 @@ const handler = async (m, { conn }) => {
       q.message?.groupStatusMessageV2?.message?.imageMessage
 
     if (!media) {
-      return m.reply('❌ No encontré imagen o video en el estado')
+      return m.reply(
+`༺ ✰ ESTADO NO ENCONTRADO ✰ ༻
+
+> ✰ No encontré una imagen o video en el estado.`
+      )
     }
 
     const mime = media.mimetype || ''
 
-    await m.reply('⏳ Descargando estado...')
+    await m.reply(
+`༺ ✰ DESCARGANDO ESTADO ✰ ༻
+
+> ✰ Procesando multimedia...
+> ✰ Espera un momento.`
+    )
 
     let buffer
 
-    // Descargar video
     if (mime.includes('video')) {
-      const stream = await downloadContentFromMessage(media, 'video')
+
+      const stream = await downloadContentFromMessage(
+        media,
+        'video'
+      )
+
       const chunks = []
 
       for await (const chunk of stream) {
@@ -38,9 +56,13 @@ const handler = async (m, { conn }) => {
       buffer = Buffer.concat(chunks)
     }
 
-    // Descargar imagen
     if (mime.includes('image')) {
-      const stream = await downloadContentFromMessage(media, 'image')
+
+      const stream = await downloadContentFromMessage(
+        media,
+        'image'
+      )
+
       const chunks = []
 
       for await (const chunk of stream) {
@@ -51,63 +73,80 @@ const handler = async (m, { conn }) => {
     }
 
     if (!buffer) {
-      return m.reply('❌ No pude obtener el archivo del estado')
+      return m.reply(
+`༺ ✰ ERROR ✰ ༻
+
+> ✰ No pude obtener el archivo del estado.`
+      )
     }
 
-    // Enviar video
     if (mime.includes('video')) {
-      await conn.sendMessage(m.chat, {
-        video: buffer,
-        caption: `
-╭━━━〔 ⚡ *SAITAMABOT* ⚡ 〕━━━╮
-┃
-┃ 🥷 *ESTADO OBTENIDO*
-┃ 🎬 *Tipo:* Video
-┃ ✅ *Descarga completada*
-┃
-┃ 💥 *Powered by 𝙎𝙖𝙞𝙩𝙖𝙢𝙖𝘽𝙤𝙩*
-┃ 👑 *Creator:* 𝑺𝒂𝒊𝒅𝒆𝒗𝟏𝟒𝟓
-┃
-╰━━━━━━━━━━━━━━━━━━━━╯
 
-🎵 *Sigue a mi creador en TikTok*
-👑 *Saidev145*
-🔗 https://www.tiktok.com/@sai16172?_r=1&_t=ZS-97okvUBLwyT
-`
-      }, { quoted: m })
+      await conn.sendMessage(
+        m.chat,
+        {
+          video: buffer,
+          caption:
+`༺ ✰ ESTADO OBTENIDO ✰ ༻
+
+> ✰ Tipo: Video
+> ✰ Descarga completada correctamente.
+
+༺ ✰ SAITAMABOT ✰ ༻`
+        },
+        {
+          quoted: m
+        }
+      )
     }
 
-    // Enviar imagen
     if (mime.includes('image')) {
-      await conn.sendMessage(m.chat, {
-        image: buffer,
-        caption: `
-╭━━━〔 ⚡ *SAITAMABOT* ⚡ 〕━━━╮
-┃
-┃ 🥷 *ESTADO OBTENIDO*
-┃ 🎬 *Tipo:* Imagen
-┃ ✅ *Descarga completada*
-┃
-┃ 💥 *Powered by 𝙎𝙖𝙞𝙩𝙖𝙢𝙖𝘽𝙤𝙩*
-┃ 👑 *Creator:* 𝑺𝒂𝒊𝒅𝒆𝒗𝟏𝟒𝟓
-┃
-╰━━━━━━━━━━━━━━━━━━━━╯
 
-🎵 *Sigue a mi creador en TikTok*
-👑 *Saidev145*
-🔗 https://www.tiktok.com/@sai16172?_r=1&_t=ZS-97okvUBLwyT
-`
-      }, { quoted: m })
+      await conn.sendMessage(
+        m.chat,
+        {
+          image: buffer,
+          caption:
+`༺ ✰ ESTADO OBTENIDO ✰ ༻
+
+> ✰ Tipo: Imagen
+> ✰ Descarga completada correctamente.
+
+༺ ✰ SAITAMABOT ✰ ༻`
+        },
+        {
+          quoted: m
+        }
+      )
     }
 
   } catch (e) {
-    console.error('ERROR ESTADO:', e)
-    m.reply(`❌ Error: ${e.message}`)
+
+    console.error(
+      'ERROR ESTADO:',
+      e
+    )
+
+    return m.reply(
+`༺ ✰ ERROR ✰ ༻
+
+> ✰ No se pudo descargar el estado.
+> ✰ ${e.message || 'Error desconocido'}`
+    )
   }
 }
 
-handler.command = ['estado', 'pasa']
-handler.help = ['estado']
-handler.tags = ['tools']
+handler.command = [
+  'estado',
+  'pasa'
+]
+
+handler.help = [
+  'estado'
+]
+
+handler.tags = [
+  'tools'
+]
 
 export default handler

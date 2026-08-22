@@ -1,95 +1,385 @@
 import fs from 'fs'
 import path from 'path'
-import { subBots } from '../../lib/jadibot.js'
 import config from '../../config.js'
 
-const SUBBOT_DIR = path.resolve('./sessions/subbots')
+// ═══════════════════════════════════════
+// ✰ SAITAMABOT • LIMPIAR CACHÉ
+// ═══════════════════════════════════════
+
+const SUBBOT_DIR = path.resolve(
+  './sessions/subbots'
+)
+
+// ═══════════════════════════════════════
+// ✰ LIMPIAR ARCHIVOS TEMPORALES
+// ═══════════════════════════════════════
 
 async function limpiarTmp() {
+
   let count = 0
-  const tmpPath = path.resolve(process.cwd(), 'tmp')
-  if (!fs.existsSync(tmpPath)) return count
-  for (const file of fs.readdirSync(tmpPath)) {
-    const fp = path.join(tmpPath, file)
-    if (fs.statSync(fp).isFile()) { fs.unlinkSync(fp); count++ }
+
+  const tmpPath =
+    path.resolve(
+      process.cwd(),
+      'tmp'
+    )
+
+  if (!fs.existsSync(tmpPath)) {
+    return count
   }
+
+  for (
+    const file of fs.readdirSync(tmpPath)
+  ) {
+
+    const fp =
+      path.join(
+        tmpPath,
+        file
+      )
+
+    try {
+
+      if (
+        fs.statSync(fp).isFile()
+      ) {
+
+        fs.unlinkSync(fp)
+        count++
+
+      }
+
+    } catch {}
+
+  }
+
   return count
 }
 
-async function limpiarKeys(sessionPath) {
+// ═══════════════════════════════════════
+// ✰ LIMPIAR KEYS DE UNA SESIÓN
+// ═══════════════════════════════════════
+
+async function limpiarKeys(
+  sessionPath
+) {
+
   let count = 0
-  if (!fs.existsSync(sessionPath)) return count
-  for (const key of fs.readdirSync(sessionPath)) {
-    if (key === 'creds.json' || key === '.paused') continue
-    const fp = path.join(sessionPath, key)
-    const st = fs.statSync(fp)
-    if (st.isFile())      { fs.unlinkSync(fp);                            count++ }
-    else if (st.isDirectory()) { fs.rmSync(fp, { recursive: true, force: true }); count++ }
+
+  if (
+    !fs.existsSync(sessionPath)
+  ) {
+    return count
   }
-  return count
-}
 
-const handler = async (m, { conn, text }) => {
-  await conn.sendMessage(m.chat, { react: { text: '⏳', key: m.key } })
+  for (
+    const key of fs.readdirSync(sessionPath)
+  ) {
 
-  const arg = text?.trim().toLowerCase()
-
-  try {
-    const tmpBorrados  = await limpiarTmp()
-    let   keysBorradas = 0
-    let   detalle      = ''
-
-    if (arg && arg !== 'all' && arg !== 'todo') {
-      const numero = arg.replace(/\D/g, '')
-
-      if (!fs.existsSync(path.join(SUBBOT_DIR, numero))) {
-        await conn.sendMessage(m.chat, { react: { text: '❌', key: m.key } })
-        return m.reply(`*⌬┤ ❌ ├⌬ SUB-BOT NO ENCONTRADO.*\n> No existe una sesión para el número *${numero}*.`)
-      }
-
-      keysBorradas = await limpiarKeys(path.join(SUBBOT_DIR, numero))
-      detalle = `> 🤖 *Sub-bot limpiado:* +${numero}\n`
-               + `> 🔑 *Keys borradas:* ${keysBorradas} archivos\n`
-               + `> _creds.json conservado._`
-
-    } else if (arg === 'all' || arg === 'todo') {
-      let subbotsCleaned = 0
-      if (fs.existsSync(SUBBOT_DIR)) {
-        for (const carpeta of fs.readdirSync(SUBBOT_DIR)) {
-          const sp = path.join(SUBBOT_DIR, carpeta)
-          if (fs.statSync(sp).isDirectory()) {
-            keysBorradas += await limpiarKeys(sp)
-            subbotsCleaned++
-          }
-        }
-      }
-      detalle = `> 🤖 *Sub-bots limpiados:* ${subbotsCleaned}\n`
-               + `> 🔑 *Keys borradas (total):* ${keysBorradas} archivos\n`
-               + `> _Todos los creds.json conservados._`
-
-    } else {
-      keysBorradas = await limpiarKeys(path.resolve('./sessions/main'))
-      detalle = `> 🔑 *Keys corruptas borradas:* ${keysBorradas} archivos\n`
-               + `> _La sesión principal (creds.json) se mantuvo intacta._`
+    // ✰ Archivos que NO deben eliminarse
+    if (
+      key === 'creds.json' ||
+      key === '.paused'
+    ) {
+      continue
     }
 
-    const txt = `*╔═══⌦ ✦ 🧹 CACHÉ LIMPIO ✦ ⌫═══╗*\n\n`
-              + `> 🗑️ *Temporales borrados:* ${tmpBorrados} archivos\n`
-              + detalle + `\n`
-              + `*╚══⌦ ${config.footer} ⌫══╝*`
+    const fp =
+      path.join(
+        sessionPath,
+        key
+      )
 
-    await conn.sendMessage(m.chat, { react: { text: '✅', key: m.key } })
-    m.reply(txt)
+    try {
+
+      const st =
+        fs.statSync(fp)
+
+      // ✰ Archivo
+      if (st.isFile()) {
+
+        fs.unlinkSync(fp)
+        count++
+
+      }
+
+      // ✰ Carpeta
+      else if (
+        st.isDirectory()
+      ) {
+
+        fs.rmSync(
+          fp,
+          {
+            recursive: true,
+            force: true
+          }
+        )
+
+        count++
+
+      }
+
+    } catch {}
+
+  }
+
+  return count
+}
+
+// ═══════════════════════════════════════
+// ✰ HANDLER
+// ═══════════════════════════════════════
+
+const handler = async (
+  m,
+  {
+    conn,
+    text
+  }
+) => {
+
+  // ✰ Reacción inicial
+  await conn.sendMessage(
+    m.chat,
+    {
+      react: {
+        text: '⏳',
+        key: m.key
+      }
+    }
+  )
+
+  const arg =
+    text?.trim().toLowerCase()
+
+  try {
+
+    // ═══════════════════════════════
+    // ✰ LIMPIAR TMP
+    // ═══════════════════════════════
+
+    const tmpBorrados =
+      await limpiarTmp()
+
+    let keysBorradas = 0
+    let detalle = ''
+
+    // ═══════════════════════════════
+    // ✰ LIMPIAR SUB-BOT ESPECÍFICO
+    // ═══════════════════════════════
+
+    if (
+      arg &&
+      arg !== 'all' &&
+      arg !== 'todo'
+    ) {
+
+      const numero =
+        arg.replace(/\D/g, '')
+
+      const sessionPath =
+        path.join(
+          SUBBOT_DIR,
+          numero
+        )
+
+      if (
+        !fs.existsSync(sessionPath)
+      ) {
+
+        await conn.sendMessage(
+          m.chat,
+          {
+            react: {
+              text: '❌',
+              key: m.key
+            }
+          }
+        )
+
+        return m.reply(
+`༺ ✰ 𝚂𝚄𝙱-𝙱𝙾𝚃 𝙽𝙾 𝙴𝙽𝙲𝙾𝙽𝚃𝚁𝙰𝙳𝙾 ✰ ༻
+
+> ✰ No existe una sesión para:
+> *+${numero}*
+
+༺ ✰ 𝚄𝚂𝙾 ✰ ༻
+
+> *ds <número>*
+> *ds all*`
+        )
+      }
+
+      keysBorradas =
+        await limpiarKeys(
+          sessionPath
+        )
+
+      detalle =
+`༺ ✰ 𝚂𝚄𝙱-𝙱𝙾𝚃 𝙻𝙸𝙼𝙿𝙸𝙰𝙳𝙾 ✰ ༻
+
+> ✰ *Número:* +${numero}
+> ✰ *Keys eliminadas:* ${keysBorradas} archivos
+> ✰ *creds.json:* Conservado
+> ✰ *.paused:* Conservado`
+
+    }
+
+    // ═══════════════════════════════
+    // ✰ LIMPIAR TODOS LOS SUB-BOTS
+    // ═══════════════════════════════
+
+    else if (
+      arg === 'all' ||
+      arg === 'todo'
+    ) {
+
+      let subbotsCleaned = 0
+
+      if (
+        fs.existsSync(
+          SUBBOT_DIR
+        )
+      ) {
+
+        for (
+          const carpeta of
+          fs.readdirSync(SUBBOT_DIR)
+        ) {
+
+          const sp =
+            path.join(
+              SUBBOT_DIR,
+              carpeta
+            )
+
+          try {
+
+            if (
+              fs.statSync(sp).isDirectory()
+            ) {
+
+              keysBorradas +=
+                await limpiarKeys(sp)
+
+              subbotsCleaned++
+
+            }
+
+          } catch {}
+
+        }
+      }
+
+      detalle =
+`༺ ✰ 𝚂𝚄𝙱-𝙱𝙾𝚃𝚂 𝙻𝙸𝙼𝙿𝙸𝙰𝙳𝙾𝚂 ✰ ༻
+
+> ✰ *Sub-bots:* ${subbotsCleaned}
+> ✰ *Keys eliminadas:* ${keysBorradas} archivos
+> ✰ *creds.json:* Todos conservados
+> ✰ *.paused:* Todos conservados`
+
+    }
+
+    // ═══════════════════════════════
+    // ✰ LIMPIAR SESIÓN PRINCIPAL
+    // ═══════════════════════════════
+
+    else {
+
+      const mainSession =
+        path.resolve(
+          './sessions/main'
+        )
+
+      keysBorradas =
+        await limpiarKeys(
+          mainSession
+        )
+
+      detalle =
+`༺ ✰ 𝚂𝙴𝚂𝙸Ó𝙽 𝙿𝚁𝙸𝙽𝙲𝙸𝙿𝙰𝙻 ✰ ༻
+
+> ✰ *Keys eliminadas:* ${keysBorradas} archivos
+> ✰ *creds.json:* Conservado
+> ✰ La sesión principal permanece intacta.`
+    }
+
+    // ═══════════════════════════════
+    // ✰ RESULTADO
+    // ═══════════════════════════════
+
+    const txt =
+`╔═══⌦ ✰ 𝙲𝙰𝙲𝙷É 𝙻𝙸𝙼𝙿𝙸𝙰𝙳𝙾 ✰ ⌫═══╗
+
+> ✰ *Temporales:* ${tmpBorrados} archivos
+
+${detalle}
+
+╚══⌦ ✰ ${config.footer} ⌫══╝`
+
+    // ✰ Reacción de éxito
+    await conn.sendMessage(
+      m.chat,
+      {
+        react: {
+          text: '✅',
+          key: m.key
+        }
+      }
+    )
+
+    return m.reply(txt)
 
   } catch (e) {
-    await conn.sendMessage(m.chat, { react: { text: '❌', key: m.key } })
-    m.reply(`*⌬┤ ❌ ├⌬ ERROR AL LIMPIAR.*\n> ${e.message}`)
+
+    console.error(
+      '[CLEARCACHE]',
+      e?.message || e
+    )
+
+    // ✰ Reacción de error
+    await conn.sendMessage(
+      m.chat,
+      {
+        react: {
+          text: '❌',
+          key: m.key
+        }
+      }
+    )
+
+    return m.reply(
+`༺ ✰ 𝙴𝚁𝚁𝙾𝚁 𝙰𝙻 𝙻𝙸𝙼𝙿𝙸𝙰𝚁 ✰ ༻
+
+> ✰ No se pudo completar la limpieza.
+> ✰ Error: ${e.message}`
+    )
   }
 }
 
-handler.help    = ['ds [número|all]', 'clearcache [número|all]']
-handler.tags    = ['owner']
-handler.command = ['ds', 'clearcache', 'limpiarcache', 'borrartmp']
+// ═══════════════════════════════════════
+// ✰ CONFIGURACIÓN DEL PLUGIN
+// ═══════════════════════════════════════
+
+handler.help = [
+  'ds [número|all]',
+  'clearcache [número|all]',
+  'limpiarcache [número|all]'
+]
+
+handler.command = [
+  'ds',
+  'clearcache',
+  'limpiarcache',
+  'borrartmp'
+]
+
+handler.tags = [
+  'owner'
+]
+
 handler.ownerOnly = true
 
 export default handler

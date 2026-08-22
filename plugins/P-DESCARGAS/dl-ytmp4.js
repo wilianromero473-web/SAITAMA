@@ -4,33 +4,13 @@ import path from 'path'
 import { rm } from 'fs/promises'
 import { pipeline } from 'stream/promises'
 
-// ═════════════════════════════════════
-// 🌸 SAITAMABOT • YTMP4
-// ═════════════════════════════════════
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 🥇 SAIAPI1 • STELLAR
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-const STELLAR_API =
-  'https://api.stellarwa.xyz'
-
-const STELLAR_KEY =
-  'proyectsV2'
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 🥈 SAIAPI2 • SYLPHY
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const STELLAR_API = 'https://api.stellarwa.xyz'
+const STELLAR_KEY = 'proyectsV2'
 
 const SYLPHY_API =
   'https://www.sylphyy.xyz/download/v2/ytmp4'
 
-const SYLPHY_KEY =
-  'sylph-d7ed7664'
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ⚙️ CONFIGURACIÓN
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const SYLPHY_KEY = 'sylph-d7ed7664'
 
 const USER_AGENT =
   'Mozilla/5.0 (Linux; Android 15; Pixel 7) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36'
@@ -38,9 +18,6 @@ const USER_AGENT =
 const API_TIMEOUT = 120000
 const DOWNLOAD_TIMEOUT = 600000
 
-// ═════════════════════════════════════
-// 🥇 SAIAPI1 • STELLAR
-// ═════════════════════════════════════
 
 async function fetchStellar(url) {
 
@@ -93,9 +70,6 @@ async function fetchStellar(url) {
   }
 }
 
-// ═════════════════════════════════════
-// 🥈 SAIAPI2 • SYLPHY
-// ═════════════════════════════════════
 
 async function fetchSylphy(url) {
 
@@ -107,8 +81,7 @@ async function fetchSylphy(url) {
           url
         },
 
-        timeout:
-          API_TIMEOUT,
+        timeout: API_TIMEOUT,
 
         headers: {
           'User-Agent':
@@ -153,52 +126,44 @@ async function fetchSylphy(url) {
   }
 }
 
-// ═════════════════════════════════════
-// 🔄 OBTENER VIDEO CON FALLBACK
-// ═════════════════════════════════════
 
 async function getVideo(url) {
-
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // 🥇 PRIMERO: STELLAR
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   try {
 
     return await fetchStellar(url)
 
-  } catch (error) {
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 🥈 RESPALDO: SYLPHY
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  } catch (error1) {
 
     try {
 
       return await fetchSylphy(url)
 
-    } catch (sylphyError) {
+    } catch (error2) {
 
       throw new Error(
-        `SaiAPI1: ${
-          error?.message ||
-          'Error desconocido'
-        }\nSaiAPI2: ${
-          sylphyError?.message ||
-          'Error desconocido'
-        }`
+`SaiAPI1: ${
+  error1?.message ||
+  'Error desconocido'
+}
+
+SaiAPI2: ${
+  error2?.message ||
+  'Error desconocido'
+}`
       )
     }
   }
 }
 
-// ═════════════════════════════════════
-// 📥 DESCARGAR ARCHIVO
-// ═════════════════════════════════════
 
-async function downloadVideo(
-  url
-) {
+async function downloadVideo(url) {
+
+  if (!url) {
+    throw new Error(
+      'URL de descarga vacía.'
+    )
+  }
 
   const response =
     await axios.get(
@@ -222,20 +187,20 @@ async function downloadVideo(
 
           Accept:
             'video/mp4,video/*,*/*'
-        }
+        },
+
+        validateStatus:
+          status =>
+            status >= 200 &&
+            status < 400
       }
     )
 
   return response.data
 }
 
-// ═════════════════════════════════════
-// 🧹 NOMBRE SEGURO
-// ═════════════════════════════════════
 
-function safeFileName(
-  title
-) {
+function safeFileName(title) {
 
   return String(
     title ||
@@ -255,9 +220,6 @@ function safeFileName(
     'YouTube Video'
 }
 
-// ═════════════════════════════════════
-// 🎬 HANDLER
-// ═════════════════════════════════════
 
 const handler = async (
   m,
@@ -274,28 +236,19 @@ const handler = async (
       text || ''
     ).trim()
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // ❌ SIN TEXTO
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   if (!input) {
 
     return m.reply(
-`╭━━━〔 🎬 𝐘𝐓𝐌𝐏𝟒 〕━━━⬣
+`༺ 𝚈𝚃𝙼𝙿𝟺 ༻
 
-❗ Ingresa un enlace de YouTube.
+✰ 𝙵𝚊𝚕𝚝𝚊 𝚎𝚕 𝚎𝚗𝚕𝚊𝚌𝚎 𝚍𝚎 𝚈𝚘𝚞𝚃𝚞𝚋𝚎.
 
-📌 Ejemplo:
-
-${usedPrefix + command} https://youtu.be/xxxxx
-
-╰━━━━━━━━━━━━━━━━━━━━━━⬣`
+✰ 𝙴𝚓𝚎𝚖𝚙𝚕𝚘:
+${usedPrefix + command} https://youtu.be/xxxxx`
     )
   }
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // ⏳ REACCIÓN
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   await conn.sendMessage(
     m.chat,
@@ -307,8 +260,10 @@ ${usedPrefix + command} https://youtu.be/xxxxx
     }
   ).catch(() => {})
 
+
   const tmpDir =
     './tmp'
+
 
   await fs.promises.mkdir(
     tmpDir,
@@ -317,47 +272,39 @@ ${usedPrefix + command} https://youtu.be/xxxxx
     }
   )
 
+
   const filePath =
     path.join(
       tmpDir,
       `ytmp4_${Date.now()}.mp4`
     )
 
-  try {
 
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 🔗 OBTENER URL
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  try {
 
     const ytUrl =
       input.startsWith('http')
         ? input
-        : `https://www.youtube.com/watch?v=${input}`
+        : `https://www.youtube.com/watch?v=${encodeURIComponent(input)}`
 
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 🔎 API 1 → API 2
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     const media =
-      await getVideo(ytUrl)
+      await getVideo(
+        ytUrl
+      )
 
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 📝 NOMBRE
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     const title =
       safeFileName(
         media.title
       )
 
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 📥 DESCARGAR
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     const videoStream =
       await downloadVideo(
         media.download
       )
+
 
     await pipeline(
       videoStream,
@@ -366,14 +313,12 @@ ${usedPrefix + command} https://youtu.be/xxxxx
       )
     )
 
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 🔎 VALIDAR
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     const stat =
       await fs.promises.stat(
         filePath
       )
+
 
     if (
       !stat.isFile() ||
@@ -384,23 +329,22 @@ ${usedPrefix + command} https://youtu.be/xxxxx
       )
     }
 
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 🎬 CAPTION
-    // Solo el título va en negrita
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     const caption =
-`🎬 *${media.title || title}*
+`༺ 𝚈𝙾𝚄𝚃𝚄𝙱𝙴 𝙼𝙿𝟺 ༻
 
-🌐 API: ${media.api}
-🎞️ Calidad: ${media.quality || 'Desconocida'}
-📄 Formato: MP4
+✰ 𝚃í𝚝𝚞𝚕𝚘:
+${media.title || title}
 
-🌸 SaitamaBot`
+✰ 𝙲𝚊𝚕𝚒𝚍𝚊𝚍:
+${media.quality || 'Desconocida'}
 
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 📤 ENVIAR VIDEO
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✰ 𝙵𝚘𝚛𝚖𝚊𝚝𝚘:
+MP4
+
+✰ 𝙰𝙿𝙸:
+${media.api}`
+
 
     await conn.sendMessage(
       m.chat,
@@ -419,13 +363,11 @@ ${usedPrefix + command} https://youtu.be/xxxxx
         caption
       },
       {
-        quoted: m
+        quoted:
+          m
       }
     )
 
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // ✅ REACCIÓN
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     await conn.sendMessage(
       m.chat,
@@ -437,11 +379,8 @@ ${usedPrefix + command} https://youtu.be/xxxxx
       }
     ).catch(() => {})
 
-  } catch (error) {
 
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // ❌ REACCIÓN
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  } catch (error) {
 
     await conn.sendMessage(
       m.chat,
@@ -453,35 +392,25 @@ ${usedPrefix + command} https://youtu.be/xxxxx
       }
     ).catch(() => {})
 
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // ❌ ERROR
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     return m.reply(
-`╭━━━〔 ❌ 𝐘𝐓𝐌𝐏𝟒 𝐄𝐑𝐑𝐎𝐑 〕━━━╮
+`༺ 𝚈𝚃𝙼𝙿𝟺 𝙴𝚁𝚁𝙾𝚁 ༻
 
-No se pudo descargar el vídeo.
+✰ 𝙽𝚘 𝚜𝚎 𝚙𝚞𝚍𝚘 𝚍𝚎𝚜𝚌𝚊𝚛𝚐𝚊𝚛 𝚎𝚕 𝚟í𝚍𝚎𝚘.
 
-⚠️ *Detalles:*
+✰ 𝙳𝚎𝚝𝚊𝚕𝚕𝚎𝚜:
 ${String(
   error?.message ||
-  error
-).slice(0, 500)}
+  error ||
+  'Error desconocido'
+).slice(0, 900)}
 
-🔄 Se intentaron:
-🥇 SaiAPI1
-🥈 SaiAPI2
-
-╰━━━━━━━━━━━━━━━━━━━━━━╯
-
-🌸 SaitamaBot`
+✰ 𝚂𝚎 𝚒𝚗𝚝𝚎𝚗𝚝𝚊𝚛𝚘𝚗:
+• SaiAPI1
+• SaiAPI2`
     )
 
   } finally {
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 🗑️ ELIMINAR TEMPORAL
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     await rm(
       filePath,
@@ -492,22 +421,23 @@ ${String(
   }
 }
 
-// ═════════════════════════════════════
-// ⚙️ CONFIGURACIÓN
-// ═════════════════════════════════════
 
 handler.help = [
   'ytmp4 <url>',
   'ytv <url>'
 ]
 
+
 handler.tags = [
   'descargas'
 ]
 
+
 handler.command = [
   'ytmp4',
-  'ytv'
+  'ytv',
+  'mp4yt'
 ]
+
 
 export default handler

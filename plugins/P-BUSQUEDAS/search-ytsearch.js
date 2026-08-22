@@ -1,253 +1,374 @@
 import axios from 'axios'
 import config from '../../config.js'
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🔎 API YOUTUBE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-// ━━━━━━━ API PRINCIPAL ━━━━━━━
 const API_URL = 'https://api.stellarwa.xyz'
 const API_KEY = 'proyectsV2'
 
-// ━━━━━━━ API BACKUP ━━━━━━━
-const BACKUP_API = 'https://luxinfinity.vercel.app/api/search/youtube'
+const BACKUP_API =
+  'https://luxinfinity.vercel.app/api/search/youtube'
 
 
-const handler = async (m, { conn, text, usedPrefix, command }) => {
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🎬 HANDLER
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+const handler = async (
+  m,
+  {
+    conn,
+    text,
+    usedPrefix,
+    command
+  }
+) => {
 
-if (!text) {
+  const query =
+    String(text || '').trim()
 
-return m.reply(
-`╭━━━〔 🌸 𝐒𝐀𝐈𝐓𝐀𝐌𝐀𝐁𝐎𝐓 🌸 〕━━━╮
 
-🎬 *𝐘𝐎𝐔𝐓𝐔𝐁𝐄 𝐒𝐄𝐀𝐑𝐂𝐇*
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ❌ SIN TEXTO
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-⚠️ Escribe algo para buscar.
+  if (!query) {
 
-📌 Ejemplo:
-${usedPrefix + command} Bad Bunny
+    return m.reply(
+`✰ 𝚈𝙾𝚄𝚃𝚄𝙱𝙴 𝚂𝙴𝙰𝚁𝙲𝙷 ✰
 
-╰━━━━━━━━━━━━━━━━━━╯`
-)
+༻ 𝙵𝚊𝚕𝚝𝚊 𝚕𝚊 𝚋ú𝚜𝚚𝚞𝚎𝚍𝚊.
 
-}
+✰ 𝙴𝚓𝚎𝚖𝚙𝚕𝚘:
+> ${usedPrefix}${command} Saitama
 
+༻ 𝙱𝚞𝚜𝚌𝚊 𝚟𝚒𝚍𝚎𝚘𝚜 𝚍𝚎 𝚈𝚘𝚞𝚃𝚞𝚋𝚎`
+    )
 
-await m.reply(
-`╭━━━〔 🔎 𝐁𝐔𝐒𝐂𝐀𝐍𝐃𝐎... 〕━━━╮
+  }
 
-⏳ Buscando en YouTube...
 
-🎵 Consulta:
-${text}
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ⏳ REACCIÓN
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🌸 ${config.botName || 'SaitamaBot'}
+  try {
 
-╰━━━━━━━━━━━━━━━━━━╯`
-)
+    await m.react('🔎')
 
+  } catch {}
 
 
-try {
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // 🔎 BUSCANDO
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+  await m.reply(
+`✰ 𝙱𝚄𝚂𝙲𝙰𝙽𝙳𝙾 ✰
 
-let results = []
+༻ 𝙱ú𝚜𝚚𝚞𝚎𝚍𝚊:
+> ${query}
 
+✰ 𝙱𝚞𝚜𝚌𝚊𝚗𝚍𝚘 𝚎𝚗 𝚈𝚘𝚞𝚃𝚞𝚋𝚎...`
+  )
 
 
-// ━━━━━ API PRINCIPAL ━━━━━
+  try {
 
-try {
+    let results = []
 
-const api =
-`${API_URL}/search/youtube?query=${encodeURIComponent(text)}&limit=10&key=${API_KEY}`
 
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // 🌐 API PRINCIPAL
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-const res = await axios.get(api,{
-timeout:15000
-})
+    try {
 
+      const url =
+        `${API_URL}/search/youtube?query=${encodeURIComponent(query)}&limit=10&key=${API_KEY}`
 
-if (
-res.data &&
-Array.isArray(res.data.data)
-) {
+      const response =
+        await axios.get(
+          url,
+          {
+            timeout: 15000
+          }
+        )
 
-results = res.data.data
+      if (
+        response.data?.status &&
+        Array.isArray(response.data?.data)
+      ) {
 
-}
+        results =
+          response.data.data
 
+      } else if (
+        Array.isArray(response.data?.data)
+      ) {
 
-} catch {}
+        results =
+          response.data.data
 
+      }
 
+    } catch {}
 
-// ━━━━━ API BACKUP ━━━━━
 
-if (!results.length) {
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // 🔄 API BACKUP
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+    if (!results.length) {
 
-try {
+      try {
 
-const backup =
-`${BACKUP_API}?query=${encodeURIComponent(text)}&limit=10`
+        const url =
+          `${BACKUP_API}?query=${encodeURIComponent(query)}&limit=10`
 
+        const response =
+          await axios.get(
+            url,
+            {
+              timeout: 15000
+            }
+          )
 
-const res = await axios.get(backup,{
-timeout:15000
-})
+        if (
+          Array.isArray(
+            response.data?.data
+          )
+        ) {
 
+          results =
+            response.data.data
 
-if (
-res.data?.status &&
-Array.isArray(res.data.data)
-) {
+        }
 
-results = res.data.data
+      } catch {}
 
-}
+    }
 
 
-} catch {}
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // ❌ SIN RESULTADOS
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+    if (!results.length) {
 
-}
+      try {
+        await m.react('❌')
+      } catch {}
 
+      return m.reply(
+`✰ 𝚈𝙾𝚄𝚃𝚄𝙱𝙴 ✰
 
+༻ 𝙽𝚘 𝚜𝚎 𝚎𝚗𝚌𝚘𝚗𝚝𝚛𝚊𝚛𝚘𝚗 𝚛𝚎𝚜𝚞𝚕𝚝𝚊𝚍𝚘𝚜.
+✰ 𝙱ú𝚜𝚚𝚞𝚎𝚍𝚊:
+> ${query}`
+      )
 
+    }
 
-if (!results.length) {
 
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // 🖼️ MINIATURA
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-return m.reply(
-`╭━━━〔 ❌ SIN RESULTADOS 〕━━━╮
+    const first =
+      results[0]
 
-No encontré resultados para:
+    const thumbnail =
+      first?.thumb ||
+      first?.thumbnail ||
+      first?.image ||
+      null
 
-🔎 ${text}
 
-╰━━━━━━━━━━━━━━━━━━╯`
-)
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // 📝 INFORMACIÓN
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-}
+    let caption =
+`✰ 𝚈𝙾𝚄𝚃𝚄𝙱𝙴 𝚂𝙴𝙰𝚁𝙲𝙷 ✰
 
-
-
-
-
-let txt =
-
-`╭━━━〔 🌸 𝐒𝐀𝐈𝐓𝐀𝐌𝐀𝐁𝐎𝐓 🌸 〕━━━╮
-
-🎬 *𝐘𝐎𝐔𝐓𝐔𝐁𝐄 𝐒𝐄𝐀𝐑𝐂𝐇*
-
-🔎 *Búsqueda:*
-${text}
-
-📊 *Resultados:*
-${Math.min(results.length,10)}
-
-╰━━━━━━━━━━━━━━━━━━╯
-
+༻ 𝙱ú𝚜𝚚𝚞𝚎𝚍𝚊:
+> ${query}
+✰ 𝚁𝚎𝚜𝚞𝚕𝚝𝚊𝚍𝚘𝚜:
+> ${Math.min(results.length, 10)}
 
 `
 
 
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // 🎵 RESULTADOS
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-results.slice(0,10).forEach((v,i)=>{
+    results
+      .slice(0, 10)
+      .forEach(
+        (video, index) => {
+
+          const title =
+            video.title ||
+            'Desconocido'
+
+          const author =
+            video.author?.name ||
+            video.author ||
+            'Desconocido'
+
+          const duration =
+            video.duration?.text ||
+            'Desconocida'
+
+          const views =
+            video.views ||
+            'No disponible'
+
+          const published =
+            video.publishDate ||
+            'No disponible'
+
+          const url =
+            video.url ||
+            (
+              video.id
+                ? `https://youtu.be/${video.id}`
+                : 'Sin enlace'
+            )
 
 
-txt +=
+          caption +=
+`✰ ${index + 1}. ${title}
 
-`╭━━〔 🎵 ${i + 1} 〕━━⬣
-
-📌 *Título:*
-> ${v.title || 'Desconocido'}
-👤 *Canal:*
-> ${v.author?.name || v.author || 'Desconocido'}
-⏱️ *Duración:*
-> ${v.duration?.text || 'No disponible'}
-👁️ *Vistas:*
-> ${v.views || 'No disponible'}
-📅 *Publicado:*
-> ${v.publishDate || 'No disponible'}
-🔗 *Link:*
-> ${v.url || 'Sin enlace'}
-
-╰━━━━━━━━━━━━━━━━━━╯
-
+༻ 𝙰𝚛𝚝𝚒𝚜𝚝𝚊:
+> ${author}
+༻ 𝙳𝚞𝚛𝚊𝚌𝚒ó𝚗:
+> ${duration}
+༻ 𝚅𝚒𝚜𝚝𝚊𝚜:
+> ${views}
+༻ 𝙿𝚞𝚋𝚕𝚒𝚌𝚊𝚍𝚘:
+> ${published}
+༻ 𝙻𝚒𝚗𝚔:
+> ${url}
 
 `
 
-
-})
-
-
-
-txt +=
-
-`🌸 𝐒𝐀𝐈𝐓𝐀𝐌𝐀𝐁𝐎𝐓
-> ✨ Búsqueda completada correctamente.`
+        }
+      )
 
 
+    caption +=
+`༻ 𝙱ú𝚜𝚚𝚞𝚎𝚍𝚊 𝚌𝚘𝚖𝚙𝚕𝚎𝚝𝚊𝚍𝚊 ✰`
 
-await conn.sendMessage(
-m.chat,
-{
-text:txt
-},
-{
-quoted:m
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // 🖼️ ENVIAR CON MINIATURA
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    if (thumbnail) {
+
+      try {
+
+        const imageResponse =
+          await axios.get(
+            thumbnail,
+            {
+              responseType: 'arraybuffer',
+              timeout: 15000
+            }
+          )
+
+        await conn.sendMessage(
+          m.chat,
+          {
+            image:
+              Buffer.from(
+                imageResponse.data
+              ),
+
+            caption
+          },
+          {
+            quoted: m
+          }
+        )
+
+      } catch {
+
+        await m.reply(
+          caption
+        )
+
+      }
+
+    } else {
+
+      await m.reply(
+        caption
+      )
+
+    }
+
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // ✅ FINALIZADO
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    try {
+      await m.react('✅')
+    } catch {}
+
+
+  } catch (error) {
+
+    console.error(
+      '[YTSEARCH]',
+      error?.message
+    )
+
+    try {
+      await m.react('❌')
+    } catch {}
+
+    return m.reply(
+`✰ 𝚈𝙾𝚄𝚃𝚄𝙱𝙴 𝚂𝙴𝙰𝚁𝙲𝙷 ✰
+
+༻ 𝙾𝚌𝚞𝚛𝚛𝚒ó 𝚞𝚗 𝚎𝚛𝚛𝚘𝚛.
+
+✰ 𝙽𝚘 𝚜𝚎 𝚙𝚞𝚍𝚘 𝚌𝚘𝚖𝚙𝚕𝚎𝚝𝚊𝚛 𝚕𝚊 𝚋ú𝚜𝚚𝚞𝚎𝚍𝚊.
+
+༻ 𝙸𝚗𝚝𝚎𝚗𝚝𝚊 𝚍𝚎 𝚗𝚞𝚎𝚟𝚘.`
+    )
+
+  }
+
 }
-)
 
 
-
-} catch(e){
-
-
-console.error('[YTSEARCH ERROR]',e.message)
-
-
-m.reply(
-
-`╭━━━〔 ❌ ERROR 〕━━━╮
-
-No se pudo realizar la búsqueda.
-
-⚠️ Intenta nuevamente.
-
-╰━━━━━━━━━━━━━━━━━━╯`
-
-)
-
-
-}
-
-
-}
-
-
-
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ⚙️ CONFIGURACIÓN DEL PLUGIN
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 handler.help = [
-'ytsearch <texto>',
-'yts <texto>'
+  'ytsearch <texto>',
+  'yts <texto>'
 ]
-
 
 handler.tags = [
-'busquedas'
+  'busquedas'
 ]
-
 
 handler.command = [
-'yts',
-'ytsearch',
-'youtube',
-'buscarvideo'
+  'yts',
+  'ytsearch',
+  'youtube',
+  'buscarvideo'
 ]
 
-
 handler.register = true
-
 
 export default handler

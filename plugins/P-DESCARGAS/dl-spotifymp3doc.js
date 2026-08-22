@@ -2,9 +2,9 @@ import axios from 'axios'
 import config from '../../config.js'
 
 
-/* ═════════════════════════════════════
-   🎵 STELLARWA SPOTIFY MP3 DOCUMENTO
-═════════════════════════════════════ */
+// ═══════════════════════════════════════
+// ✰ SAITAMABOT • SPOTIFY MP3 DOCUMENT
+// ═══════════════════════════════════════
 
 const STELLAR_API =
   'https://api.stellarwa.xyz'
@@ -13,24 +13,40 @@ const STELLAR_KEY =
   'proyectsV2'
 
 
-/* ═════════════════════════════════════
-   🧹 LIMPIAR NOMBRE DE ARCHIVO
-═════════════════════════════════════ */
+const BOT_NAME =
+  config.botName ||
+  '𝚂𝙰𝙸𝚃𝙰𝙼𝙰𝙱𝙾𝚃'
+
+
+// ═══════════════════════════════════════
+// ✰ LIMPIAR NOMBRE
+// ═══════════════════════════════════════
 
 function cleanFileName(name) {
 
-  return String(name || 'Spotify Music')
-    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
-    .replace(/\s+/g, ' ')
+  return String(
+    name || 'Spotify Music'
+  )
+    .replace(
+      /[<>:"/\\|?*\x00-\x1F]/g,
+      ''
+    )
+    .replace(
+      /\s+/g,
+      ' '
+    )
     .trim()
-    .slice(0, 150)
+    .slice(
+      0,
+      150
+    )
 
 }
 
 
-/* ═════════════════════════════════════
-   🔗 VALIDAR URL DE SPOTIFY
-═════════════════════════════════════ */
+// ═══════════════════════════════════════
+// ✰ VALIDAR SPOTIFY
+// ═══════════════════════════════════════
 
 function isSpotifyTrack(url) {
 
@@ -42,21 +58,18 @@ function isSpotifyTrack(url) {
 }
 
 
-/* ═════════════════════════════════════
-   📄 HANDLER
-═════════════════════════════════════ */
+// ═══════════════════════════════════════
+// ✰ HANDLER
+// ═══════════════════════════════════════
 
 const handler = async (
-
   m,
-
   {
     conn,
     text,
     usedPrefix,
     command
   }
-
 ) => {
 
   try {
@@ -67,100 +80,69 @@ const handler = async (
       ).trim()
 
 
-    /* ═══════════════════════════════
-       ❌ SIN URL
-    ═══════════════════════════════ */
+    // ═════════════════════════════════
+    // ✰ SIN URL
+    // ═════════════════════════════════
 
     if (!url) {
 
       return m.reply(
 
-`╭━━━〔 📄 𝐒𝐏𝐎𝐓𝐈𝐅𝐘 𝐌𝐏𝟑 〕━━━⬣
+`༺ 𝚂𝙿𝙾𝚃𝙸𝙵𝚈 𝙼𝙿𝟹 𝙳𝙾𝙲 ༻
 
-✦ Envía el enlace de una canción de Spotify.
+✰ 𝙴𝚗𝚟í𝚊 𝚎𝚕 𝚎𝚗𝚕𝚊𝚌𝚎 𝚍𝚎 𝚞𝚗𝚊 𝚌𝚊𝚗𝚌𝚒ó𝚗 𝚍𝚎 𝚂𝚙𝚘𝚝𝚒𝚏𝚢.
 
-✧ Ejemplo:
-
+✰ 𝙴𝚓𝚎𝚖𝚙𝚕𝚘:
 ${usedPrefix + command} https://open.spotify.com/track/09mEdoA6zrmBPgTEN5qXmN
 
-╰━━━━━━━━━━━━━━━━━━━━━━⬣
-
-🌸 ${config.botName || 'SaitamaBot'}`
+✰ ${BOT_NAME}`
 
       )
 
     }
 
 
-    /* ═══════════════════════════════
-       🔗 VALIDAR SPOTIFY
-    ═══════════════════════════════ */
+    // ═════════════════════════════════
+    // ✰ VALIDAR URL
+    // ═════════════════════════════════
 
     if (!isSpotifyTrack(url)) {
 
       return m.reply(
 
-`╭━━━〔 ❌ 𝐒𝐏𝐎𝐓𝐈𝐅𝐘 〕━━━⬣
+`༺ 𝙴𝚁𝚁𝙾𝚁 𝚂𝙿𝙾𝚃𝙸𝙵𝚈 ༻
 
-La URL no es válida.
+✰ 𝙻𝚊 𝚄𝚁𝙻 𝚗𝚘 𝚎𝚜 𝚟á𝚕𝚒𝚍𝚊.
 
-✦ Debes enviar una URL de una canción:
+✰ 𝙳𝚎𝚋𝚎𝚜 𝚎𝚗𝚟𝚒𝚊𝚛 𝚞𝚗𝚊 𝚄𝚁𝙻 𝚍𝚎 𝚞𝚗𝚊 𝚌𝚊𝚗𝚌𝚒ó𝚗:
 
 https://open.spotify.com/track/...
 
-╰━━━━━━━━━━━━━━━━━━━━━━⬣
-
-🌸 ${config.botName || 'SaitamaBot'}`
+✰ ${BOT_NAME}`
 
       )
 
     }
 
 
-    /* ═══════════════════════════════
-       🔎 REACCIÓN
-    ═══════════════════════════════ */
+    // ═════════════════════════════════
+    // ✰ REACCIÓN INICIAL
+    // ═════════════════════════════════
 
     await conn.sendMessage(
-
       m.chat,
-
       {
-
         react: {
-
           text: '📄',
-
           key: m.key
-
         }
-
       }
-
     ).catch(() => {})
 
 
-    /* ═══════════════════════════════
-       ⏳ MENSAJE
-    ═══════════════════════════════ */
-
-    await m.reply(
-
-`╭━━━〔 📄 𝐒𝐏𝐎𝐓𝐈𝐅𝐘 𝐌𝐏𝟑 〕━━━⬣
-
-⏳ Preparando documento MP3...
-
-🔗 Spotify:
-${url}
-
-✦ ${config.botName || 'SaitamaBot'}`
-
-    )
-
-
-    /* ═══════════════════════════════
-       📡 STELLARWA
-    ═══════════════════════════════ */
+    // ═════════════════════════════════
+    // ✰ STELLARWA
+    // ═════════════════════════════════
 
     const response =
       await axios.get(
@@ -195,9 +177,9 @@ ${url}
       response?.data
 
 
-    /* ═══════════════════════════════
-       ❌ SIN RESPUESTA
-    ═══════════════════════════════ */
+    // ═════════════════════════════════
+    // ✰ VALIDAR RESPUESTA
+    // ═════════════════════════════════
 
     if (!data) {
 
@@ -207,10 +189,6 @@ ${url}
 
     }
 
-
-    /* ═══════════════════════════════
-       ❌ API RECHAZÓ
-    ═══════════════════════════════ */
 
     if (
       data.status === false
@@ -227,19 +205,15 @@ ${url}
     }
 
 
-    /* ═══════════════════════════════
-       📦 DATOS
-    ═══════════════════════════════ */
+    // ═════════════════════════════════
+    // ✰ INFORMACIÓN
+    // ═════════════════════════════════
 
     const song =
       data.data ||
       data.result ||
       {}
 
-
-    /* ═══════════════════════════════
-       🔗 URL DEL AUDIO
-    ═══════════════════════════════ */
 
     const audioUrl =
       song.dl ||
@@ -256,10 +230,6 @@ ${url}
 
     }
 
-
-    /* ═══════════════════════════════
-       🎵 INFORMACIÓN
-    ═══════════════════════════════ */
 
     const title =
       song.title ||
@@ -289,24 +259,17 @@ ${url}
       'Desconocido'
 
 
-    const cover =
-      song.cover ||
-      song.image ||
-      song.thumbnail ||
-      null
-
-
-    /* ═══════════════════════════════
-       🧹 NOMBRE DEL DOCUMENTO
-    ═══════════════════════════════ */
+    // ═════════════════════════════════
+    // ✰ NOMBRE DEL ARCHIVO
+    // ═════════════════════════════════
 
     const fileName =
       `${cleanFileName(title)} - ${cleanFileName(artist)}.mp3`
 
 
-    /* ═══════════════════════════════
-       📥 DESCARGAR MP3
-    ═══════════════════════════════ */
+    // ═════════════════════════════════
+    // ✰ DESCARGAR MP3
+    // ═════════════════════════════════
 
     const audioResponse =
       await axios.get(
@@ -338,10 +301,6 @@ ${url}
       )
 
 
-    /* ═══════════════════════════════
-       ❌ ARCHIVO VACÍO
-    ═══════════════════════════════ */
-
     if (
       !audioBuffer ||
       !audioBuffer.length
@@ -354,30 +313,33 @@ ${url}
     }
 
 
-    /* ═══════════════════════════════
-       📝 CAPTION
-    ═══════════════════════════════ */
+    // ═════════════════════════════════
+    // ✰ INFORMACIÓN DEL DOCUMENTO
+    // ═════════════════════════════════
 
     const caption =
 
-`╭━━━〔 📄 𝐒𝐏𝐎𝐓𝐈𝐅𝐘 𝐌𝐏𝟑 〕━━━⬣
-┃
-┃ 🎵 𝐓í𝐭𝐮𝐥𝐨 ❯ ${title}
-┃ 👤 𝐀𝐫𝐭𝐢𝐬𝐭𝐚 ❯ ${artist}
-┃ 💿 𝐀́𝐥𝐛𝐮𝐦 ❯ ${album}
-┃ ⏱️ 𝐃𝐮𝐫𝐚𝐜𝐢ó𝐧 ❯ ${duration}
-┃ 📅 𝐀ñ𝐨 ❯ ${year}
-┃
-┃ 📄 𝐅𝐨𝐫𝐦𝐚𝐭𝐨 ❯ MP3
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━⬣
+`༺ 𝚂𝙿𝙾𝚃𝙸𝙵𝚈 𝙼𝙿𝟹 ༻
 
-🌸 ${config.botName || 'SaitamaBot'}`
+✰ 𝚃í𝚝𝚞𝚕𝚘:
+${title}
+✰ 𝙰𝚛𝚝𝚒𝚜𝚝𝚊:
+${artist}
+✰ 𝙰́𝚕𝚋𝚞𝚖:
+${album}
+✰ 𝙳𝚞𝚛𝚊𝚌𝚒ó𝚗:
+${duration}
+✰ 𝙰ñ𝚘:
+${year}
+✰ 𝙵𝚘𝚛𝚖𝚊𝚝𝚘:
+MP3
+
+✰ ${BOT_NAME}`
 
 
-    /* ═══════════════════════════════
-       📤 ENVIAR COMO DOCUMENTO
-    ═══════════════════════════════ */
+    // ═════════════════════════════════
+    // ✰ ENVIAR DOCUMENTO
+    // ═════════════════════════════════
 
     await conn.sendMessage(
 
@@ -407,62 +369,43 @@ ${url}
     )
 
 
-    /* ═══════════════════════════════
-       ✅ REACCIÓN
-    ═══════════════════════════════ */
+    // ═════════════════════════════════
+    // ✰ REACCIÓN FINAL
+    // ═════════════════════════════════
 
     await conn.sendMessage(
-
       m.chat,
-
       {
-
         react: {
-
           text: '✅',
-
           key: m.key
-
         }
-
       }
-
     ).catch(() => {})
 
 
   } catch (error) {
 
     console.error(
-
-      '[STELLAR SPOTIFY MP3 DOC]',
-
+      '[SPOTIFY MP3 DOC]',
       error?.response?.data ||
       error?.message ||
       error
-
     )
 
 
-    /* ═══════════════════════════════
-       ❌ REACCIÓN ERROR
-    ═══════════════════════════════ */
+    // ═════════════════════════════════
+    // ✰ REACCIÓN ERROR
+    // ═════════════════════════════════
 
     await conn.sendMessage(
-
       m.chat,
-
       {
-
         react: {
-
           text: '❌',
-
           key: m.key
-
         }
-
       }
-
     ).catch(() => {})
 
 
@@ -475,16 +418,14 @@ ${url}
 
     return m.reply(
 
-`╭━━━〔 ❌ 𝐒𝐏𝐎𝐓𝐈𝐅𝐘 𝐌𝐏𝟑 〕━━━⬣
-┃
-┃ No se pudo enviar el MP3 como documento.
-┃
-┃ ⚠️ Detalles:
-┃ ${String(details).slice(0, 350)}
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━⬣
+`༺ 𝙴𝚁𝚁𝙾𝚁 𝚂𝙿𝙾𝚃𝙸𝙵𝚈 ༻
 
-🌸 ${config.botName || 'SaitamaBot'}`
+✰ 𝙽𝚘 𝚜𝚎 𝚙𝚞𝚍𝚘 𝚎𝚗𝚟𝚒𝚊𝚛 𝚎𝚕 𝙼𝙿𝟹 𝚌𝚘𝚖𝚘 𝚍𝚘𝚌𝚞𝚖𝚎𝚗𝚝𝚘.
+
+✰ 𝙳𝚎𝚝𝚊𝚕𝚕𝚎:
+${String(details).slice(0, 350)}
+
+✰ ${BOT_NAME}`
 
     )
 
@@ -493,29 +434,23 @@ ${url}
 }
 
 
-/* ═════════════════════════════════════
-   ⚙️ CONFIGURACIÓN
-═════════════════════════════════════ */
+// ═══════════════════════════════════════
+// ✰ CONFIGURACIÓN
+// ═══════════════════════════════════════
 
 handler.help = [
-
   'spotifymp3doc <url>'
-
 ]
 
 
 handler.tags = [
-
   'descargas'
-
 ]
 
 
 handler.command = [
-
   'spotifymp3doc',
   'spmp3doc'
-
 ]
 
 

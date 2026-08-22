@@ -5,103 +5,38 @@ import { rm } from 'fs/promises'
 import { pipeline } from 'stream/promises'
 import { writeAudioTags } from '../../lib/audioTags.js'
 
-// ═════════════════════════════════════
-// 🌸 SAITAMABOT • YOUTUBE MP3
-// ═════════════════════════════════════
-// 🥇 SaiAPI1 → StellarWA
-// 🥈 SaiAPI2 → LuxInfinity
-// 🥉 SaiAPI3 → SylphyAPI
-// ═════════════════════════════════════
+const STELLAR_API = 'https://api.stellarwa.xyz'
+const STELLAR_KEY = 'proyectsV2'
 
-
-// ═════════════════════════════════════
-// 🥇 API 1 • STELLARWA
-// ═════════════════════════════════════
-
-const STELLAR_API =
-  'https://api.stellarwa.xyz'
-
-const STELLAR_KEY =
-  'proyectsV2'
-
-
-// ═════════════════════════════════════
-// 🥈 API 2 • LUXINFINITY
-// ═════════════════════════════════════
-
-const LUXINFINITY =
-  'https://luxinfinity.vercel.app/api'
-
-
-// ═════════════════════════════════════
-// 🥉 API 3 • SYLPHY
-// ═════════════════════════════════════
+const LUXINFINITY = 'https://luxinfinity.vercel.app/api'
 
 const SYLPHY_API =
   'https://www.sylphyy.xyz/download/ytmp3'
 
-const SYLPHY_KEY =
-  'sylph-d7ed7664'
-
-
-// ═════════════════════════════════════
-// 🌐 USER AGENT
-// ═════════════════════════════════════
+const SYLPHY_KEY = 'sylph-d7ed7664'
 
 const USER_AGENT =
   'Mozilla/5.0 (Linux; Android 15; Pixel 7) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36'
 
-
-// ═════════════════════════════════════
-// ⏱️ TIEMPOS
-// ═════════════════════════════════════
-
-const API_TIMEOUT =
-  120000
-
-const DOWNLOAD_TIMEOUT =
-  600000
-
-
-// ═════════════════════════════════════
-// 🧹 LIMPIAR TÍTULO
-// ═════════════════════════════════════
+const API_TIMEOUT = 120000
+const DOWNLOAD_TIMEOUT = 600000
 
 function cleanTitle(value) {
-
-  return String(
-    value || 'YouTube Audio'
-  )
-    .replace(
-      /[<>:"/\\|?*\x00-\x1F]/g,
-      ''
-    )
-    .replace(
-      /\s+/g,
-      ' '
-    )
+  return String(value || 'YouTube Audio')
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
+    .replace(/\s+/g, ' ')
     .trim()
     .slice(0, 100)
     || 'YouTube Audio'
 }
 
-
-// ═════════════════════════════════════
-// 🔎 ANALIZAR RESPUESTA
-// ═════════════════════════════════════
-
 function parseMediaResponse(data) {
-
-  if (!data) {
-    return null
-  }
-
+  if (!data) return null
 
   const info =
     data.data ||
     data.result ||
     data
-
 
   const download =
     info?.dl ||
@@ -112,14 +47,9 @@ function parseMediaResponse(data) {
     info?.dl_url ||
     null
 
-
-  if (!download) {
-    return null
-  }
-
+  if (!download) return null
 
   return {
-
     download,
 
     title:
@@ -141,156 +71,103 @@ function parseMediaResponse(data) {
   }
 }
 
-
-// ═════════════════════════════════════
-// 🥇 STELLARWA
-// ═════════════════════════════════════
-
 async function fetchStellar(url) {
-
   const { data } =
     await axios.get(
       `${STELLAR_API}/dl/ytmp3`,
       {
-
         params: {
           url,
           key: STELLAR_KEY
         },
 
-        timeout:
-          API_TIMEOUT,
+        timeout: API_TIMEOUT,
 
         headers: {
-          'User-Agent':
-            USER_AGENT,
-
-          Accept:
-            'application/json'
+          'User-Agent': USER_AGENT,
+          Accept: 'application/json'
         }
       }
     )
 
-
   const media =
     parseMediaResponse(data)
 
-
   if (!media?.download) {
-
     throw new Error(
       'StellarWA no devolvió una descarga.'
     )
   }
 
-
   return {
-
     ...media,
-
-    api:
-      'SaiAPI1'
+    api: 'SaiAPI1'
   }
 }
 
-
-// ═════════════════════════════════════
-// 🥈 LUXINFINITY
-// ═════════════════════════════════════
-
 async function fetchLuxInfinity(url) {
-
   const { data } =
     await axios.get(
       `${LUXINFINITY}/dl/ytmp3`,
       {
-
         params: {
           url
         },
 
-        timeout:
-          API_TIMEOUT,
+        timeout: API_TIMEOUT,
 
         headers: {
-          'User-Agent':
-            USER_AGENT,
-
-          Accept:
-            'application/json'
+          'User-Agent': USER_AGENT,
+          Accept: 'application/json'
         }
       }
     )
 
-
   const media =
     parseMediaResponse(data)
 
-
   if (!media?.download) {
-
     throw new Error(
       'LuxInfinity no devolvió una descarga.'
     )
   }
 
-
   return {
-
     ...media,
-
-    api:
-      'SaiAPI2'
+    api: 'SaiAPI2'
   }
 }
 
-
-// ═════════════════════════════════════
-// 🥉 SYLPHY
-// ═════════════════════════════════════
-
 async function fetchSylphy(url) {
-
   const { data } =
     await axios.get(
       SYLPHY_API,
       {
-
         params: {
           url
         },
 
-        timeout:
-          API_TIMEOUT,
+        timeout: API_TIMEOUT,
 
         headers: {
-          'User-Agent':
-            USER_AGENT,
-
-          Accept:
-            'application/json',
-
-          'X-API-Key':
-            SYLPHY_KEY
+          'User-Agent': USER_AGENT,
+          Accept: 'application/json',
+          'X-API-Key': SYLPHY_KEY
         }
       }
     )
-
 
   if (
     !data?.status ||
     !data?.result?.dl_url
   ) {
-
     throw new Error(
       data?.message ||
       'SylphyAPI no devolvió una descarga.'
     )
   }
 
-
   return {
-
     download:
       data.result.dl_url,
 
@@ -307,36 +184,25 @@ async function fetchSylphy(url) {
       data.result.image ||
       null,
 
-    api:
-      'SaiAPI3'
+    api: 'SaiAPI3'
   }
 }
-
-
-// ═════════════════════════════════════
-// 📥 DESCARGAR ARCHIVO
-// ═════════════════════════════════════
 
 async function downloadAudio(
   downloadUrl,
   filePath
 ) {
-
   if (!downloadUrl) {
-
     throw new Error(
       'URL de descarga vacía.'
     )
   }
 
-
   const response =
     await axios.get(
       downloadUrl,
       {
-
-        responseType:
-          'stream',
+        responseType: 'stream',
 
         timeout:
           DOWNLOAD_TIMEOUT,
@@ -362,90 +228,57 @@ async function downloadAudio(
       }
     )
 
-
   await pipeline(
     response.data,
-    fs.createWriteStream(
-      filePath
-    )
+    fs.createWriteStream(filePath)
   )
-
 
   const stat =
     await fs.promises.stat(
       filePath
     )
 
-
   if (
     !stat.isFile() ||
     stat.size < 1000
   ) {
-
     throw new Error(
       'El archivo MP3 descargado es inválido.'
     )
   }
 
-
   return stat
 }
-
-
-// ═════════════════════════════════════
-// 🔄 OBTENER MP3 CON 3 APIS
-// ═════════════════════════════════════
 
 async function getMp3(
   url,
   filePath
 ) {
-
   const errors = []
 
-
-  // ═════════════════════════════════
-  // 🥇 SAIAPI1
-  // ═════════════════════════════════
-
   try {
-
     const media =
       await fetchStellar(url)
 
-
     try {
-
       await downloadAudio(
         media.download,
         filePath
       )
 
-
       return media
 
-    } catch (downloadError) {
-
+    } catch (error) {
       errors.push(
-        `SaiAPI1 descarga: ${
-          downloadError.message
-        }`
+        `SaiAPI1 descarga: ${error.message}`
       )
     }
 
   } catch (error) {
-
     errors.push(
-      `SaiAPI1: ${
-        error.message
-      }`
+      `SaiAPI1: ${error.message}`
     )
   }
-
-
-  // ═════════════════════════════════
-  // 🥈 SAIAPI2
-  // ═════════════════════════════════
 
   await rm(
     filePath,
@@ -454,45 +287,29 @@ async function getMp3(
     }
   ).catch(() => {})
 
-
   try {
-
     const media =
       await fetchLuxInfinity(url)
 
-
     try {
-
       await downloadAudio(
         media.download,
         filePath
       )
 
-
       return media
 
-    } catch (downloadError) {
-
+    } catch (error) {
       errors.push(
-        `SaiAPI2 descarga: ${
-          downloadError.message
-        }`
+        `SaiAPI2 descarga: ${error.message}`
       )
     }
 
   } catch (error) {
-
     errors.push(
-      `SaiAPI2: ${
-        error.message
-      }`
+      `SaiAPI2: ${error.message}`
     )
   }
-
-
-  // ═════════════════════════════════
-  // 🥉 SAIAPI3
-  // ═════════════════════════════════
 
   await rm(
     filePath,
@@ -501,44 +318,27 @@ async function getMp3(
     }
   ).catch(() => {})
 
-
   try {
-
     const media =
       await fetchSylphy(url)
-
 
     await downloadAudio(
       media.download,
       filePath
     )
 
-
     return media
 
   } catch (error) {
-
     errors.push(
-      `SaiAPI3: ${
-        error.message
-      }`
+      `SaiAPI3: ${error.message}`
     )
   }
-
-
-  // ═════════════════════════════════
-  // ❌ TODAS FALLARON
-  // ═════════════════════════════════
 
   throw new Error(
     errors.join('\n')
   )
 }
-
-
-// ═════════════════════════════════════
-// 🎵 HANDLER
-// ═════════════════════════════════════
 
 const handler = async (
   m,
@@ -555,30 +355,16 @@ const handler = async (
       text || ''
     ).trim()
 
-
-  // ═════════════════════════════════
-  // ❌ SIN TEXTO
-  // ═════════════════════════════════
-
   if (!input) {
-
     return m.reply(
-`╭━━━〔 🎵 𝐘𝐓𝐌𝐏𝟑 〕━━━⬣
+`༺ 𝚈𝚃𝙼𝙿𝟹 ༻
 
-❗ *Falta el enlace de YouTube.*
+✰ 𝙵𝚊𝚕𝚝𝚊 𝚎𝚕 𝚎𝚗𝚕𝚊𝚌𝚎 𝚍𝚎 𝚈𝚘𝚞𝚃𝚞𝚋𝚎.
 
-📌 Ejemplo:
-
-${usedPrefix + command} https://youtu.be/xxxxx
-
-╰━━━━━━━━━━━━━━━━━━━━━━⬣`
+✰ 𝙴𝚓𝚎𝚖𝚙𝚕𝚘:
+${usedPrefix + command} https://youtu.be/xxxxx`
     )
   }
-
-
-  // ═════════════════════════════════
-  // ⏳ REACCIÓN
-  // ═════════════════════════════════
 
   await conn.sendMessage(
     m.chat,
@@ -590,10 +376,7 @@ ${usedPrefix + command} https://youtu.be/xxxxx
     }
   ).catch(() => {})
 
-
-  const tmpDir =
-    './tmp'
-
+  const tmpDir = './tmp'
 
   await fs.promises.mkdir(
     tmpDir,
@@ -602,29 +385,18 @@ ${usedPrefix + command} https://youtu.be/xxxxx
     }
   )
 
-
   const filePath =
     path.join(
       tmpDir,
       `ytmp3_${Date.now()}.mp3`
     )
 
-
   try {
-
-    // ═══════════════════════════════
-    // 🔗 URL
-    // ═══════════════════════════════
 
     const ytUrl =
       input.startsWith('http')
         ? input
         : `https://www.youtube.com/watch?v=${encodeURIComponent(input)}`
-
-
-    // ═══════════════════════════════
-    // 📥 DESCARGAR CON FALLBACK
-    // ═══════════════════════════════
 
     const media =
       await getMp3(
@@ -632,33 +404,20 @@ ${usedPrefix + command} https://youtu.be/xxxxx
         filePath
       )
 
-
-    // ═══════════════════════════════
-    // 📝 DATOS
-    // ═══════════════════════════════
-
     const title =
       cleanTitle(
         media.title
       )
-
 
     const author =
       cleanTitle(
         media.author
       )
 
-
-    // ═══════════════════════════════
-    // 🏷️ ID3
-    // ═══════════════════════════════
-
     try {
-
       await writeAudioTags(
         filePath,
         {
-
           title,
 
           author,
@@ -673,41 +432,23 @@ ${usedPrefix + command} https://youtu.be/xxxxx
             media.image
         }
       )
-
-    } catch {
-      // El audio funciona aunque
-      // las etiquetas fallen.
-    }
-
-
-    // ═══════════════════════════════
-    // 🎵 CAPTION
-    // ═══════════════════════════════
+    } catch {}
 
     const caption =
-`╭━━━〔 🎵 𝐘𝐎𝐔𝐓𝐔𝐁𝐄 𝐌𝐏𝟑 〕━━━⬣
+`༺ 𝚈𝙾𝚄𝚃𝚄𝙱𝙴 𝙼𝙿𝟹 ༻
 
-🎶 *${title}*
-
-👤 *Artista/Canal:* ${author}
-
-🌐 *API:* ${media.api}
-
-🎧 *Formato:* MP3
-
-╰━━━━━━━━━━━━━━━━━━━━━━⬣
-
-🌸 𝙎𝙖𝙞𝙩𝙖𝙢𝙖𝘽𝙤𝙩-𝙎𝙏`
-
-
-    // ═══════════════════════════════
-    // 🎧 ENVIAR AUDIO
-    // ═══════════════════════════════
+✰ 𝚃í𝚝𝚞𝚕𝚘:
+${title}
+✰ 𝙰𝚛𝚝𝚒𝚜𝚝𝚊 / 𝙲𝚊𝚗𝚊𝚕:
+${author}
+✰ 𝙵𝚘𝚛𝚖𝚊𝚝𝚘:
+MP3
+✰ 𝙰𝙿𝙸:
+${media.api}`
 
     await conn.sendMessage(
       m.chat,
       {
-
         audio:
           fs.readFileSync(
             filePath
@@ -725,14 +466,10 @@ ${usedPrefix + command} https://youtu.be/xxxxx
           false
       },
       {
-        quoted: m
+        quoted:
+          m
       }
     )
-
-
-    // ═══════════════════════════════
-    // ✅ FINAL
-    // ═══════════════════════════════
 
     await conn.sendMessage(
       m.chat,
@@ -744,12 +481,7 @@ ${usedPrefix + command} https://youtu.be/xxxxx
       }
     ).catch(() => {})
 
-
   } catch (error) {
-
-    // ═══════════════════════════════
-    // ❌ ERROR
-    // ═══════════════════════════════
 
     await conn.sendMessage(
       m.chat,
@@ -761,34 +493,25 @@ ${usedPrefix + command} https://youtu.be/xxxxx
       }
     ).catch(() => {})
 
-
     return m.reply(
-`╭━━━〔 ❌ 𝐘𝐓𝐌𝐏𝟑 𝐄𝐑𝐑𝐎𝐑 〕━━━╮
+`༺ 𝚈𝚃𝙼𝙿𝟹 𝙴𝚁𝚁𝙾𝚁 ༻
 
-No se pudo descargar el audio.
+✰ 𝙽𝚘 𝚜𝚎 𝚙𝚞𝚍𝚘 𝚍𝚎𝚜𝚌𝚊𝚛𝚐𝚊𝚛 𝚎𝚕 𝚊𝚞𝚍𝚒𝚘.
 
-⚠️ *Detalles:*
+✰ 𝙳𝚎𝚝𝚊𝚕𝚕𝚎𝚜:
 ${String(
   error?.message ||
   error ||
   'Error desconocido'
 ).slice(0, 900)}
 
-🔄 Se intentaron:
+✰ 𝚂𝚎 𝚒𝚗𝚝𝚎𝚗𝚝𝚊𝚛𝚘𝚗:
 • SaiAPI1
 • SaiAPI2
-• SaiAPI3
-
-╰━━━━━━━━━━━━━━━━━━━━━━╯
-
-🌸 𝙎𝙖𝙞𝙩𝙖𝙢𝙖𝘽𝙤𝙩-𝙎𝙏`
+• SaiAPI3`
     )
 
   } finally {
-
-    // ═══════════════════════════════
-    // 🧹 ELIMINAR TEMPORAL
-    // ═══════════════════════════════
 
     await rm(
       filePath,
@@ -798,11 +521,6 @@ ${String(
     ).catch(() => {})
   }
 }
-
-
-// ═════════════════════════════════════
-// ⚙️ CONFIGURACIÓN
-// ═════════════════════════════════════
 
 handler.help = [
   'ytmp3 <url>',

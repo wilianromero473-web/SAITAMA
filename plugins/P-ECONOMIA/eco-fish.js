@@ -3,279 +3,369 @@ import config from '../../config.js'
 
 const items = {
   trash: [
-    { n: "👞 Bota vieja", h: "Estaba llena de lodo y pequeños cangrejos ermitaños." },
-    { n: "🥫 Lata oxidada", h: "Un desecho contaminante de un viejo barco carguero." },
-    { n: "🧴 Botella vacía", h: "Esperabas un mensaje, pero solo había agua salada." },
-    { n: "📦 Cartón mojado", h: "Se deshizo apenas intentaste subirlo a tu bote." },
-    { n: "🧤 Guante de goma", h: "Parece que a un pescador se le resbaló hace meses aquí." },
-    { n: "🗞️ Diario de 1990", h: "Las noticias ya no se entienden por el efecto del agua." },
-    { n: "🚲 Rueda pinchada", h: "Alguien decidió que el río era un taller mecánico sucio." },
-    { n: "🐚 Concha vacía", h: "Es bonita, pero no tiene nada de valor real dentro." },
-    { n: "🌿 Alga pegajosa", h: "Se enredó en tu línea y casi rompe tu caña de pescar." },
-    { n: "🪵 Rama podrida", h: "La corriente del río la trajo desde muy lejos al sur." },
-    { n: "Cap Gorra sucia", h: "Tiene el logo de un equipo que ya no existe hoy." },
-    { n: "🧼 Jabón gastado", h: "Al menos el anzuelo quedó un poco limpio tras sacarlo." },
-    { n: "🍽️ Plato roto", h: "Restos de una cena romántica que terminó muy mal." },
-    { n: "🔋 Pila sulfatada", h: "¡Cuidado! Esto contamina mucho el ecosistema del agua." },
-    { n: "🧸 Peluche sin ojo", h: "Da un poco de miedo verlo bajo la luz de la luna llena." },
-    { n: "🩴 Chancla sola", h: "La eterna compañera de los ríos más sucios del país." },
-    { n: "🚬 Paquete cigarrillos", h: "Totalmente empapado e inservible para cualquier uso." },
-    { n: "🥡 Envase plástico", h: "Basura moderna que asfixia a los pobres peces de aquí." },
-    { n: "📎 Clip gigante", h: "Quién sabe cómo terminó este objeto en el fondo marino." },
-    { n: "🔑 Llave doblada", h: "La puerta que abría ya debe haber desaparecido hace siglos." },
-    { n: "🔩 Tornillo enorme", h: "Probablemente pertenecía a un muelle antiguo ya caído." },
-    { n: "🎧 Auricular roto", h: "Solo se puede escuchar el silencio del vasto océano." },
-    { n: "🕯️ Vela derretida", h: "Daba luz en las noches de tormenta en alta mar." },
-    { n: "🩹 Curita usada", h: "Qué asco, alguien se lastimó y la tiró al agua sin más." },
-    { n: "🎾 Pelota de tenis", h: "Un perro debió perderla jugando en la orilla del río." },
-    { n: "🦴 Hueso de pollo", h: "Alguien almorzó en un bote y tiró las sobras al pez." },
-    { n: "🥤 Sorbete", h: "El enemigo número uno de las tortugas marinas del mundo." },
-    { n: "🥨 Bolsa de snacks", h: "Solo contiene aire y un poco de agua salada ahora." },
-    { n: "🦷 Diente plástico", h: "Pertenecía a algún juguete de niño perdido en la playa." },
-    { n: "🪒 Maquinita vieja", h: "Tan oxidada que no cortaría ni un solo pelo hoy." },
-    { n: "🎈 Globo desinflado", h: "Restos de una fiesta que terminó en el fondo del mar." },
-    { n: "🧦 Calcetín solo", h: "Nunca encontrarás el par en el fondo oscuro del río." },
-    { n: "🍬 Papel caramelo", h: "Brilla con el sol, pero es solo basura inútil." },
-    { n: "🧱 Ladrillo roto", h: "De alguna construcción cercana a la costa que colapsó." },
-    { n: "🔌 Cable pelado", h: "Un peligro eléctrico sumergido para los buceadores." },
-    { n: "💡 Foco quemado", h: "Ya no iluminará más el fondo oscuro del océano azul." },
-    { n: "🖋️ Lapicera", h: "No sirve para escribir tu bitácora de pesca en el bot." },
-    { n: "🧩 Pieza de puzzle", h: "Falta justamente esta para completar el paisaje final." },
-    { n: "🍄 Hongo extraño", h: "Creció sobre un tronco sumergido durante años hoy." },
-    { n: "🎟️ Ticket de cine", h: "La película debió ser muy aburrida para tirarlo aquí." },
-    { n: "💊 Blister vacío", h: "Alguien necesitaba medicina con mucha urgencia hoy." },
-    { n: "🧵 Carrete de hilo", h: "Enredado con tu propia línea de pesca al sacarlo." },
-    { n: "📉 Gráfico impreso", h: "Parece que a un economista le fue muy mal este año." },
-    { n: "🏺 Trozo cerámica", h: "No es arqueología, parece de un jarrón barato roto." },
-    { n: "🧺 Mimbre viejo", h: "De una canasta de picnic abandonada en la arena." },
-    { n: "👟 Suela zapato", h: "Caminó mucho antes de terminar en este lugar húmedo." },
-    { n: "🔗 Eslabón cadena", h: "Muy pesado para lo poco que vale realmente esto." },
-    { n: "📦 Cinta embalar", h: "Pegajosa y muy molesta de quitar del anzuelo hoy." },
-    { n: "📍 Alfiler oxidado", h: "Casi te pinchas al intentar sacarlo de la red." },
-    { n: "🧧 Sobre vacío", h: "No contenía dinero de suerte, solo agua sucia." }
+    { n: '👞 Bota vieja', h: 'Estaba llena de lodo y pequeños cangrejos ermitaños.' },
+    { n: '🥫 Lata oxidada', h: 'Un desecho contaminante de un viejo barco carguero.' },
+    { n: '🧴 Botella vacía', h: 'Esperabas un mensaje, pero solo había agua salada.' },
+    { n: '📦 Cartón mojado', h: 'Se deshizo apenas intentaste subirlo a tu bote.' },
+    { n: '🧤 Guante de goma', h: 'Parece que a un pescador se le resbaló hace meses aquí.' },
+    { n: '🗞️ Diario de 1990', h: 'Las noticias ya no se entienden por el efecto del agua.' },
+    { n: '🚲 Rueda pinchada', h: 'Alguien decidió que el río era un taller mecánico sucio.' },
+    { n: '🐚 Concha vacía', h: 'Es bonita, pero no tiene nada de valor real dentro.' },
+    { n: '🌿 Alga pegajosa', h: 'Se enredó en tu línea y casi rompe tu caña de pescar.' },
+    { n: '🪵 Rama podrida', h: 'La corriente del río la trajo desde muy lejos.' },
+    { n: '🧢 Gorra sucia', h: 'Tiene el logo de un equipo que ya no existe hoy.' },
+    { n: '🧼 Jabón gastado', h: 'Al menos el anzuelo quedó un poco limpio tras sacarlo.' },
+    { n: '🍽️ Plato roto', h: 'Restos de una cena romántica que terminó muy mal.' },
+    { n: '🔋 Pila sulfatada', h: '¡Cuidado! Esto contamina mucho el ecosistema del agua.' },
+    { n: '🧸 Peluche sin ojo', h: 'Da un poco de miedo verlo bajo la luz de la luna.' },
+    { n: '🩴 Chancla sola', h: 'La eterna compañera de los ríos más sucios.' },
+    { n: '🚬 Paquete de cigarrillos', h: 'Totalmente empapado e inservible.' },
+    { n: '🥡 Envase plástico', h: 'Basura moderna que contamina el agua.' },
+    { n: '📎 Clip gigante', h: 'Quién sabe cómo terminó este objeto en el fondo.' },
+    { n: '🔑 Llave doblada', h: 'La puerta que abría probablemente ya desapareció.' },
+    { n: '🔩 Tornillo enorme', h: 'Probablemente pertenecía a un muelle antiguo.' },
+    { n: '🎧 Auricular roto', h: 'Solo se puede escuchar el silencio del océano.' },
+    { n: '🕯️ Vela derretida', h: 'Daba luz durante las noches de tormenta.' },
+    { n: '🩹 Curita usada', h: 'Alguien se lastimó y la tiró al agua.' },
+    { n: '🎾 Pelota de tenis', h: 'Un perro debió perderla jugando en la orilla.' },
+    { n: '🦴 Hueso de pollo', h: 'Alguien almorzó en un bote y tiró las sobras.' },
+    { n: '🥤 Sorbete', h: 'Uno de los residuos más comunes encontrados en el agua.' },
+    { n: '🥨 Bolsa de snacks', h: 'Solo contiene aire y un poco de agua salada.' },
+    { n: '🦷 Diente plástico', h: 'Pertenecía a algún juguete perdido.' },
+    { n: '🪒 Maquinita vieja', h: 'Está demasiado oxidada para servir.' },
+    { n: '🎈 Globo desinflado', h: 'Restos de una fiesta que terminó en el agua.' },
+    { n: '🧦 Calcetín solo', h: 'Nunca encontrarás el par en el fondo oscuro.' },
+    { n: '🍬 Papel de caramelo', h: 'Brilla con el sol, pero es basura inútil.' },
+    { n: '🧱 Ladrillo roto', h: 'De alguna construcción cercana a la costa.' },
+    { n: '🔌 Cable pelado', h: 'Un residuo peligroso encontrado bajo el agua.' },
+    { n: '💡 Foco quemado', h: 'Ya no iluminará más el fondo del océano.' },
+    { n: '🖊️ Lapicera', h: 'No sirve para escribir tu bitácora de pesca.' },
+    { n: '🧩 Pieza de puzzle', h: 'Falta justamente esta para completar el paisaje.' },
+    { n: '🍄 Hongo extraño', h: 'Creció sobre un tronco sumergido durante años.' },
+    { n: '🎟️ Ticket de cine', h: 'La película debió ser muy aburrida para tirarlo.' },
+    { n: '💊 Blíster vacío', h: 'Alguien necesitaba medicina con urgencia.' },
+    { n: '🧵 Carrete de hilo', h: 'Terminó completamente enredado con tu línea.' },
+    { n: '📉 Gráfico impreso', h: 'Parece que a un economista le fue muy mal.' },
+    { n: '🏺 Trozo de cerámica', h: 'Parece parte de un jarrón barato.' },
+    { n: '🧺 Mimbre viejo', h: 'Parte de una canasta abandonada.' },
+    { n: '👟 Suela de zapato', h: 'Caminó mucho antes de terminar aquí.' },
+    { n: '🔗 Eslabón de cadena', h: 'Muy pesado para lo poco que vale.' },
+    { n: '📦 Cinta de embalar', h: 'Pegajosa y muy molesta de quitar.' },
+    { n: '📍 Alfiler oxidado', h: 'Casi te pinchas al sacarlo de la red.' },
+    { n: '🧧 Sobre vacío', h: 'No contenía dinero, solo agua sucia.' }
   ],
+
   common: [
-    { n: "🐟 Sardina", h: "Un pez pequeño pero muy nutritivo para el bot." },
-    { n: "🐟 Trucha", h: "Peleó bastante antes de salir finalmente a la luz." },
-    { n: "🐟 Merluza", h: "Ideal para un buen filete frito en el almuerzo." },
-    { n: "🐟 Carpa", h: "Un pez robusto que habita en aguas muy calmas." },
-    { n: "🐟 Arenque", h: "Se mueve en grandes cardúmenes por el mar azul." },
-    { n: "🐟 Caballa", h: "Sus escamas brillan con un tono azulado muy lindo." },
-    { n: "🐟 Tilapia", h: "Muy común en las granjas acuícolas de la zona." },
-    { n: "🐟 Pejerrey", h: "Un clásico indiscutible de la pesca deportiva hoy." },
-    { n: "🐟 Lisa", h: "Saltó varias veces antes de ser capturada por ti." },
-    { n: "🐟 Bagre", h: "Cuidado con sus bigotes y sus espinas afiladas." },
-    { n: "🐟 Corvina", h: "Un pez de mar muy valorado en la cocina." },
-    { n: "🦀 Cangrejo", h: "Intentó pellizcar tu dedo al salir del agua hoy." },
-    { n: "🦐 Camarón", h: "Pequeño pero delicioso, ideal para un buen ceviche." },
-    { n: "🦑 Calamar", h: "Lanzó un gran chorro de tinta antes de rendirse." },
-    { n: "🐙 Pulpo pequeño", h: "Se aferró al anzuelo con todas sus ventosas fuertes." },
-    { n: "🐟 Salmón", h: "Nadaba contracorriente hasta que lo atrapaste tú." },
-    { n: "🐟 Mojarra", h: "El pez más común de todas las lagunas locales." },
-    { n: "🐟 Dorado", h: "El tigre de los ríos, su color es simplemente magnífico." },
-    { n: "🐟 Surubí", h: "Un gigante de agua dulce con manchas únicas." },
-    { n: "🐟 Robalo", h: "Le gusta esconderse entre las rocas costeras siempre." },
-    { n: "🐟 Lenguado", h: "Tan plano que se camufla perfecto con la arena." },
-    { n: "🐟 Anchoa", h: "Pequeña y salada, perfecta para una pizza casera." },
-    { n: "🐟 Bacalao", h: "Un pez de aguas frías muy resistant al clima." },
-    { n: "🐟 Atún pequeño", h: "Muy veloz, casi corta tu línea de pesca hoy." },
-    { n: "🐟 Besugo", h: "Sus ojos grandes te miran con mucha sorpresa hoy." },
-    { n: "🐟 Bonito", h: "Un pariente del atún con carne muy sabrosa y roja." },
-    { n: "🐟 Mero", h: "Vive en cuevas profundas bajo el arrecife de coral." },
-    { n: "🐟 Pargo", h: "Un pez rojo muy común en las aguas del Caribe." },
-    { n: "🐟 Congrio", h: "Parece una serpiente, pero es un pez de roca." },
-    { n: "🐟 Raya pequeña", h: "Se desliza por el fondo como un fantasma gris." },
-    { n: "🐟 Pez Espada", h: "Su pico aún no es tan peligroso por ser joven." },
-    { n: "🐟 Carite", h: "Muy buscado por su velocidad extrema y buen sabor." },
-    { n: "🐟 Jurel", h: "Un luchador incansable de las aguas de mar abierto." },
-    { n: "🐟 Sierra", h: "Sus dientes son pequeños pero muy afilados hoy." },
-    { n: "🐟 Bagre canal", h: "Habita en las zonas más profundas del río ancho." },
-    { n: "🐟 Carpa espejo", h: "Sus escamas parecen monedas de oro brillantes." },
-    { n: "🐟 Trucha arcoíris", h: "Luce todos los colores del espectro solar hoy." },
-    { n: "🐟 Perca", h: "Un pez muy voraz que come de todo en el río." },
-    { n: "🐟 Lucioperca", h: "Mitad lucio, mitad perca, todo un reto pescarlo." },
-    { n: "🐟 Barbo", h: "Le gusta hurgar en el fondo de los ríos lentos." },
-    { n: "🐟 Brema", h: "Un pez de cuerpo alto y muy comprimido hoy." },
-    { n: "🐟 Tenca", h: "Muy resistente a la falta de oxígeno en el agua." },
-    { n: "🐟 Alburno", h: "Pequeño y plateado, brilla bajo el sol fuerte." },
-    { n: "🐟 Gobio", h: "Un pez diminuto que vive entre los guijarros." },
-    { n: "🐟 Cacho", h: "Muy común en los ríos de agua fría de Europa." },
-    { n: "🐟 Madrilla", h: "Se mueve rápido en las corrientes muy fuertes." },
-    { n: "🐟 Bermejuela", h: "Sus aletas tienen un tono rojizo muy llamativo." },
-    { n: "🐟 Jarabugo", h: "Un pez raro de ver, pero común en esta zona." },
-    { n: "🐟 Pardilla", h: "De color oscuro, se esconde muy bien del bot." },
-    { n: "🐟 Calandino", h: "Pequeño habitante de las charcas y arroyos." }
+    { n: '🐟 Sardina', h: 'Un pez pequeño pero muy nutritivo.' },
+    { n: '🐟 Trucha', h: 'Peleó bastante antes de salir a la superficie.' },
+    { n: '🐟 Merluza', h: 'Ideal para un buen filete.' },
+    { n: '🐟 Carpa', h: 'Un pez robusto de aguas tranquilas.' },
+    { n: '🐟 Arenque', h: 'Se mueve en grandes cardúmenes.' },
+    { n: '🐟 Caballa', h: 'Sus escamas brillan con un tono azulado.' },
+    { n: '🐟 Tilapia', h: 'Muy común en las granjas acuícolas.' },
+    { n: '🐟 Pejerrey', h: 'Un clásico de la pesca deportiva.' },
+    { n: '🐟 Lisa', h: 'Saltó varias veces antes de ser capturada.' },
+    { n: '🐟 Bagre', h: 'Cuidado con sus bigotes y espinas.' },
+    { n: '🐟 Corvina', h: 'Un pez muy valorado en la cocina.' },
+    { n: '🦀 Cangrejo', h: 'Intentó pellizcarte al salir del agua.' },
+    { n: '🦐 Camarón', h: 'Pequeño pero delicioso.' },
+    { n: '🦑 Calamar', h: 'Lanzó tinta antes de rendirse.' },
+    { n: '🐙 Pulpo pequeño', h: 'Se aferró al anzuelo con sus ventosas.' },
+    { n: '🐟 Salmón', h: 'Nadaba contracorriente hasta que lo atrapaste.' },
+    { n: '🐟 Mojarra', h: 'Un pez común de las lagunas.' },
+    { n: '🐟 Dorado', h: 'El tigre de los ríos.' },
+    { n: '🐟 Surubí', h: 'Un gigante de agua dulce.' },
+    { n: '🐟 Robalo', h: 'Le gusta esconderse entre las rocas.' },
+    { n: '🐟 Lenguado', h: 'Se camufla perfectamente con la arena.' },
+    { n: '🐟 Anchoa', h: 'Pequeña y salada.' },
+    { n: '🐟 Bacalao', h: 'Un pez de aguas frías.' },
+    { n: '🐟 Atún pequeño', h: 'Muy veloz y difícil de atrapar.' },
+    { n: '🐟 Besugo', h: 'Sus ojos grandes te miran con sorpresa.' },
+    { n: '🐟 Bonito', h: 'Pariente del atún de carne sabrosa.' },
+    { n: '🐟 Mero', h: 'Vive en cuevas profundas.' },
+    { n: '🐟 Pargo', h: 'Un pez rojo muy conocido.' },
+    { n: '🐟 Congrio', h: 'Parece una serpiente, pero es un pez.' },
+    { n: '🐟 Raya pequeña', h: 'Se desliza por el fondo como un fantasma.' },
+    { n: '🐟 Pez Espada', h: 'Su pico todavía es pequeño.' },
+    { n: '🐟 Carite', h: 'Muy buscado por su velocidad.' },
+    { n: '🐟 Jurel', h: 'Un luchador incansable.' },
+    { n: '🐟 Sierra', h: 'Sus dientes son pequeños pero afilados.' },
+    { n: '🐟 Bagre canal', h: 'Habita en las zonas profundas.' },
+    { n: '🐟 Carpa espejo', h: 'Sus escamas parecen monedas.' },
+    { n: '🐟 Trucha arcoíris', h: 'Luce muchos colores.' },
+    { n: '🐟 Perca', h: 'Un pez bastante voraz.' },
+    { n: '🐟 Lucioperca', h: 'Un reto interesante para cualquier pescador.' },
+    { n: '🐟 Barbo', h: 'Busca alimento en el fondo.' },
+    { n: '🐟 Brema', h: 'Tiene el cuerpo alto y comprimido.' },
+    { n: '🐟 Tenca', h: 'Muy resistente a aguas pobres en oxígeno.' },
+    { n: '🐟 Alburno', h: 'Pequeño y plateado.' },
+    { n: '🐟 Gobio', h: 'Vive entre pequeños guijarros.' },
+    { n: '🐟 Cacho', h: 'Común en ríos de agua fría.' },
+    { n: '🐟 Madrilla', h: 'Se mueve rápidamente en las corrientes.' },
+    { n: '🐟 Bermejuela', h: 'Sus aletas tienen tonos rojizos.' },
+    { n: '🐟 Jarabugo', h: 'Un pequeño pez difícil de encontrar.' },
+    { n: '🐟 Pardilla', h: 'Se esconde muy bien.' },
+    { n: '🐟 Calandino', h: 'Pequeño habitante de arroyos.' }
   ],
+
   rare: [
-    { n: "🐠 Pez Payaso", h: "Nemo decidió morder el anzuelo equivocado hoy." },
-    { n: "🐠 Pez Cirujano", h: "Dory se perdió y terminó en tu red de pesca." },
-    { n: "🐠 Pez Ángel", h: "Su elegancia destaca sobre todos los demás peces." },
-    { n: "🐡 Pez Globo", h: "Se infló tanto que casi no cabe en el balde hoy." },
-    { n: "🦈 Tiburón Bebé", h: "Doo doo doo... una captura muy peligrosa hoy." },
-    { n: "🦈 Pez Martillo", h: "Su cabeza tiene una forma realmente extraña hoy." },
-    { n: "🦞 Langosta Real", h: "Un manjar que solo los ricos pueden pagar siempre." },
-    { n: "🐟 Salmón Plata", h: "Brilla como un espejo bajo la luz solar del día." },
-    { n: "🐟 Atún Aleta Azul", h: "Un coloso del mar, muy difícil de pescar realmente." },
-    { n: "🐍 Anguila", h: "Te dio un calambre que te dejó los pelos de punta." },
-    { n: "🐠 Pez Mariposa", h: "Sus colores parecen pintados a mano por un artista." },
-    { n: "🐠 Pez Loro", h: "Se alimenta de coral y tiene colores muy vibrantes." },
-    { n: "🐠 Pez Mandarín", h: "Dicen que es el pez más bello de todo el mundo." },
-    { n: "🦀 Cangrejo Gigante", h: "Sus pinzas podrían romper un remo de madera hoy." },
-    { n: "🦑 Calamar Cristal", h: "Es casi transparente, se ve a través de su cuerpo." },
-    { n: "🐙 Pulpo Anillos", h: "Hermoso pero letal, suerte que no lo tocaste hoy." },
-    { n: "🦈 Tiburón Tigre", h: "Tiene rayas en el lomo y un apetito voraz hoy." },
-    { n: "🦈 Tiburón Mako", h: "El pez más rápido del océano cayó en tu trampa hoy." },
-    { n: "🐟 Esturión", h: "Un pez prehistórico que produce el mejor caviar." },
-    { n: "🐟 Gran Pez Sol", h: "Es enorme, redondo y muy, muy pesado de subir." },
-    { n: "🐠 Pez Disco", h: "El rey del acuario, pero en estado salvaje aquí." },
-    { n: "🐠 Pez León", h: "Sus espinas son venenosas, tuviste suerte hoy." },
-    { n: "🐟 Pez Vela", h: "Su aleta dorsal parece una vela de un gran barco." },
-    { n: "🐟 Marlin Negro", h: "Saltó fuera del agua como un misil teledirigido." },
-    { n: "🐟 Siluro Gigante", h: "Un monstruo de río que puede comerse un pato hoy." },
-    { n: "🐟 Pez Tigre", h: "Sus dientes parecen cuchillos de un carnicero real." },
-    { n: "🐟 Arapaima", h: "El pez más grande del Amazonas está en tus manos." },
-    { n: "🐟 Pez Gato", h: "Pesa más que tú, fue una batalla épica ganada." },
-    { n: "🐟 Salmón Real", h: "La joya indiscutible de los ríos de Alaska hoy." },
-    { n: "🐟 Trucha de Oro", h: "Un pez que brilla como el metal precioso bajo sol." },
-    { n: "🐠 Pez Betta", h: "Mucho más agresivo que los que venden en tiendas." },
-    { n: "🐡 Pez Cofre", h: "Su cuerpo es una caja rígida y cuadrada muy rara." },
-    { n: "🐍 Morena", h: "Salió de una grieta y mordió el anzuelo de golpe." },
-    { n: "🐚 Caracol Fuego", h: "Su concha parece lava incandescente submarina hoy." },
-    { n: "💎 Perla Blanca", h: "La encontraste dentro de una ostra muy vieja hoy." },
-    { n: "🔱 Tridente Hierro", h: "Un arma antigua perdida en un naufragio pirata." },
-    { n: "🏺 Ánfora Romana", h: "Contenía vino que se volvió vinagre hace siglos." },
-    { n: "⚓ Ancla Bronce", h: "De un barco que nunca llegó a puerto por tormenta." },
-    { n: "📦 Cofre Pequeño", h: "Contiene monedas de plata oxidadas y lodo hoy." },
-    { n: "🗺️ Mapa Mojado", h: "Indica una X que ya fue borrada por el mar azul." },
-    { n: "🐠 Pez Halcón", h: "Acecha a sus presas desde los corales del fondo." },
-    { n: "🐠 Ballesta", h: "Sus patrones parecen una obra de arte abstracto." },
-    { n: "🐡 Pez Erizo", h: "Lleno de púas afiladas y muy venenosas al tacto." },
-    { n: "🦀 Centollo Real", h: "Vive en las profundidades más gélidas del océano." },
-    { n: "🦑 Sepia Gigante", h: "Cambia de color constantemente frente a tus ojos." },
-    { n: "🐙 Pulpo Mimético", h: "Se hizo pasar por una piedra, pero lo viste hoy." },
-    { n: "🦈 Tiburón Zorro", h: "Su cola es tan larga como su propio cuerpo hoy." },
-    { n: "🐟 Pez Napoleón", h: "Tiene una protuberancia enorme en la frente hoy." },
-    { n: "🐠 Pez Gatillo", h: "Puede bloquear sus aletas para no ser comido hoy." },
-    { n: "🐚 Ostra Perla", h: "Dentro brilla la promesa de una joya muy cara." }
+    { n: '🐠 Pez Payaso', h: 'Una captura bastante colorida.' },
+    { n: '🐠 Pez Cirujano', h: 'Un pez pequeño de colores increíbles.' },
+    { n: '🐠 Pez Ángel', h: 'Su elegancia destaca entre los demás.' },
+    { n: '🐡 Pez Globo', h: 'Se infló al sentirse amenazado.' },
+    { n: '🦈 Tiburón Bebé', h: 'Una captura bastante peligrosa.' },
+    { n: '🦈 Pez Martillo', h: 'Su cabeza tiene una forma extraña.' },
+    { n: '🦞 Langosta Real', h: 'Un manjar bastante valioso.' },
+    { n: '🐟 Salmón Plata', h: 'Brilla como un espejo bajo el sol.' },
+    { n: '🐟 Atún Aleta Azul', h: 'Un enorme pez muy difícil de capturar.' },
+    { n: '🐍 Anguila', h: 'Se movió rápidamente al salir del agua.' },
+    { n: '🐠 Pez Mariposa', h: 'Sus colores parecen pintados a mano.' },
+    { n: '🐠 Pez Loro', h: 'Sus colores son muy vibrantes.' },
+    { n: '🐠 Pez Mandarín', h: 'Uno de los peces más llamativos.' },
+    { n: '🦀 Cangrejo Gigante', h: 'Sus pinzas son enormes.' },
+    { n: '🦑 Calamar Cristal', h: 'Es casi completamente transparente.' },
+    { n: '🐙 Pulpo Anillos', h: 'Una criatura hermosa pero peligrosa.' },
+    { n: '🦈 Tiburón Tigre', h: 'Un depredador con un apetito enorme.' },
+    { n: '🦈 Tiburón Mako', h: 'Uno de los nadadores más rápidos del océano.' },
+    { n: '🐟 Esturión', h: 'Un pez de aspecto prehistórico.' },
+    { n: '🐟 Gran Pez Sol', h: 'Enorme y bastante pesado.' },
+    { n: '🐠 Pez Disco', h: 'Una pieza digna de un acuario legendario.' },
+    { n: '🐠 Pez León', h: 'Sus espinas requieren mucho cuidado.' },
+    { n: '🐟 Pez Vela', h: 'Su aleta parece una vela.' },
+    { n: '🐟 Marlin Negro', h: 'Saltó como un misil fuera del agua.' },
+    { n: '🐟 Siluro Gigante', h: 'Un auténtico monstruo de río.' },
+    { n: '🐟 Pez Tigre', h: 'Sus dientes parecen pequeños cuchillos.' },
+    { n: '🐟 Arapaima', h: 'Un enorme pez de agua dulce.' },
+    { n: '🐟 Pez Gato', h: 'Una captura bastante pesada.' },
+    { n: '🐟 Salmón Real', h: 'Una joya de los ríos.' },
+    { n: '🐟 Trucha de Oro', h: 'Su brillo parece metal precioso.' },
+    { n: '🐠 Pez Betta', h: 'Pequeño pero bastante agresivo.' },
+    { n: '🐡 Pez Cofre', h: 'Su cuerpo tiene una forma muy extraña.' },
+    { n: '🐍 Morena', h: 'Salió de una grieta inesperadamente.' },
+    { n: '🐚 Caracol Fuego', h: 'Su concha parece lava submarina.' },
+    { n: '💎 Perla Blanca', h: 'Una joya encontrada dentro de una ostra.' },
+    { n: '🔱 Tridente Hierro', h: 'Un objeto antiguo de un naufragio.' },
+    { n: '🏺 Ánfora Romana', h: 'Una pieza antigua recuperada del fondo.' },
+    { n: '⚓ Ancla Bronce', h: 'Perteneció a un barco perdido.' },
+    { n: '📦 Cofre Pequeño', h: 'Tiene algunas monedas antiguas.' },
+    { n: '🗺️ Mapa Mojado', h: 'Una parte del mapa todavía puede leerse.' },
+    { n: '🐠 Pez Halcón', h: 'Acecha desde los corales.' },
+    { n: '🐠 Ballesta', h: 'Sus patrones parecen una obra de arte.' },
+    { n: '🐡 Pez Erizo', h: 'Está cubierto de púas.' },
+    { n: '🦀 Centollo Real', h: 'Vive en aguas profundas y frías.' },
+    { n: '🦑 Sepia Gigante', h: 'Puede cambiar de color rápidamente.' },
+    { n: '🐙 Pulpo Mimético', h: 'Puede camuflarse como una piedra.' },
+    { n: '🦈 Tiburón Zorro', h: 'Su cola es increíblemente larga.' },
+    { n: '🐟 Pez Napoleón', h: 'Tiene una protuberancia característica.' },
+    { n: '🐠 Pez Gatillo', h: 'Puede bloquear sus aletas.' },
+    { n: '🐚 Ostra Perla', h: 'Dentro podría esconderse una joya.' }
   ],
+
   special: [
-    { n: "🐳 Ballena Azul", h: "El animal más grande del planeta te bendijo hoy." },
-    { n: "🦈 Tiburón Blanco", h: "El gran depredador del océano ha sido vencido hoy." },
-    { n: "🦑 Kraken", h: "Sobreviviste al ataque del monstruo de las leyendas." },
-    { n: "🔱 Tridente Poseidón", h: "Ahora tienes el poder de controlar las mareas hoy." },
-    { n: "💎 Perla Negra", h: "Una joya tan rara que solo existe una en mil años." },
-    { n: "👑 Corona Atlante", h: "Has sido nombrado rey de los siete mares del bot." },
-    { n: "🐳 Ballena Jorobada", h: "Su canto se escuchó por todo el servidor hoy." },
-    { n: "🐋 Orca asesina", h: "La inteligencia de este animal es muy aterradora." },
-    { n: "🦈 Megalodón", h: "Se creía extinto, pero lo pescaste tú finalmente." },
-    { n: "🦑 Calamar Colosal", h: "Sus ojos son del tamaño de platos de comida hoy." },
-    { n: "🧞 Genio Lámpara", h: "Te concedería deseos, pero prefiere darte dinero." },
-    { n: "🚢 Tesoro Español", h: "Doblones de oro de un galeón hundido hace siglos." },
-    { n: "💎 Diamante Marino", h: "Brilla con una luz azul sobrenatural bajo el agua." },
-    { n: "🐋 Cachalote Blanco", h: "Moby Dick finalmente ha sido encontrada por ti." },
-    { n: "🐢 Tortuga Ancestral", h: "Tiene más de 500 años y conoce secretos ocultos." },
-    { n: "🐉 Dragón Marino", h: "Una criatura mítica que escupe agua hirviendo hoy." },
-    { n: "🧜‍♀️ Arpa Sirena", h: "Toca una música que hechiza a quien la escucha hoy." },
-    { n: "👑 Corona Coral", h: "El símbolo de mando de la nobleza marina real." },
-    { n: "🛡️ Escudo Escamas", h: "Impenetrable para cualquier arma común del bot." },
-    { n: "🗡️ Daga Atlantis", h: "Hecha de un metal que no existe en la tierra hoy." },
-    { n: "🌀 Remolino", h: "Un desastre natural contenido en un frasco raro." },
-    { n: "💠 Cristal Océano", h: "Dicen que contiene la memoria de todo el mar." },
-    { n: "🌟 Estrella Cósmica", h: "Cayó del cielo directamente a tu red de pesca." },
-    { n: "🦀 Cangrejo Diamante", h: `Su caparazón vale una fortuna absoluta en ${config.CURRENCY_NAME}.` },
-    { n: "🐙 Hydra de Agua", h: "Cortas una cabeza y crecen dos más al instante." },
-    { n: "🐋 Leviatán Bebé", h: "Un príncipe de las tinieblas marinas más puras." },
-    { n: "🐟 Pez Oro Macizo", h: "No es carne, es oro puro con forma de pez hoy." },
-    { n: "🐡 Pez Galáctico", h: "Contiene un universo entero dentro de su panza." },
-    { n: "🦈 Tiburón Basalto", h: "Hecho de roca volcánica submarina muy pesada." },
-    { n: "🐚 Concha Verdad", h: "Si la escuchas, te dirá el futuro incierto del bot." },
-    { n: "🏺 Vaso de Hermes", h: "Permite viajar por el mar a velocidad luz hoy." },
-    { n: "📦 Gran Cofre Pirata", h: "Lleno hasta el tope de joyas, rubíes y diamantes." },
-    { n: "⚜️ Emblema Sagrado", h: "Una reliquia de una civilización perdida bajo mar." },
-    { n: "🔱 Lanza Neptuno", h: "Puede crear terremotos con un solo golpe fuerte." },
-    { n: "🏮 Linterna Abismo", h: "Ilumina incluso la oscuridad más profunda hoy." },
-    { n: "🌌 Fragmento Meteorito", h: "Vino del espacio y aterrizó en el agua del río." },
-    { n: "🗿 Ídolo Sumergido", h: "Una estatua de oro de un dios antiguo y olvidado." },
-    { n: "🧬 ADN Prehistórico", h: "Podrías clonar a un monstruo marino con esto hoy." },
-    { n: "🕋 Cubo Destino", h: "Un objeto que desafía las leyes de la física hoy." },
-    { n: "👑 Corona Perlas", h: "Perteneció a una reina de la antigüedad sumergida." },
-    { n: "🦈 Guardián Abismo", h: "El protector de las fosas más profundas del mar." },
-    { n: "🐋 Cetáceo Plateado", h: "Su piel es de mercurio líquido muy brillante hoy." },
-    { n: "🦈 Tiburón Cristal", h: "Frágil pero increíblemente valioso para vender." },
-    { n: "🐚 Caracol Infinito", h: "Su espiral nunca termina, es un objeto hipnótico." },
-    { n: "💠 Corazón Océano", h: "El diamante más famoso de la historia mundial hoy." },
-    { n: "🔱 Tridente Sagrado", h: "Forjado por los mismos dioses del Olimpo griego." },
-    { n: "🔱 Cetro Mareas", h: "Controla la luna y su efecto en el mar profundo." },
-    { n: "🐙 Kraken Rey", h: "El monarca absoluto de las pesadillas navales hoy." },
-    { n: "🐳 Ballena Galáctica", h: "Sus manchas parecen constelaciones reales de noche." },
-    { n: "🌊 Esencia Poseidón", h: "Un frasco con el poder puro del dios del mar." }
+    { n: '🐳 Ballena Azul', h: 'Una criatura gigantesca del océano.' },
+    { n: '🦈 Tiburón Blanco', h: 'Una de las capturas más impresionantes.' },
+    { n: '🦑 Kraken', h: 'Una criatura salida de las leyendas.' },
+    { n: '🔱 Tridente Poseidón', h: 'Un objeto legendario de los mares.' },
+    { n: '💎 Perla Negra', h: 'Una joya extremadamente rara.' },
+    { n: '👑 Corona Atlante', h: 'Una reliquia de una civilización perdida.' },
+    { n: '🐳 Ballena Jorobada', h: 'Su canto puede escucharse a grandes distancias.' },
+    { n: '🐋 Orca asesina', h: 'Una criatura marina increíblemente inteligente.' },
+    { n: '🦈 Megalodón', h: 'Una criatura legendaria del océano.' },
+    { n: '🦑 Calamar Colosal', h: 'Una criatura enorme de las profundidades.' },
+    { n: '🧞 Genio Lámpara', h: 'Una misteriosa lámpara encontrada bajo el agua.' },
+    { n: '🚢 Tesoro Español', h: 'Doblones de oro de un antiguo galeón.' },
+    { n: '💎 Diamante Marino', h: 'Brilla con una luz azul sobrenatural.' },
+    { n: '🐋 Cachalote Blanco', h: 'Una criatura marina extremadamente rara.' },
+    { n: '🐢 Tortuga Ancestral', h: 'Una criatura que parece tener siglos de edad.' },
+    { n: '🐉 Dragón Marino', h: 'Una criatura mítica de las profundidades.' },
+    { n: '🧜‍♀️ Arpa Sirena', h: 'Un instrumento de origen misterioso.' },
+    { n: '👑 Corona Coral', h: 'Una antigua corona de la nobleza marina.' },
+    { n: '🛡️ Escudo Escamas', h: 'Un escudo con una apariencia extraordinaria.' },
+    { n: '🗡️ Daga Atlantis', h: 'Una daga de origen desconocido.' },
+    { n: '🌀 Remolino', h: 'Un extraño fenómeno atrapado en un recipiente.' },
+    { n: '💠 Cristal Océano', h: 'Parece contener energía del mar.' },
+    { n: '🌟 Estrella Cósmica', h: 'Un fragmento misterioso encontrado en el agua.' },
+    { n: '🦀 Cangrejo Diamante', h: `Su caparazón vale una fortuna en ${config.CURRENCY_NAME}.` },
+    { n: '🐙 Hydra de Agua', h: 'Una criatura legendaria de múltiples cabezas.' },
+    { n: '🐋 Leviatán Bebé', h: 'Una criatura misteriosa de las profundidades.' },
+    { n: '🐟 Pez Oro Macizo', h: 'Parece estar hecho completamente de oro.' },
+    { n: '🐡 Pez Galáctico', h: 'Su cuerpo parece contener pequeñas estrellas.' },
+    { n: '🦈 Tiburón Basalto', h: 'Su cuerpo parece formado de roca volcánica.' },
+    { n: '🐚 Concha Verdad', h: 'Una concha con propiedades misteriosas.' },
+    { n: '🏺 Vaso de Hermes', h: 'Una antigua reliquia encontrada en el fondo.' },
+    { n: '📦 Gran Cofre Pirata', h: 'Está lleno de tesoros y joyas.' },
+    { n: '⚜️ Emblema Sagrado', h: 'Una reliquia de una civilización perdida.' },
+    { n: '🔱 Lanza Neptuno', h: 'Una lanza digna de una leyenda marina.' },
+    { n: '🏮 Linterna Abismo', h: 'Su luz parece atravesar la oscuridad.' },
+    { n: '🌌 Fragmento Meteorito', h: 'Un fragmento procedente del espacio.' },
+    { n: '🗿 Ídolo Sumergido', h: 'Una estatua de una antigua civilización.' },
+    { n: '🧬 ADN Prehistórico', h: 'Una muestra de una criatura desaparecida.' },
+    { n: '🕋 Cubo Destino', h: 'Un objeto que parece desafiar la física.' },
+    { n: '👑 Corona Perlas', h: 'Una antigua corona cubierta de perlas.' },
+    { n: '🦈 Guardián Abismo', h: 'Una criatura de las fosas más profundas.' },
+    { n: '🐋 Cetáceo Plateado', h: 'Su cuerpo refleja la luz como un espejo.' },
+    { n: '🦈 Tiburón Cristal', h: 'Una criatura extremadamente rara.' },
+    { n: '🐚 Caracol Infinito', h: 'Su espiral parece no tener final.' },
+    { n: '💠 Corazón Océano', h: 'Una joya legendaria de los mares.' },
+    { n: '🔱 Tridente Sagrado', h: 'Una reliquia digna de los antiguos dioses.' },
+    { n: '🔱 Cetro Mareas', h: 'Un extraño objeto relacionado con las mareas.' },
+    { n: '🐙 Kraken Rey', h: 'Una criatura legendaria de las profundidades.' },
+    { n: '🐳 Ballena Galáctica', h: 'Sus manchas parecen pequeñas constelaciones.' },
+    { n: '🌊 Esencia Poseidón', h: 'Un misterioso objeto relacionado con el dios del mar.' }
   ]
 }
 
 const handler = async (m, { userDb }) => {
   if (!userDb) return
-  const cooldown = 600000 
+
+  const cooldown = 600000
   const now = Date.now()
   const remaining = cooldown - (now - (userDb.lastFish || 0))
 
   if (remaining > 0) {
-    return m.reply(`*⌬┤ ⏳ ├⌬ REDES MOJADAS.*\n\n> Tus redes están secándose.\n> Esperá: *${Math.floor(remaining / 60000)}m ${Math.floor((remaining % 60000) / 1000)}s*.`)
+    return m.reply(
+      `༺ 𝙿𝙴𝚂𝙲𝙰 ༻\n\n` +
+      `✰ 𝚁𝙴𝙳𝙴𝚂 𝙼𝙾𝙹𝙰𝙳𝙰𝚂\n\n` +
+      `> ✰ 𝚃𝚞𝚜 𝚛𝚎𝚍𝚎𝚜 𝚎𝚜𝚝𝚊́𝚗 𝚜𝚎𝚌𝚊́𝚗𝚍𝚘𝚜𝚎.\n` +
+      `> ✰ 𝙴𝚜𝚙𝚎𝚛𝚊́: *${Math.floor(remaining / 60000)}m ${Math.floor((remaining % 60000) / 1000)}s*\n\n` +
+      `༺ ${config.footer} ༻`
+    )
   }
 
-  const bait = userDb.inventory.bait
-  const dur = userDb.inventory.baitDurability
-  let pSpecial = 0.03, pRare = 0.15, pCommon = 0.57, pTrash = 0.25
+  userDb.inventory = userDb.inventory || {}
 
-  if (bait === 'normal' && dur > 0) { pTrash = 0.02; pCommon = 0.83 }
-  else if (bait === 'rare' && dur > 0) { pRare = 0.33; pTrash = 0.15 }
-  else if (bait === 'mythic' && dur > 0) { pSpecial = 0.10; pRare = 0.35; pTrash = 0.02 }
+  const bait = userDb.inventory.bait || 'none'
+  const durability = Number(userDb.inventory.baitDurability || 0)
 
-  const ch = Math.random()
-  let r = ch < pSpecial ? 'special' : ch < pSpecial + pRare ? 'rare' : ch < pSpecial + pRare + pCommon ? 'common' : 'trash'
-  const update = { $inc: {}, $set: { lastFish: now } }
+  let pSpecial = 0.03
+  let pRare = 0.15
+  let pCommon = 0.57
+  let pTrash = 0.25
 
-  if (bait !== 'none' && dur > 0) {
-    userDb.inventory.baitDurability -= 1
+  if (bait === 'normal' && durability > 0) {
+    pTrash = 0.02
+    pCommon = 0.83
+  } else if (bait === 'rare' && durability > 0) {
+    pRare = 0.33
+    pTrash = 0.15
+  } else if (bait === 'mythic' && durability > 0) {
+    pSpecial = 0.10
+    pRare = 0.35
+    pTrash = 0.02
+  }
+
+  const roll = Math.random()
+
+  const rarity =
+    roll < pSpecial
+      ? 'special'
+      : roll < pSpecial + pRare
+        ? 'rare'
+        : roll < pSpecial + pRare + pCommon
+          ? 'common'
+          : 'trash'
+
+  const update = {
+    $inc: {},
+    $set: {
+      lastFish: now
+    }
+  }
+
+  if (bait !== 'none' && durability > 0) {
+    const newDurability = durability - 1
+
+    userDb.inventory.baitDurability = newDurability
+
     update.$inc['inventory.baitDurability'] = -1
-    if (userDb.inventory.baitDurability <= 0) {
+
+    if (newDurability <= 0) {
       userDb.inventory.bait = 'none'
       update.$set['inventory.bait'] = 'none'
     }
   }
 
-  const pool = items[r]
+  const pool = items[rarity]
   const item = pool[Math.floor(Math.random() * pool.length)]
-  let v = (r === 'special' ? 2800 : r === 'rare' ? 750 : r === 'common' ? 220 : 15) + (userDb.level * 20)
-  let k = r === 'special' ? (Math.floor(Math.random() * 3) + 2) : 0
 
-  userDb.genosCoins += v; userDb.genos += k; userDb.lastFish = now
+  const baseValue =
+    rarity === 'special'
+      ? 2800
+      : rarity === 'rare'
+        ? 750
+        : rarity === 'common'
+          ? 220
+          : 15
+
+  const value = baseValue + ((userDb.level || 0) * 20)
+
+  const premiumReward =
+    rarity === 'special'
+      ? Math.floor(Math.random() * 3) + 2
+      : 0
+
+  userDb.lastFish = now
+  userDb.genosCoins = (userDb.genosCoins || 0) + value
+  userDb.genos = (userDb.genos || 0) + premiumReward
+
   userDb.aquarium = userDb.aquarium || {}
   userDb.aquarium[item.n] = (userDb.aquarium[item.n] || 0) + 1
 
-  update.$inc.genosCoins = v
-  if (k > 0) update.$inc.genos = k
-  update.$inc[`aquarium.${item.n}`] = 1
+  update.$inc.genosCoins = value
 
-  await User.updateOne({ jid: m.sender }, update)
-
-  const labels = { trash: 'BASURA 🗑️', common: 'COMÚN 🐟', rare: 'RARO ✨', special: 'ÉPICO 🌌' }
-  let txt = `*⌬┤ 🎣 ├⌬ PESCA FINALIZADA*\n\n`
-      + `> 🏆 *Rareza:* ${labels[r]}\n`
-      + `> 💎 *Objeto:* ${item.n}\n`
-      + `> 💰 *Valor:* ${v} ${config.CURRENCY_NAME}\n`
-  if (k) txt += `> ✨ *Extra:* +${k} ${config.PREMIUM_NAME}${k > 1 ? 's' : ''}\n`
-  txt += `> 📉 *Carnada:* ${userDb.inventory.baitDurability || 0} usos.\n\n`
-  txt += `> 📖 *Dato:* ${item.h}\n\n`
-
-  if (r === 'rare' || r === 'special') {
-    txt += `> 💡 _¡Guardá este ejemplar! Podés venderlo por una fortuna en *!contratos* si el mercado está abierto._`
+  if (premiumReward > 0) {
+    update.$inc.genos = premiumReward
   }
 
-  m.reply(txt)
+  update.$inc[`aquarium.${item.n}`] = 1
+
+  await User.updateOne(
+    { jid: m.sender },
+    update
+  )
+
+  const labels = {
+    trash: '𝙱𝙰𝚂𝚄𝚁𝙰 🗑️',
+    common: '𝙲𝙾𝙼𝚄́𝙽 🐟',
+    rare: '𝚁𝙰𝚁𝙾 ✨',
+    special: '𝙴́𝙿𝙸𝙲𝙾 🌌'
+  }
+
+  const remainingBait = Math.max(
+    0,
+    Number(userDb.inventory.baitDurability || 0)
+  )
+
+  let txt =
+    `༺ 𝙿𝙴𝚂𝙲𝙰 ༻\n\n` +
+    `✰ 𝙿𝙴𝚂𝙲𝙲𝙰 𝙵𝙸𝙽𝙰𝙻𝙸𝚉𝙰𝙳𝙰\n\n` +
+    `> ✰ 𝚁𝚊𝚛𝚎𝚣𝚊: *${labels[rarity]}*\n` +
+    `> ✰ 𝙾𝚋𝚓𝚎𝚝𝚘: *${item.n}*\n` +
+    `> ✰ 𝚅𝚊𝚕𝚘𝚛: *${value} ${config.CURRENCY_SYMBOL}*\n`
+
+  if (premiumReward > 0) {
+    txt += `> ✰ ${config.PREMIUM_NAME}: *+${premiumReward} ${config.PREMIUM_SYMBOL}*\n`
+  }
+
+  txt +=
+    `> ✰ 𝙲𝚊𝚛𝚗𝚊𝚍𝚊: *${remainingBait} 𝚞𝚜𝚘𝚜*\n\n` +
+    `✰ 𝙳𝙰𝚃𝙾\n` +
+    `> ✰ ${item.h}\n`
+
+  if (rarity === 'rare' || rarity === 'special') {
+    txt +=
+      `\n> ✰ _𝙶𝚞𝚊𝚛𝚍𝚊 𝚎𝚜𝚝𝚎 𝚎𝚓𝚎𝚖𝚙𝚕𝚊𝚛._\n` +
+      `> ✰ _𝙿𝚘𝚍𝚛𝚊́𝚜 𝚞𝚜𝚊𝚛𝚕𝚘 𝚎𝚗 *!𝚌𝚘𝚗𝚝𝚛𝚊𝚝𝚘𝚜* 𝚜𝚒 𝚎𝚕 𝚖𝚎𝚛𝚌𝚊𝚍𝚘 𝚎𝚜𝚝𝚊́ 𝚊𝚋𝚒𝚎𝚛𝚝𝚘._\n`
+  }
+
+  txt += `\n༺ ${config.footer} ༻`
+
+  return m.reply(txt)
 }
 
 handler.help = ['pescar']
 handler.tags = ['eco']
 handler.command = ['fish', 'pescar']
 handler.register = true
+
 export default handler

@@ -1,6 +1,6 @@
 {
   "name": "Saitama",
-  "version": "8.0.0",
+  "version": "9.0.0",
   "type": "module",
   "main": "zen.js",
   "scripts": {
@@ -14,7 +14,6 @@
     "@adiwajshing/keyed-db": "^0.2.4",
     "@axel-dev09/zen-dl": "latest",
     "@hiudyy/ytdl": "^0.2.3",
-    "@itsliaaa/baileys": "github:itsliaaa/baileys",
     "@whiskeysockets/baileys": "github:itsliaaa/baileys",
     "awesome-phonenumber": "^6.10.0",
     "axios": "^1.6.8",

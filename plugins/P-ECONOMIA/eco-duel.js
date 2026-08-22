@@ -2,26 +2,43 @@ import User from '../../lib/database/models/zen-users.js'
 import config from '../../config.js'
 import { userCache } from '../../lib/caches.js'
 
-const extraerNum = (jid = '') => (typeof jid === 'string' ? jid : '').split('@')[0].split(':')[0].replace(/\D/g, '')
+const extraerNum = (jid = '') => {
+  return typeof jid === 'string'
+    ? jid.split('@')[0].split(':')[0].replace(/\D/g, '')
+    : ''
+}
 
 const resolveTargetJid = (m, participants = []) => {
   const raw = m.mentionedJid?.[0] || m.quoted?.sender || null
+
   if (!raw) return null
   if (!raw.endsWith('@lid')) return raw
+
   const p = participants.find(p => p.id === raw || p.lid === raw)
-  if (p?.phoneNumber) return `${String(p.phoneNumber).replace(/\D/g, '')}@s.whatsapp.net`
-  if (p?.id?.includes('@s.whatsapp.net')) return p.id
+
+  if (p?.phoneNumber) {
+    return `${String(p.phoneNumber).replace(/\D/g, '')}@s.whatsapp.net`
+  }
+
+  if (p?.id?.includes('@s.whatsapp.net')) {
+    return p.id
+  }
+
   return raw
 }
 
-const findByNum = (jid) => {
+const findByNum = async (jid) => {
   const num = extraerNum(jid)
+
   if (!num) return null
-  return User.findOne({ jid: { $regex: `^${num}@` } })
+
+  return await User.findOne({
+    jid: { $regex: `^${num}@` }
+  })
 }
 
 const SWORD_BUFF = {
-  none: 1.0,
+  none: 1.00,
   normal: 1.15,
   rare: 1.30,
   mythic: 1.50,
@@ -42,254 +59,541 @@ const POTION_HP = {
   mythic: 600
 }
 
-function bestPotion(inv) {
-  const stock = inv?.potionStock instanceof Map ? Object.fromEntries(inv.potionStock) : (inv?.potionStock || {})
+function getPotionStock(inv = {}) {
+  if (inv.potionStock instanceof Map) {
+    return Object.fromEntries(inv.potionStock)
+  }
+
+  return inv.potionStock || {}
+}
+
+function bestPotion(inv = {}) {
+  const stock = getPotionStock(inv)
+
   for (const tier of ['mythic', 'rare', 'normal']) {
-    if (stock[tier] > 0) return { tier, hpBonus: POTION_HP[tier] }
+    if (Number(stock[tier]) > 0) {
+      return {
+        tier,
+        hpBonus: POTION_HP[tier],
+        legacy: false
+      }
+    }
   }
-  if ((inv?.potion || 0) > 0 && !stock.normal && !stock.rare && !stock.mythic) {
-    return { tier: 'normal', hpBonus: POTION_HP.normal, legacy: true }
+
+  if (
+    Number(inv.potion || 0) > 0 &&
+    !stock.normal &&
+    !stock.rare &&
+    !stock.mythic
+  ) {
+    return {
+      tier: 'normal',
+      hpBonus: POTION_HP.normal,
+      legacy: true
+    }
   }
+
   return null
 }
 
 const battleStories = [
-    "🤠 Se miraron a los ojos en el centro del pueblo. {w} fue más rápido desenfundando su revólver y dejó a {l} besando el polvo.",
-    "⚔️ En un choque de espadas épico, {w} encontró un hueco en la defensa de {l} y terminó el combate con un tajo certero.",
-    "🥋 {w} aplicó una técnica secreta de artes marciales que dejó a {l} paralizado antes de que pudiera parpadear.",
-    "🪄 {w} lanzó un hechizo de fuego que consumió el escudo de {l}. El duelo terminó en una explosión de cenizas 🔥.",
-    "🦾 En una pelea callejera brutal, {w} conectó un gancho de derecha que mandó a {l} directo a la lona.",
-    "🌌 {w} usó un sable de luz para desarmar a {l} en medio de una estación espacial futurista ⚔️.",
-    "🏹 {l} lanzó una flecha, pero {w} la partió a la mitad con un cuchillo y contraatacó con precisión quirúrgica 🎯.",
-    "🥊 {w} dominó los 12 rounds y terminó ganando por decisión unánime, dejando a {l} muy lastimado.",
-    "🐉 {w} invocó el poder del dragón antiguo, reduciendo la voluntad de {l} a cenizas 💨.",
-    "♟️ No fue una pelea de fuerza, sino de ingenio. {w} le hizo jaque mate a {l} en pocos movimientos 🧠.",
-    "🧨 {l} intentó usar una granada, pero {w} se la devolvió de una patada antes de que explotara ¡BOOM! 💥.",
-    "👟 {w} hizo un truco increíble sobre la cabeza de {l} y le robó la billetera en el aire ¡Hulk flip! 👟.",
-    "⚡ {w} se movió a la velocidad del rayo, apareciendo detrás de {l} antes de que este pudiera reaccionar.",
-    "🛡️ {l} atacó con todo, pero {w} se mantuvo firme como una roca y esperó el momento justo para el contragolpe 🗿.",
-    "💻 {w} hackeó los sistemas de defensa de {l}, dejando sus armas totalmente inútiles 💻.",
-    "🔱 Ante miles de espectadores en el coliseo, {w} obligó a {l} a pedir clemencia de rodillas 🔱.",
-    "🌊 {w} controló las mareas para arrastrar a {l} mar adentro, ganando el duelo por sumisión 🌊.",
-    "🎤 {w} lanzó unas rimas tan potentes en la batalla de rap que {l} se retiró llorando del escenario 🔥.",
-    "👨‍🍳 Fue un duelo de cocina. El plato de {w} fue tan exquisito que {l} se rindió al primer bocado 👨‍🍳.",
-    "💀 {l} fue rodeado por los aliados no-muertos de {w}. No tuvo ninguna oportunidad de escapar 💀.",
-    "💨 En una carrera ilegal, {w} activó el nitro en el último segundo y dejó a {l} oliendo caucho quemado 💨.",
-    "🪵 {w} partió el hacha de {l} a la mitad con un golpe brutal de pura fuerza bruta 🪵.",
-    "🌫️ {w} se volvió intangible y los ataques de {l} solo atravesaban el aire. El miedo venció al perdedor 🌫️.",
-    "🐺 Bajo la luna llena, {w} mostró su verdadera forma y {l} huyó aterrorizado dejando su oro 🐺.",
-    "🥵 El duelo ocurrió al borde de un volcán. {w} empujó a {l} hacia las cenizas calientes 🥵.",
-    "📡 Un satélite controlado por {w} disparó un rayo láser desde el espacio, desintegrando a {l} 📡.",
-    "🧪 {w} usó un veneno paralizante en sus dagas. {l} cayó al suelo sin poder mover un músculo 🧪.",
-    "❄️ En la cima del Everest, el frío venció a {l}, pero {w} resistió gracias a su entrenamiento legendario ❄️.",
-    "🎾 {w} le devolvió el ataque a {l} con tanta fuerza que rebotó y lo noqueó a él mismo 🎾.",
-    "👶 {w} le quitó la apuesta a {l} como si fuera un dulce a un bebé ¡Qué fácil! 👶.",
-    "🤘 {w} tocó un solo de guitarra tan épico que la cabeza de {l} explotó de pura envidia 🤘.",
-    "🏗️ {l} chocó contra el muro defensivo que {w} construyó en solo tres segundos 🏗️.",
-    "📍 {w} pinchó la confianza de {l} con un solo comentario sarcástico antes de derrotarlo 📍.",
-    "🚲 {w} escapó con el botín en una bicicleta vieja mientras {l} intentaba entender qué había pasado 🚲.",
-    "🐾 {w} tiene reflejos de gato y esquivó cada estocada de {l} con una elegancia insultante 🐾.",
-    "✨ {w} usó el brillo de sus diamantes para cegar a {l} y asestar el golpe final ✨.",
-    "👤 {w} se camufló con el bosque y atacó a {l} desde las sombras. Nadie lo vio venir 👤.",
-    "🍯 Un enjambre de abejas entrenadas por {w} persiguió a {l} hasta que soltó su bolsa de dinero 🍯.",
-    "🛤️ {w} arrolló a {l} como un tren de carga. La diferencia de poder fue devastadora 🛤️.",
-    "🌊 {w} ancló las esperanzas de {l} al fondo del mar con un golpe contundente en el pecho 🌊.",
-    "🃏 {w} tenía un as bajo la manga y engañó a {l} en la apuesta final del duelo 🃏.",
-    "👹 {w} usó una máscara aterradora que hizo que a {l} se le congelara la sangre en las venas 👹.",
-    "🛠️ {w} martilleó la voluntad de {l} hasta que este no pudo más que rendirse ante su superioridad 🛠️.",
-    "🍜 {w} lanzó una poción de debilidad y {l} quedó tan flojo como un fideo hervido 🍜.",
-    "👀 En la oscuridad total, los ojos de {w} fueron lo último que {l} vio antes de perderlo todo 👀.",
-    "🗑️ {w} barrió el suelo con {l} y luego lo tiró a la basura como el desecho que es 🗑️.",
-    "🔬 {w} tiene ADN de guerrero de élite, mientras que {l} parece un error de la naturaleza 🔬.",
-    "👑 {w} reclamó su trono tras derrotar al pretendiente {l} en un duelo a muerte por la corona 👑.",
-    "🛐 {w} recibió la bendición de la Deidad Suprema y aplastó a {l} con un solo dedo 🛐.",
-    "🌪️ Un tornado invocado por {w} lanzó a {l} a otro continente en menos de un segundo 🌪️.",
-    "💰 {w} sobornó a los jueces del duelo y {l} fue declarado perdedor antes de empezar 💰.",
-    "🎯 {w} disparó una flecha desde un kilómetro de distancia y le dio justo al sombrero de {l} 🎯.",
-    "🚫 {w} compró el edificio donde vivía {l} y lo desalojó en medio del duelo ¡Qué mala leche! 🚫.",
-    "🦴 {w} trajo un T-Rex de una cápsula del tiempo para devorar las esperanzas de {l} 🦴.",
-    "🥴 {w} le dio una pastilla de placebo a {l} y este creyó que estaba muriendo de verdad 🥴.",
-    "☂️ {w} usó un paraguas para bloquear todos los proyectiles de {l} como si fuera un juego ☂️.",
-    "💩 {w} entrenó a miles de palomas para que bombardearan a {l} sin piedad alguna 💩.",
-    "🕳️ {w} usó un GPS trucado para que {l} caminara directo hacia una trampa para osos 🕳️.",
-    "🚀 {w} lanzó a {l} fuera de la órbita terrestre de una patada magistral ¡Adiós! 🚀."
+  '🤠 Se encontraron en el centro del pueblo. {w} fue más rápido y consiguió la victoria.',
+  '⚔️ En un duelo de espadas, {w} encontró una oportunidad y superó a {l}.',
+  '🥋 {w} utilizó una técnica especial y dejó a {l} sin respuesta.',
+  '🪄 {w} lanzó un poderoso hechizo que hizo que {l} abandonara el duelo.',
+  '🦾 {w} demostró una fuerza impresionante y consiguió superar a {l}.',
+  '🌌 {w} utilizó su sable especial para desarmar a {l}.',
+  '🏹 {l} intentó sorprender a {w}, pero este reaccionó a tiempo y ganó.',
+  '🥊 {w} dominó el combate y consiguió una victoria contundente.',
+  '🐉 {w} invocó el poder del dragón y superó a {l}.',
+  '♟️ No fue cuestión de fuerza. {w} utilizó estrategia y consiguió vencer a {l}.',
+  '⚡ {w} se movió a gran velocidad y sorprendió completamente a {l}.',
+  '🛡️ {l} intentó atacar, pero {w} esperó el momento perfecto para contraatacar.',
+  '💻 {w} desactivó las defensas de {l} y consiguió la victoria.',
+  '🔱 Ante todos los espectadores, {w} consiguió superar a {l} en el duelo.',
+  '🌊 {w} utilizó el poder del océano y consiguió derrotar a {l}.',
+  '🎤 {w} ganó la batalla de rap y {l} tuvo que aceptar la derrota.',
+  '👨‍🍳 Fue un duelo de cocina. El plato de {w} fue tan bueno que {l} se rindió.',
+  '💨 {w} activó el turbo en el último momento y dejó atrás a {l}.',
+  '🪵 {w} demostró una fuerza increíble y consiguió superar a {l}.',
+  '🌫️ {w} utilizó una técnica de ilusión y confundió completamente a {l}.',
+  '🐺 Bajo la luna llena, {w} mostró su poder y consiguió la victoria.',
+  '❄️ En una batalla congelada, {w} resistió hasta el final y venció a {l}.',
+  '🎾 {w} devolvió el ataque de {l} y consiguió darle la vuelta al duelo.',
+  '🤘 {w} realizó una actuación legendaria y consiguió la victoria.',
+  '🏗️ {w} levantó una defensa imposible de superar para {l}.',
+  '📍 {w} utilizó su ingenio para sorprender a {l}.',
+  '🚲 {w} escapó con el botín mientras {l} todavía intentaba entender lo ocurrido.',
+  '🐾 {w} demostró unos reflejos increíbles y esquivó todos los ataques de {l}.',
+  '✨ {w} utilizó el poder de sus objetos especiales y superó a {l}.',
+  '👤 {w} se escondió entre las sombras y sorprendió a {l}.',
+  '🍯 Un grupo de abejas entrenadas por {w} distrajo a {l} lo suficiente para ganar.',
+  '🛤️ {w} avanzó con tanta fuerza que {l} no pudo seguirle el ritmo.',
+  '🃏 {w} tenía un as bajo la manga y sorprendió a {l}.',
+  '👹 La máscara de {w} sorprendió a {l} y cambió completamente el duelo.',
+  '🛠️ {w} demostró una resistencia increíble y consiguió superar a {l}.',
+  '🍜 {w} utilizó una poción especial y consiguió una ventaja decisiva.',
+  '👀 En la oscuridad, {w} consiguió localizar a {l} antes que nadie.',
+  '🔬 La estrategia de {w} fue mucho mejor y consiguió la victoria.',
+  '👑 {w} reclamó el trono después de superar a {l}.',
+  '🛐 {w} recibió una bendición especial y consiguió una victoria impresionante.',
+  '🌪️ Un tornado invocado por {w} cambió completamente el rumbo del duelo.',
+  '💰 {w} consiguió convencer a los jueces y terminó ganando.',
+  '🎯 {w} demostró una precisión increíble y consiguió superar a {l}.',
+  '🚀 {w} utilizó una técnica especial y consiguió enviar a {l} fuera de la arena.'
 ]
 
-const handler = async (m, { conn, text, usedPrefix, command, userDb, participants }) => {
-    try {
-        if (!userDb) return
-        const senderJid = userDb.jid
-        const cooldown = 300000
-        const now = Date.now()
-        const remaining = cooldown - (now - (userDb.lastDuel || 0))
+const handler = async (
+  m,
+  {
+    conn,
+    text,
+    usedPrefix,
+    command,
+    userDb,
+    participants
+  }
+) => {
+  try {
+    if (!userDb) return
 
-        if (remaining > 0) {
-            return m.reply(`*⌬┤ ⏳ ├⌬ ARENA CERRADA.*\n> Esperá: *${Math.floor(remaining / 60000)}m ${Math.floor((remaining % 60000) / 1000)}s*.`)
-        }
+    const senderJid = userDb.jid
+    const now = Date.now()
+    const cooldown = 300000
 
-        const targetRaw = resolveTargetJid(m, participants)
-        if (!targetRaw || extraerNum(targetRaw) === extraerNum(m.sender)) {
-            return m.reply(`*⌬┤ ⚔️ ├⌬ DUELO*\n> Uso: ${usedPrefix + command} @usuario [apuesta opcional]`)
-        }
+    const remaining =
+      cooldown - (now - Number(userDb.lastDuel || 0))
 
-        const txt = text || ''
-        const montoMatch = txt.replace(/@\d+/g, '').match(/\d+/)
-        let apuesta
-        let fueAleatoria = false
+    if (remaining > 0) {
+      return m.reply(
+`༺ 𝙰𝚁𝙴𝙽𝙰 ༻
 
-        if (montoMatch) {
-            apuesta = parseInt(montoMatch[0])
-            if (apuesta < 2 || apuesta > 10000) {
-                return m.reply(`*⌬┤ ⚠️ ├⌬ APUESTA INVÁLIDA.*\n> El rango válido es de *2 a 10,000* ${config.CURRENCY_NAME}.`)
-            }
-        } else {
-            apuesta = Math.floor(Math.random() * 3499) + 2
-            fueAleatoria = true
-        }
+✰ 𝙰𝚛𝚎𝚗𝚊 𝚌𝚎𝚛𝚛𝚊𝚍𝚊
 
-        if (userDb.genosCoins < apuesta) {
-            return m.reply(`*⌬┤ ❌ ├⌬ FONDOS INSUFICIENTES.*\n> Necesitás *${apuesta}* ${config.CURRENCY_NAME} pero tenés *${userDb.genosCoins}*.`)
-        }
-
-        const v = await findByNum(targetRaw)
-        if (!v) return m.reply(`*⌬┤ ❌ ├⌬ RIVAL NO REGISTRADO.*`)
-        if (v.genosCoins < apuesta) {
-            return m.reply(`*⌬┤ ❌ ├⌬ RIVAL SIN FONDOS.*\n> Tiene *${v.genosCoins}* ${config.CURRENCY_NAME} pero la apuesta es *${apuesta}*.`)
-        }
-
-        const target = v.jid
-
-        const invA = userDb.inventory || {}
-        const invB = v.inventory || {}
-
-        const swordTierA = invA.swordTier && invA.swordTier !== 'none' ? invA.swordTier : (invA.sword > 0 ? 'normal' : 'none')
-        const swordTierB = invB.swordTier && invB.swordTier !== 'none' ? invB.swordTier : (invB.sword > 0 ? 'normal' : 'none')
-        const dmgBuffA = SWORD_BUFF[swordTierA] ?? 1.0
-        const dmgBuffB = SWORD_BUFF[swordTierB] ?? 1.0
-        const usedSwordA = swordTierA !== 'none'
-        const usedSwordB = swordTierB !== 'none'
-
-        const potionA = bestPotion(invA)
-        const potionB = bestPotion(invB)
-        let hpA = 100 + (potionA ? potionA.hpBonus : 0)
-        let hpB = 100 + (potionB ? potionB.hpBonus : 0)
-
-        const updateA = { $inc: {}, $set: { lastDuel: now } }
-        const updateB = { $inc: {} }
-
-        if (potionA) {
-            if (potionA.legacy) {
-                updateA.$inc['inventory.potion'] = -1
-            } else {
-                updateA.$inc[`inventory.potionStock.${potionA.tier}`] = -1
-                updateA.$inc['inventory.potion'] = -1
-            }
-        }
-        if (potionB) {
-            if (potionB.legacy) {
-                updateB.$inc['inventory.potion'] = -1
-            } else {
-                updateB.$inc[`inventory.potionStock.${potionB.tier}`] = -1
-                updateB.$inc['inventory.potion'] = -1
-            }
-        }
-
-        if (usedSwordA) {
-            const nuevosUsos = (invA.swordUses || 1) - 1
-            updateA.$inc['inventory.swordUses'] = -1
-            if (nuevosUsos <= 0) {
-                updateA.$set['inventory.swordTier'] = 'none'
-                updateA.$set['inventory.sword'] = 0
-            }
-        }
-        if (usedSwordB) {
-            const nuevosUsos = (invB.swordUses || 1) - 1
-            updateB.$inc['inventory.swordUses'] = -1
-            if (nuevosUsos <= 0) {
-                updateB.$set = { ...(updateB.$set || {}), 'inventory.swordTier': 'none', 'inventory.sword': 0 }
-            }
-        }
-
-        let logs = []
-        while (hpA > 0 && hpB > 0) {
-            let d1 = Math.floor((Math.random() * 20 + 10) * dmgBuffA)
-            hpB -= d1
-            logs.push(`⚔️ @${extraerNum(m.sender)} quita ${d1} PV`)
-            if (hpB <= 0) break
-            let d2 = Math.floor((Math.random() * 20 + 10) * dmgBuffB)
-            hpA -= d2
-            logs.push(`🛡️ @${extraerNum(target)} responde con ${d2} PV`)
-        }
-
-        const win = hpA > 0
-        const winner = win ? senderJid : target
-        const loser  = win ? target : senderJid
-
-        if (win) {
-            updateA.$inc.genosCoins = apuesta
-            updateB.$inc.genosCoins = -apuesta
-            userDb.genosCoins += apuesta
-        } else {
-            updateA.$inc.genosCoins = -apuesta
-            updateB.$inc.genosCoins = apuesta
-            userDb.genosCoins -= apuesta
-        }
-        userDb.lastDuel = now
-
-        await Promise.all([
-          User.updateOne({ jid: senderJid }, updateA),
-          User.updateOne({ jid: target }, updateB)
-        ])
-
-        const targetCache = userCache.get(target) || userCache.get(extraerNum(target))
-        if (targetCache) {
-            targetCache.genosCoins += (win ? -apuesta : apuesta)
-            if (potionB) {
-                if (targetCache.inventory.potionStock?.[potionB.tier] !== undefined) {
-                    targetCache.inventory.potionStock[potionB.tier] = Math.max(0, targetCache.inventory.potionStock[potionB.tier] - 1)
-                }
-                targetCache.inventory.potion = Math.max(0, (targetCache.inventory.potion || 1) - 1)
-            }
-            if (usedSwordB) {
-                targetCache.inventory.swordUses = Math.max(0, (targetCache.inventory.swordUses || 1) - 1)
-                if (targetCache.inventory.swordUses <= 0) {
-                    targetCache.inventory.swordTier = 'none'
-                    targetCache.inventory.sword = 0
-                }
-            }
-        }
-
-        const story = battleStories[Math.floor(Math.random() * battleStories.length)]
-            .replace(/{w}/g, `@${extraerNum(winner)}`)
-            .replace(/{l}/g, `@${extraerNum(loser)}`)
-
-        const pfp = await conn.profilePictureUrl(winner, 'image').catch(() => 'https://i.postimg.cc/wvW9wHP1/file-000000006db0820e9b4a94f49b7a7f39.png')
-
-        const hpInicialA = 100 + (potionA ? potionA.hpBonus : 0)
-        const hpInicialB = 100 + (potionB ? potionB.hpBonus : 0)
-
-        let resText = `*╔═══⌦ ✦ ⚔️ DUELO ⚔️ ✦ ⌫═══╗*\n\n`
-        if (fueAleatoria) resText += `> 🎲 *Apuesta aleatoria:* ${apuesta} ${config.CURRENCY_NAME}\n\n`
-        resText += `*📊 PUNTOS DE VIDA:*\n`
-             + `> @${extraerNum(m.sender)}: ${hpInicialA} PV ${usedSwordA ? SWORD_ICON[swordTierA] : ''}${potionA ? ' 🧪' : ''}\n`
-             + `> @${extraerNum(target)}: ${hpInicialB} PV ${usedSwordB ? SWORD_ICON[swordTierB] : ''}${potionB ? ' 🧪' : ''}\n\n`
-             + `*📝 BATALLA:*\n${logs.slice(-5).join('\n')}\n...\n\n`
-             + `> 📖 ${story}\n\n`
-             + `*🏆 GANADOR:* @${extraerNum(winner)}\n`
-             + `*💰 BOTÍN:* ${apuesta * 2} ${config.CURRENCY_NAME}\n`
-             + `*╚══⌦ ${config.footer} ⌫══╝*`
-
-        await conn.sendMessage(m.chat, { image: { url: pfp }, caption: resText, mentions: [senderJid, target] }, { quoted: m })
-
-    } catch (e) {
-        console.error('[ERROR DUELO]', e)
-        m.reply(`*⌬┤ ❌ ├⌬ OCURRIÓ UN ERROR INTERNO.*\n> Por favor, intenta de nuevo.`)
+> ✰ 𝙴𝚜𝚙𝚎𝚛𝚊: *${Math.floor(remaining / 60000)}m ${Math.floor((remaining % 60000) / 1000)}s*`
+      )
     }
+
+    const targetRaw = resolveTargetJid(m, participants)
+
+    if (
+      !targetRaw ||
+      extraerNum(targetRaw) === extraerNum(m.sender)
+    ) {
+      return m.reply(
+`༺ 𝙳𝚄𝙴𝙻𝙾 ༻
+
+✰ 𝚄𝚜𝚘 𝚌𝚘𝚛𝚛𝚎𝚌𝚝𝚘
+
+> ✰ ${usedPrefix + command} @usuario [apuesta]
+
+✰ 𝙴𝚓𝚎𝚖𝚙𝚕𝚘
+
+> ✰ ${usedPrefix + command} @usuario 500`
+      )
+    }
+
+    const txt = String(text || '')
+
+    const montoMatch = txt
+      .replace(/@\d+/g, '')
+      .match(/\d+/)
+
+    let apuesta
+    let fueAleatoria = false
+
+    if (montoMatch) {
+      apuesta = parseInt(montoMatch[0])
+
+      if (
+        isNaN(apuesta) ||
+        apuesta < 2 ||
+        apuesta > 10000
+      ) {
+        return m.reply(
+`༺ 𝙰𝙿𝚄𝙴𝚂𝚃𝙰 ༻
+
+✰ 𝙰𝚙𝚞𝚎𝚜𝚝𝚊 𝚒𝚗𝚟𝚊́𝚕𝚒𝚍𝚊
+
+> ✰ Rango permitido: *2 - 10,000*
+> ✰ Moneda: ${config.CURRENCY_NAME}`
+        )
+      }
+    } else {
+      apuesta = Math.floor(Math.random() * 3499) + 2
+      fueAleatoria = true
+    }
+
+    if (Number(userDb.genosCoins || 0) < apuesta) {
+      return m.reply(
+`༺ 𝙵𝙾𝙽𝙳𝙾𝚂 ༻
+
+✰ 𝙵𝚘𝚗𝚍𝚘𝚜 𝚒𝚗𝚜𝚞𝚏𝚒𝚌𝚒𝚎𝚗𝚝𝚎𝚜
+
+> ✰ Necesitás: *${apuesta} ${config.CURRENCY_NAME}*
+> ✰ Tenés: *${userDb.genosCoins || 0} ${config.CURRENCY_NAME}*`
+      )
+    }
+
+    const v = await findByNum(targetRaw)
+
+    if (!v) {
+      return m.reply(
+`༺ 𝚁𝙸𝚅𝙰𝙻 ༻
+
+✰ 𝚄𝚜𝚞𝚊𝚛𝚒𝚘 𝚗𝚘 𝚛𝚎𝚐𝚒𝚜𝚝𝚛𝚊𝚍𝚘`
+      )
+    }
+
+    if (Number(v.genosCoins || 0) < apuesta) {
+      return m.reply(
+`༺ 𝙵𝙾𝙽𝙳𝙾𝚂 ༻
+
+✰ 𝙴𝚕 𝚛𝚒𝚟𝚊𝚕 𝚗𝚘 𝚝𝚒𝚎𝚗𝚎 𝚜𝚞𝚏𝚒𝚌𝚒𝚎𝚗𝚝𝚎
+
+> ✰ Tiene: *${v.genosCoins || 0} ${config.CURRENCY_NAME}*
+> ✰ Apuesta: *${apuesta} ${config.CURRENCY_NAME}*`
+      )
+    }
+
+    const target = v.jid
+
+    const invA = userDb.inventory || {}
+    const invB = v.inventory || {}
+
+    const swordTierA =
+      invA.swordTier &&
+      invA.swordTier !== 'none'
+        ? invA.swordTier
+        : Number(invA.sword || 0) > 0
+          ? 'normal'
+          : 'none'
+
+    const swordTierB =
+      invB.swordTier &&
+      invB.swordTier !== 'none'
+        ? invB.swordTier
+        : Number(invB.sword || 0) > 0
+          ? 'normal'
+          : 'none'
+
+    const dmgBuffA = SWORD_BUFF[swordTierA] ?? 1
+    const dmgBuffB = SWORD_BUFF[swordTierB] ?? 1
+
+    const usedSwordA = swordTierA !== 'none'
+    const usedSwordB = swordTierB !== 'none'
+
+    const potionA = bestPotion(invA)
+    const potionB = bestPotion(invB)
+
+    const hpInicialA =
+      100 + (potionA ? potionA.hpBonus : 0)
+
+    const hpInicialB =
+      100 + (potionB ? potionB.hpBonus : 0)
+
+    let hpA = hpInicialA
+    let hpB = hpInicialB
+
+    const updateA = {
+      $inc: {},
+      $set: {
+        lastDuel: now
+      }
+    }
+
+    const updateB = {
+      $inc: {},
+      $set: {}
+    }
+
+    // ━━━━━━━━ POTIONES ━━━━━━━━
+
+    if (potionA) {
+      updateA.$inc['inventory.potion'] = -1
+
+      if (!potionA.legacy) {
+        updateA.$inc[
+          `inventory.potionStock.${potionA.tier}`
+        ] = -1
+      }
+    }
+
+    if (potionB) {
+      updateB.$inc['inventory.potion'] = -1
+
+      if (!potionB.legacy) {
+        updateB.$inc[
+          `inventory.potionStock.${potionB.tier}`
+        ] = -1
+      }
+    }
+
+    // ━━━━━━━━ ESPADAS ━━━━━━━━
+
+    if (usedSwordA) {
+      const usos =
+        Number(invA.swordUses || 1)
+
+      updateA.$inc['inventory.swordUses'] = -1
+
+      if (usos <= 1) {
+        updateA.$set['inventory.swordUses'] = 0
+        updateA.$set['inventory.swordTier'] = 'none'
+        updateA.$set['inventory.sword'] = 0
+      }
+    }
+
+    if (usedSwordB) {
+      const usos =
+        Number(invB.swordUses || 1)
+
+      updateB.$inc['inventory.swordUses'] = -1
+
+      if (usos <= 1) {
+        updateB.$set['inventory.swordUses'] = 0
+        updateB.$set['inventory.swordTier'] = 'none'
+        updateB.$set['inventory.sword'] = 0
+      }
+    }
+
+    // ━━━━━━━━ BATALLA ━━━━━━━━
+
+    const logs = []
+
+    let turn = 0
+
+    while (hpA > 0 && hpB > 0 && turn < 50) {
+      turn++
+
+      const d1 = Math.floor(
+        (Math.random() * 20 + 10) * dmgBuffA
+      )
+
+      hpB -= d1
+
+      logs.push(
+        `✰ @${extraerNum(senderJid)} obtiene ventaja`
+      )
+
+      if (hpB <= 0) break
+
+      const d2 = Math.floor(
+        (Math.random() * 20 + 10) * dmgBuffB
+      )
+
+      hpA -= d2
+
+      logs.push(
+        `✰ @${extraerNum(target)} responde`
+      )
+    }
+
+    const win = hpA > 0
+
+    const winner = win
+      ? senderJid
+      : target
+
+    const loser = win
+      ? target
+      : senderJid
+
+    // ━━━━━━━━ RECOMPENSA ━━━━━━━━
+
+    if (win) {
+      updateA.$inc.genosCoins = apuesta
+      updateB.$inc.genosCoins = -apuesta
+
+      userDb.genosCoins =
+        Number(userDb.genosCoins || 0) + apuesta
+    } else {
+      updateA.$inc.genosCoins = -apuesta
+      updateB.$inc.genosCoins = apuesta
+
+      userDb.genosCoins =
+        Number(userDb.genosCoins || 0) - apuesta
+    }
+
+    userDb.lastDuel = now
+
+    // ━━━━━━━━ GUARDAR ━━━━━━━━
+
+    await Promise.all([
+      User.updateOne(
+        { jid: senderJid },
+        updateA
+      ),
+
+      User.updateOne(
+        { jid: target },
+        updateB
+      )
+    ])
+
+    // ━━━━━━━━ CACHE DEL RIVAL ━━━━━━━━
+
+    const targetCache =
+      userCache.get(target) ||
+      userCache.get(extraerNum(target))
+
+    if (targetCache) {
+      targetCache.genosCoins =
+        Number(targetCache.genosCoins || 0) +
+        (win ? -apuesta : apuesta)
+
+      if (!targetCache.inventory) {
+        targetCache.inventory = {}
+      }
+
+      if (potionB) {
+        targetCache.inventory.potion =
+          Math.max(
+            0,
+            Number(targetCache.inventory.potion || 0) - 1
+          )
+
+        if (
+          !potionB.legacy &&
+          targetCache.inventory.potionStock
+        ) {
+          targetCache.inventory.potionStock[potionB.tier] =
+            Math.max(
+              0,
+              Number(
+                targetCache.inventory.potionStock[potionB.tier] || 0
+              ) - 1
+            )
+        }
+      }
+
+      if (usedSwordB) {
+        const usos =
+          Number(
+            targetCache.inventory.swordUses || 1
+          ) - 1
+
+        targetCache.inventory.swordUses =
+          Math.max(0, usos)
+
+        if (usos <= 0) {
+          targetCache.inventory.swordTier = 'none'
+          targetCache.inventory.sword = 0
+        }
+      }
+    }
+
+    // ━━━━━━━━ HISTORIA ━━━━━━━━
+
+    const story =
+      battleStories[
+        Math.floor(
+          Math.random() * battleStories.length
+        )
+      ]
+        .replace(
+          /{w}/g,
+          `@${extraerNum(winner)}`
+        )
+        .replace(
+          /{l}/g,
+          `@${extraerNum(loser)}`
+        )
+
+    const pfp = await conn
+      .profilePictureUrl(winner, 'image')
+      .catch(
+        () =>
+          'https://i.postimg.cc/wvW9wHP1/file-000000006db0820e9b4a94f49b7a7f39.png'
+      )
+
+    // ━━━━━━━━ RESPUESTA ━━━━━━━━
+
+    let resText =
+`༺ 𝙳𝚄𝙴𝙻𝙾 ༻
+
+✰ 𝙰𝚛𝚎𝚗𝚊 𝚍𝚎 𝚂𝚊𝚒𝚝𝚊𝚖𝚊
+
+> ✰ @${extraerNum(senderJid)}
+> ✰ @${extraerNum(target)}
+
+`
+
+    if (fueAleatoria) {
+      resText +=
+`✰ 𝙰𝚙𝚞𝚎𝚜𝚝𝚊 𝚊𝚕𝚎𝚊𝚝𝚘𝚛𝚒𝚊
+> ✰ ${apuesta.toLocaleString('es-AR')} ${config.CURRENCY_NAME}
+
+`
+    } else {
+      resText +=
+`✰ 𝙰𝚙𝚞𝚎𝚜𝚝𝚊
+> ✰ ${apuesta.toLocaleString('es-AR')} ${config.CURRENCY_NAME}
+
+`
+    }
+
+    resText +=
+`✰ 𝙿𝚞𝚗𝚝𝚘𝚜 𝚍𝚎 𝚟𝚒𝚍𝚊
+
+> ✰ @${extraerNum(senderJid)}: ${hpInicialA} PV ${usedSwordA ? SWORD_ICON[swordTierA] : ''}${potionA ? ' 🧪' : ''}
+> ✰ @${extraerNum(target)}: ${hpInicialB} PV ${usedSwordB ? SWORD_ICON[swordTierB] : ''}${potionB ? ' 🧪' : ''}
+
+✰ 𝙱𝚊𝚝𝚊𝚕𝚕𝚊
+
+${logs.slice(-5).join('\n')}
+
+> ✰ ${story}
+
+✰ 𝙶𝚊𝚗𝚊𝚍𝚘𝚛
+> ✰ @${extraerNum(winner)}
+
+✰ 𝙱𝚘𝚝í𝚗
+> ✰ ${(apuesta * 2).toLocaleString('es-AR')} ${config.CURRENCY_NAME}
+
+༺ ${config.footer} ༻`
+
+    await conn.sendMessage(
+      m.chat,
+      {
+        image: { url: pfp },
+        caption: resText,
+        mentions: [
+          senderJid,
+          target,
+          winner,
+          loser
+        ]
+      },
+      { quoted: m }
+    )
+
+  } catch (e) {
+    console.error('[ERROR DUELO]', e)
+
+    return m.reply(
+`༺ 𝙴𝚁𝚁𝙾𝚁 ༻
+
+✰ 𝙾𝚌𝚞𝚛𝚛𝚒ó 𝚞𝚗 𝚎𝚛𝚛𝚘𝚛 𝚒𝚗𝚝𝚎𝚛𝚗𝚘
+
+> ✰ Intentá nuevamente más tarde.`
+    )
+  }
 }
 
-handler.help = ['duelo @tag [apuesta]']
+handler.help = [
+  'duelo @tag',
+  'duelo @tag <apuesta>'
+]
+
 handler.tags = ['eco']
-handler.command = ['duel', 'duelo']
+
+handler.command = [
+  'duel',
+  'duelo'
+]
+
 handler.groupOnly = true
 handler.register = true
+
 export default handler

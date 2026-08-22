@@ -1,11 +1,31 @@
 const handler = async (m, { conn, text, usedPrefix, command }) => {
-  if (!text) return m.reply(`*⌬┤ ⚠️ ├⌬ NOMBRE REQUERIDO.*\n> Ejemplo: *${usedPrefix}${command} Nuevo Nombre*`)
+  if (!text) {
+    return m.reply(
+`*✰ NOMBRE REQUERIDO ༻*
 
-  await conn.groupUpdateSubject(m.chat, text)
-  m.reply(`*⌬┤ ✅ ├⌬ NOMBRE ACTUALIZADO.*\n▢ *Nuevo nombre:* ${text}`)
+> ✰ Uso: ${usedPrefix}${command} <nuevo nombre>
+> ✰ Ejemplo: ${usedPrefix}${command} Saitama Fans`
+    )
+  }
+
+  try {
+    await conn.groupUpdateSubject(m.chat, text)
+
+    return m.reply(
+`*✰ NOMBRE ACTUALIZADO ༻*
+
+> ✰ Nuevo nombre: *${text}*`
+    )
+  } catch {
+    return m.reply(
+`*✰ ERROR ༻*
+
+> ✰ No se pudo cambiar el nombre del grupo.`
+    )
+  }
 }
 
-handler.help = ['nombre']
+handler.help = ['nombre <texto>']
 handler.tags = ['group']
 handler.command = ['nombre', 'groupname', 'setnombre']
 handler.groupOnly = true

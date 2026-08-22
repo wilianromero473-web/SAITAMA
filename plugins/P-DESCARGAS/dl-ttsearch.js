@@ -1,13 +1,12 @@
 import fetch from 'node-fetch'
 import * as baileysMod from '@whiskeysockets/baileys'
 
-// ━━━━━━━ APIs TIKTOK SEARCH ━━━━━━━
+// APIs
 const API_URL = 'https://api.stellarwa.xyz'
 const API_KEY = 'proyectsV2'
 
 const LEMPI_URL = 'https://api.lempi.lat/s/tiktok'
-const LEMPI_KEY = 'lem992'
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const LEMPI_KEY = 'lem_fe9463d34eeb2708aea45ffdefd6f852f5361f01'
 
 const pkg =
   baileysMod.default && Object.keys(baileysMod).length === 1
@@ -19,8 +18,6 @@ const {
   generateWAMessage
 } = pkg
 
-
-// ━━━━━━━ FETCH JSON ━━━━━━━
 async function getJSON(url) {
   const res = await fetch(url, {
     headers: {
@@ -35,8 +32,6 @@ async function getJSON(url) {
   return await res.json()
 }
 
-
-// ━━━━━━━ HANDLER ━━━━━━━
 const handler = async (
   m,
   { conn, text, usedPrefix, command }
@@ -54,34 +49,19 @@ const handler = async (
 
   if (!query) {
     return m.reply(
-`╭━━〔 🔎 TIKTOK 〕━━⬣
+`༺ 𝚃𝙸𝙺𝚃𝙾𝙺 𝚂𝙴𝙰𝚁𝙲𝙷 ༻
 
-│ ✦ Uso:
-│ ${usedPrefix}${command} gatos
-│
-╰━━━━━━━━━━━━━━━━⬣`
+✰ 𝚄𝚜𝚊:
+${usedPrefix}${command} <texto>
+
+✰ 𝙴𝚓𝚎𝚖𝚙𝚕𝚘:
+${usedPrefix}${command} gatos`
     )
   }
-
-
-  await m.reply(
-`╭━━〔 🔍 BUSCANDO 〕━━⬣
-
-│ 🔎 ${query}
-│ 🌸 SaitamaBot
-│
-╰━━━━━━━━━━━━━━━━⬣`
-  )
-
 
   try {
 
     let results = []
-
-
-    // ═════════════════════════════
-    // 1️⃣ LEMPI
-    // ═════════════════════════════
 
     try {
 
@@ -99,11 +79,6 @@ const handler = async (
 
     } catch {}
 
-
-    // ═════════════════════════════
-    // 2️⃣ STELLARWA → RESPALDO
-    // ═════════════════════════════
-
     if (!results.length) {
 
       try {
@@ -118,34 +93,20 @@ const handler = async (
         }
 
       } catch {}
-
     }
-
-
-    // ═════════════════════════════
-    // SIN RESULTADOS
-    // ═════════════════════════════
 
     if (!results.length) {
-
       return m.reply(
-`╭━━〔 ❌ SIN RESULTADOS 〕━━⬣
+`༺ 𝚂𝙸𝙽 𝚁𝙴𝚂𝚄𝙻𝚃𝙰𝙳𝙾𝚂 ༻
 
-│ 🔎 ${query}
-│
-╰━━━━━━━━━━━━━━━━⬣`
+✰ 𝙱ú𝚜𝚚𝚞𝚎𝚍𝚊:
+${query}
+
+✰ 𝙽𝚘 𝚜𝚎 𝚎𝚗𝚌𝚘𝚗𝚝𝚛𝚊𝚛𝚘𝚗 𝚟í𝚍𝚎𝚘𝚜.`
       )
-
     }
 
-
-    // Máximo 7 videos
     const videos = results.slice(0, 7)
-
-
-    // ═════════════════════════════
-    // ÁLBUM
-    // ═════════════════════════════
 
     const album =
       generateWAMessageFromContent(
@@ -165,7 +126,6 @@ const handler = async (
         {}
       )
 
-
     await conn.relayMessage(
       m.chat,
       album.message,
@@ -174,16 +134,9 @@ const handler = async (
       }
     )
 
-
-    // ═════════════════════════════
-    // ENVIAR VIDEOS
-    // ═════════════════════════════
-
     for (const v of videos) {
 
       try {
-
-        // ━━━━━ LEMPI ━━━━━
 
         const videoUrl =
           v.video ||
@@ -191,25 +144,17 @@ const handler = async (
           v.dl ||
           v.url
 
-
         if (!videoUrl) continue
-
 
         const response =
           await fetch(videoUrl)
 
         if (!response.ok) continue
 
-
         const buffer =
           Buffer.from(
             await response.arrayBuffer()
           )
-
-
-        // ═════════════════════════
-        // DATOS NORMALIZADOS
-        // ═════════════════════════
 
         const titulo =
           v.titulo ||
@@ -264,27 +209,27 @@ const handler = async (
         const tiktokUrl =
           v.url || ''
 
-
-        // ═════════════════════════
-        // CAPTION CORTO Y SEPARADO
-        // ═════════════════════════
-
         const caption =
-`╭━━〔 🎵 TIKTOK 〕━━⬣
+`༺ 𝚃𝙸𝙺𝚃𝙾𝙺 ༻
 
-│ 📝 ${titulo}
-│ 👤 ${autor}${usuario ? ` (@${usuario})` : ''}
-│ ⏱️ ${duracion}
-│ 👁️ ${Number(vistas).toLocaleString()}
-│ ❤️ ${Number(likes).toLocaleString()}
-│ 💬 ${Number(comentarios).toLocaleString()}
-│ 🔄 ${Number(compartidos).toLocaleString()}
-│ ⭐ ${Number(favoritos).toLocaleString()}
-
-│ 🔗 ${tiktokUrl}
-
-╰━━━━━━━━━━━━━━━━⬣`
-
+✰ 𝚃í𝚝𝚞𝚕𝚘:
+${titulo}
+✰ 𝙰𝚞𝚝𝚘𝚛:
+${autor}${usuario ? ` (@${usuario})` : ''}
+✰ 𝙳𝚞𝚛𝚊𝚌𝚒ó𝚗:
+${duracion}
+✰ 𝚅𝚒𝚜𝚝𝚊𝚜:
+${Number(vistas).toLocaleString()}
+✰ 𝙻𝚒𝚔𝚎𝚜:
+${Number(likes).toLocaleString()}
+✰ 𝙲𝚘𝚖𝚎𝚗𝚝𝚊𝚛𝚒𝚘𝚜:
+${Number(comentarios).toLocaleString()}
+✰ 𝙲𝚘𝚖𝚙𝚊𝚛𝚝𝚒𝚍𝚘𝚜:
+${Number(compartidos).toLocaleString()}
+✰ 𝙵𝚊𝚟𝚘𝚛𝚒𝚝𝚘𝚜:
+${Number(favoritos).toLocaleString()}
+✰ 𝙻𝚒𝚗𝚔:
+${tiktokUrl}`
 
         const videoMsg =
           await generateWAMessage(
@@ -300,14 +245,12 @@ const handler = async (
             }
           )
 
-
         videoMsg.message.messageContextInfo = {
           messageAssociation: {
             associationType: 1,
             parentMessageKey: album.key
           }
         }
-
 
         await conn.relayMessage(
           m.chat,
@@ -317,33 +260,21 @@ const handler = async (
           }
         )
 
-
       } catch {}
 
     }
 
+  } catch {
 
-  } catch (e) {
+    return m.reply(
+`༺ 𝙴𝚁𝚁𝙾𝚁 ༻
 
-    console.error(
-      '[TIKTOK SEARCH]',
-      e
+✰ 𝙽𝚘 𝚜𝚎 𝚙𝚞𝚍𝚘 𝚌𝚘𝚖𝚙𝚕𝚎𝚝𝚊𝚛 𝚕𝚊 𝚋ú𝚜𝚚𝚞𝚎𝚍𝚊.
+
+✰ 𝙸𝚗𝚝𝚎𝚗𝚝𝚊 𝚍𝚎 𝚗𝚞𝚎𝚟𝚘.`
     )
-
-    await m.reply(
-`╭━━〔 ❌ ERROR 〕━━⬣
-
-│ No se pudo completar la búsqueda.
-│
-╰━━━━━━━━━━━━━━━━⬣`
-    )
-
   }
-
 }
-
-
-// ━━━━━ CONFIG ━━━━━
 
 handler.help = [
   'ttsearch <texto>'

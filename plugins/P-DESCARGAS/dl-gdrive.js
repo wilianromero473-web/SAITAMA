@@ -1,107 +1,24 @@
-import fetch from 'node-fetch'
+import axios from 'axios'
 
-const MAX_MB = 500
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ༺ 𝙵-𝙳𝚁𝙾𝙸𝙳 ༻
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-const GDRIVE_MIMES = {
-  'audio/mpeg': {
-    ext: 'mp3',
-    tipo: 'audio'
-  },
+const F_DROID_API =
+  'https://api.vreden.my.id/api/v1/download/fdroid'
 
-  'audio/mp4': {
-    ext: 'm4a',
-    tipo: 'audio'
-  },
-
-  'audio/ogg': {
-    ext: 'ogg',
-    tipo: 'audio'
-  },
-
-  'video/mp4': {
-    ext: 'mp4',
-    tipo: 'video'
-  },
-
-  'video/x-matroska': {
-    ext: 'mkv',
-    tipo: 'document'
-  },
-
-  'image/jpeg': {
-    ext: 'jpg',
-    tipo: 'image'
-  },
-
-  'image/png': {
-    ext: 'png',
-    tipo: 'image'
-  },
-
-  'image/gif': {
-    ext: 'gif',
-    tipo: 'image'
-  },
-
-  'application/pdf': {
-    ext: 'pdf',
-    tipo: 'document'
-  },
-
-  'application/zip': {
-    ext: 'zip',
-    tipo: 'document'
-  },
-
-  'application/vnd.android.package-archive': {
-    ext: 'apk',
-    tipo: 'document'
-  }
-}
+const USER_AGENT =
+  'Mozilla/5.0 (Linux; Android 11) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36'
 
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// FORMATEAR TAMAÑO
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🔗 OBTENER URL
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-function formatSize(bytes) {
-
-  if (!bytes) {
-    return '?'
-  }
-
-  const mb =
-    bytes / (1024 * 1024)
-
-  return mb >= 1
-    ? `${mb.toFixed(1)} MB`
-    : `${(bytes / 1024).toFixed(0)} KB`
-}
-
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// HANDLER
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-const handler = async (
-  m,
-  {
-    conn,
-    text,
-    usedPrefix,
-    command
-  }
-) => {
+function getUrl(m, text = '') {
 
   let url =
-    text
-      ? text.trim()
-      : ''
-
-
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // OBTENER LINK DE MENSAJE CITADO
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    String(text || '').trim()
 
   if (!url && m.quoted) {
 
@@ -120,40 +37,108 @@ const handler = async (
     }
   }
 
+  return url.replace(
+    /[)\]}>,]+$/g,
+    ''
+  )
+}
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // VALIDAR LINK
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🔎 VALIDAR F-DROID
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function isFDroidUrl(url) {
+
+  return /^https?:\/\/(?:www\.)?f-droid\.org\//i
+    .test(url)
+
+}
+
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🧹 NOMBRE SEGURO
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function cleanFileName(name) {
+
+  return String(
+    name || 'Aplicacion'
+  )
+    .replace(
+      /[<>:"/\\|?*\x00-\x1F]/g,
+      ''
+    )
+    .replace(
+      /\s+/g,
+      ' '
+    )
+    .trim()
+    .slice(0, 100)
+    || 'Aplicacion'
+}
+
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🎬 HANDLER
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+const handler = async (
+  m,
+  {
+    conn,
+    text,
+    usedPrefix,
+    command
+  }
+) => {
+
+  const chatId =
+    m.chat
+
+  const url =
+    getUrl(
+      m,
+      text
+    )
+
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ❌ SIN LINK
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   if (!url) {
 
     return m.reply(
-`*⌬┤ ✙ ├⌬ ENLACE REQUERIDO.*
+`༺ 𝙵-𝙳𝚁𝙾𝙸𝙳 ༻
 
-> Enviá o respondé a un mensaje con un enlace válido de Google Drive.
+✰ 𝙻𝚒𝚗𝚔 𝚛𝚎𝚚𝚞𝚎𝚛𝚒𝚍𝚘
 
-> Ejemplo:
-> *${usedPrefix}${command} https://drive.google.com/...*`
+> ✰ 𝙴𝚓𝚎𝚖𝚙𝚕𝚘:
+> ${usedPrefix}${command} https://f-droid.org/en/packages/com.termux/`
     )
   }
 
 
-  if (!/drive\.google\.com/i.test(url)) {
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ❌ LINK INVÁLIDO
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  if (!isFDroidUrl(url)) {
 
     return m.reply(
-`*⌬┤ ❌ ├⌬ ENLACE INVÁLIDO.*
+`༺ 𝙵-𝙳𝚁𝙾𝙸𝙳 ༻
 
-> Asegurate de que sea un enlace de Google Drive.`
+✰ 𝙻𝚒𝚗𝚔 𝚒𝚗𝚟𝚊́𝚕𝚒𝚍𝚘
+
+> ✰ 𝚄𝚜𝚊 𝚞𝚗 𝚕𝚒𝚗𝚔 𝚍𝚎 𝙵-𝙳𝚛𝚘𝚒𝚍.`
     )
   }
 
 
-  const chatId = m.chat
-
-
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // REACCIÓN
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ⏳ REACCIÓN
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   await conn.sendMessage(
     chatId,
@@ -167,270 +152,189 @@ const handler = async (
 
 
   await m.reply(
-`*⌬┤ ⏳ ├⌬ OBTENIENDO ARCHIVO.*
+`༺ 𝙵-𝙳𝚁𝙾𝙸𝙳 ༻
 
-> Conectando con Google Drive...`
+✰ 𝙾𝚋𝚝𝚎𝚗𝚒𝚎𝚗𝚍𝚘 𝚒𝚗𝚏𝚘𝚛𝚖𝚊𝚌𝚒𝚘́𝚗...`
   )
 
 
   try {
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // API GOOGLE DRIVE
+    // 🌐 API
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    const apiUrl =
-      `https://luxinfinity.vercel.app/api/gdrive?url=${encodeURIComponent(url)}`
-
-    const apiRes =
-      await fetch(apiUrl)
-
-    if (!apiRes.ok) {
-
-      throw new Error(
-        `API respondió HTTP ${apiRes.status}`
-      )
-    }
-
-
-    const apiJson =
-      await apiRes.json()
-
-
-    if (
-      !apiJson?.status ||
-      !apiJson?.data?.download
-    ) {
-
-      return m.reply(
-`*⌬┤ ❌ ├⌬ ERROR.*
-
-> No se pudo obtener el archivo.
-
-> Comprueba que el enlace de Google Drive sea público.`
-      )
-    }
-
-
-    const {
-      name,
-      download
-    } = apiJson.data
-
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // HEAD DEL ARCHIVO
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-    const headRes =
-      await fetch(
-        download,
+    const response =
+      await axios.get(
+        `${F_DROID_API}?url=${encodeURIComponent(url)}`,
         {
-          method: 'HEAD',
-          redirect: 'follow'
+          timeout: 120000,
+
+          headers: {
+            'User-Agent':
+              USER_AGENT,
+
+            Accept:
+              'application/json'
+          }
         }
       )
 
 
-    const contentType =
-      headRes.headers
-        .get('content-type')
-        ?.split(';')[0]
-        .trim() ||
-      'application/octet-stream'
+    const app =
+      response.data?.result
 
 
-    const contentLength =
-      parseInt(
-        headRes.headers.get(
-          'content-length'
-        ) || '0'
-      )
+    if (!app) {
 
-
-    const sizeMB =
-      contentLength /
-      (1024 * 1024)
-
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // LÍMITE
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-    if (
-      contentLength &&
-      sizeMB > MAX_MB
-    ) {
-
-      return m.reply(
-`*⌬┤ ⚠️ ├⌬ ARCHIVO MUY GRANDE.*
-
-> Tamaño: *${sizeMB.toFixed(1)} MB*
-> Límite: *${MAX_MB} MB*`
+      throw new Error(
+        'No se encontró la aplicación.'
       )
     }
 
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // TIPO DE ARCHIVO
+    // 📱 DATOS
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    const fileInfo =
-      GDRIVE_MIMES[contentType] || {
-        ext: 'bin',
-        tipo: 'document'
+    const latest =
+      app.versions?.[0]
+
+
+    const name =
+      app.name ||
+      'Aplicación'
+
+
+    const summary =
+      app.summary ||
+      'Sin descripción'
+
+
+    const description =
+      app.description ||
+      'Sin información'
+
+
+    const version =
+      latest?.version ||
+      '-'
+
+
+    const added =
+      latest?.added ||
+      '-'
+
+
+    const requirements =
+      latest?.requirements ||
+      '-'
+
+
+    const size =
+      latest?.size ||
+      '-'
+
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // 📱 INFORMACIÓN
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    const shortDescription =
+      description
+        .replace(/\s+/g, ' ')
+        .slice(0, 300)
+
+
+    await conn.sendMessage(
+      chatId,
+      {
+        text:
+`༺ 𝙵-𝙳𝚁𝙾𝙸𝙳 ༻
+
+✰ 𝙽𝚘𝚖𝚋𝚛𝚎: ${name}
+✰ 𝚅𝚎𝚛𝚜𝚒𝚘́𝚗: ${version}
+✰ 𝚃𝚊𝚖𝚊𝚗̃𝚘: ${size}
+✰ 𝙵𝚎𝚌𝚑𝚊: ${added}
+✰ 𝚁𝚎𝚚𝚞𝚒𝚜𝚒𝚝𝚘𝚜: ${requirements}
+
+✰ 𝙳𝚎𝚜𝚌𝚛𝚒𝚙𝚌𝚒𝚘́𝚗:
+> ${summary}
+
+✰ 𝙸𝚗𝚏𝚘:
+> ${shortDescription}${description.length > 300 ? '...' : ''}`
+      },
+      {
+        quoted: m
       }
-
-
-    const fileName =
-      name ||
-      `archivo.${fileInfo.ext}`
-
-
-    await m.reply(
-`*⌬┤ ⬇️ ├⌬ DESCARGANDO.*
-
-> 📄 *${fileName}*
-> 📁 ${formatSize(contentLength)}`
     )
 
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // DESCARGAR ARCHIVO
+    // ❌ SIN APK
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    const fileRes =
-      await fetch(
-        download,
+    if (!latest?.link) {
+
+      await conn.sendMessage(
+        chatId,
         {
-          redirect: 'follow'
+          react: {
+            text: '⚠️',
+            key: m.key
+          }
         }
-      )
-
-
-    if (!fileRes.ok) {
-
-      throw new Error(
-        `No se pudo descargar el archivo. HTTP ${fileRes.status}`
-      )
-    }
-
-
-    const buffer =
-      Buffer.from(
-        await fileRes.arrayBuffer()
-      )
-
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // VALIDAR TAMAÑO REAL
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-    const realSizeMB =
-      buffer.length /
-      (1024 * 1024)
-
-
-    if (
-      realSizeMB > MAX_MB
-    ) {
+      ).catch(() => {})
 
       return m.reply(
-`*⌬┤ ⚠️ ├⌬ ARCHIVO MUY GRANDE.*
+`༺ 𝙵-𝙳𝚁𝙾𝙸𝙳 ༻
 
-> Tamaño real: *${realSizeMB.toFixed(1)} MB*
-> Límite: *${MAX_MB} MB*`
-      )
-    }
+✰ 𝙰𝙿𝙺 𝚗𝚘 𝚍𝚒𝚜𝚙𝚘𝚗𝚒𝚋𝚕𝚎
 
-
-    const caption =
-`*⌬┤ ✅ ├⌬ ARCHIVO DESCARGADO.*
-
-> 📄 *${fileName}*
-> 📁 ${formatSize(buffer.length)}
-> 📦 *${contentType}*`
-
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // ENVIAR ARCHIVO
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-    if (
-      fileInfo.tipo === 'audio'
-    ) {
-
-      await conn.sendMessage(
-        chatId,
-        {
-          audio: buffer,
-          mimetype: contentType,
-          fileName,
-          ptt: false
-        },
-        {
-          quoted: m
-        }
-      )
-
-    } else if (
-      fileInfo.tipo === 'video'
-    ) {
-
-      await conn.sendMessage(
-        chatId,
-        {
-          video: buffer,
-          mimetype: contentType,
-          fileName,
-          caption
-        },
-        {
-          quoted: m
-        }
-      )
-
-    } else if (
-      fileInfo.tipo === 'image'
-    ) {
-
-      await conn.sendMessage(
-        chatId,
-        {
-          image: buffer,
-          caption
-        },
-        {
-          quoted: m
-        }
-      )
-
-    } else {
-
-      await conn.sendMessage(
-        chatId,
-        {
-          document: buffer,
-          mimetype: contentType,
-          fileName,
-          caption
-        },
-        {
-          quoted: m
-        }
+> ✰ 𝙽𝚘 𝚑𝚊𝚢 𝚎𝚗𝚕𝚊𝚌𝚎 𝚍𝚎 𝚍𝚎𝚜𝚌𝚊𝚛𝚐𝚊.`
       )
     }
 
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // REACCIÓN FINAL
+    // 📥 ENVIAR APK
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    await conn.sendMessage(
+      chatId,
+      {
+        document: {
+          url: latest.link
+        },
+
+        mimetype:
+          'application/vnd.android.package-archive',
+
+        fileName:
+          `${cleanFileName(name)}-${cleanFileName(version)}.apk`,
+
+        caption:
+`༺ 𝙰𝙿𝙺 𝙻𝙸𝚂𝚃𝙾 ༻
+
+✰ 𝙽𝚘𝚖𝚋𝚛𝚎: ${name}
+✰ 𝚅𝚎𝚛𝚜𝚒𝚘́𝚗: ${version}
+✰ 𝙵𝚞𝚎𝚗𝚝𝚎: 𝙵-𝙳𝚛𝚘𝚒𝚍`
+      },
+      {
+        quoted: m
+      }
+    )
+
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // ✅ FINAL
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     await conn.sendMessage(
       chatId,
       {
         react: {
-          text: '✅',
+          text: '✰',
           key: m.key
         }
       }
@@ -440,7 +344,8 @@ const handler = async (
   } catch (error) {
 
     console.error(
-      '[GDRIVE ERROR]',
+      '[F-DROID]',
+      error?.response?.data ||
       error?.message ||
       error
     )
@@ -458,36 +363,39 @@ const handler = async (
 
 
     return m.reply(
-`*⌬┤ ❌ ├⌬ ERROR.*
+`༺ 𝙵-𝙳𝚁𝙾𝙸𝙳 ༻
 
-> No se pudo completar la descarga.
+✰ 𝙴𝚛𝚛𝚘𝚛
 
-⚠️ ${error?.message || 'Error desconocido'}`
+> ✰ 𝙽𝚘 𝚜𝚎 𝚙𝚞𝚍𝚘 𝚘𝚋𝚝𝚎𝚗𝚎𝚛 𝚕𝚊 𝚊𝚙𝚕𝚒𝚌𝚊𝚌𝚒𝚘́𝚗.
+
+> ✰ ${String(
+  error?.message ||
+  'Error desconocido'
+).slice(0, 300)}`
     )
   }
 }
 
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// CONFIGURACIÓN
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ⚙️ CONFIGURACIÓN
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 handler.help = [
-  'gdrive <link>',
-  'googledrive <link>',
-  'gdl <link>'
+  '𝚏𝚍𝚛𝚘𝚒𝚍 <𝚕𝚒𝚗𝚔>',
+  '𝚊𝚙𝚙𝚒𝚗𝚏𝚘 <𝚕𝚒𝚗𝚔>'
 ]
 
 handler.command = [
-  'gdrive',
-  'googledrive',
-  'gdl'
+  'fdroid',
+  'appinfo'
 ]
 
 handler.tags = [
   'descargas'
 ]
 
-handler.register = true
+handler.register = false
 
 export default handler

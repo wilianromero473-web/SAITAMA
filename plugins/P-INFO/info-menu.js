@@ -1,85 +1,196 @@
 import * as baileysMod from '@whiskeysockets/baileys'
 import config from '../../config.js'
 import { plugins } from '../../handler.js'
-import { sendSmart } from '../../lib/serializer.js'
 
-const pkg = baileysMod.default && Object.keys(baileysMod).length === 1 ? baileysMod.default : baileysMod
-const { prepareWAMessageMedia, generateWAMessageFromContent } = pkg
+const pkg =
+  baileysMod.default &&
+  Object.keys(baileysMod).length === 1
+    ? baileysMod.default
+    : baileysMod
+
+const {
+  prepareWAMessageMedia,
+  generateWAMessageFromContent
+} = pkg
 
 const START_TIME = Date.now()
+
+// ═════════════════════════════════════
+// ✦ IMÁGENES DEL MENÚ
+// ═════════════════════════════════════
 
 const IMAGENES = [
   'https://files.catbox.moe/dkxngv.png',
   'https://files.catbox.moe/a8id3b.png',
   'https://files.catbox.moe/7ess2z.png',
   'https://files.catbox.moe/eb7zb2.png',
-  'https://files.catbox.moe/wj6sad.png',
+  'https://files.catbox.moe/wj6sad.png'
 ]
 
+// ═════════════════════════════════════
+// ✦ CATEGORÍAS
+// ═════════════════════════════════════
+
 const ETIQUETAS = {
-  info:          '『 ℹ️ 』𝐈𝐍𝐅𝐎𝐑𝐌𝐀𝐂𝐈Ó𝐍',
-  owner:         '『 👑 』𝐎𝐖𝐍𝐄𝐑 / 𝐃𝐔𝐄Ñ𝐎',
-  rpg:           '『 ⚔️ 』𝐑𝐎𝐋 𝐘 𝐀𝐕𝐄𝐍𝐓𝐔𝐑𝐀',
-  eco:           '『 💰 』𝐄𝐂𝐎𝐍𝐎𝐌Í𝐀',
-  registro:      '『 👤 』𝐑𝐄𝐆𝐈𝐒𝐓𝐑𝐎',
-  juegos:        '『 🎮 』𝐌𝐈𝐍𝐈𝐉𝐔𝐄𝐆𝐎𝐒',
-  fun:           '『 🎉 』𝐃𝐈𝐕𝐄𝐑𝐒𝐈Ó𝐍',
-  group:         '『 👥 』𝐆𝐄𝐒𝐓𝐈Ó𝐍 𝐃𝐄 𝐆𝐑𝐔𝐏𝐎𝐒',
-  tools:         '『 🔧 』𝐇𝐄𝐑𝐑𝐀𝐌𝐈𝐄𝐍𝐓𝐀𝐒',
-  descargas:     '『 📥 』𝐃𝐄𝐒𝐂𝐀𝐑𝐆𝐀𝐒',
-  busquedas:     '『 🔍 』𝐁Ú𝐒𝐐𝐔𝐄𝐃𝐀𝐒',
-  convertidores: '『 🔄 』𝐂𝐎𝐍𝐕𝐄𝐑𝐓𝐈𝐃𝐎𝐑𝐄𝐒',
-  anime:         '『 🎌 』𝐀𝐍𝐈𝐌𝐄 / 𝐎𝐓𝐀𝐊𝐔',
-  nsfw:          '『 🔞 』𝐂𝐎𝐍𝐓𝐄𝐍𝐈𝐃𝐎 +𝟏𝟖',
-  jadibot:       '『 🤖 』𝐒𝐔𝐁-𝐁𝐎𝐓𝐒',
-  otros:         '『 📦 』𝐎𝐓𝐑𝐎𝐒 𝐂𝐎𝐌𝐀𝐍𝐃𝐎𝐒'
+
+  info:
+    '『 ✦ 』𝙸𝙽𝙵𝙾𝚁𝙼𝙰𝙲𝙸Ó𝙽',
+
+  owner:
+    '『 ♛ 』𝙾𝚆𝙽𝙴𝚁 / 𝙳𝚄𝙴Ñ𝙾',
+
+  rpg:
+    '『 ⚔ 』𝚁𝙾𝙻 𝚈 𝙰𝚅𝙴𝙽𝚃𝚄𝚁𝙰',
+
+  eco:
+    '『 ◈ 』𝙴𝙲𝙾𝙽𝙾𝙼Í𝙰',
+
+  registro:
+    '『 ✎ 』𝚁𝙴𝙶𝙸𝚂𝚃𝚁𝙾',
+
+  juegos:
+    '『 🎮 』𝙼𝙸𝙽𝙸𝙹𝚄𝙴𝙶𝙾𝚂',
+
+  fun:
+    '『 ✧ 』𝙳𝙸𝚅𝙴𝚁𝚂𝙸Ó𝙽',
+
+  group:
+    '『 ♟ 』𝙶𝙴𝚂𝚃𝙸Ó𝙽 𝙳𝙴 𝙶𝚁𝚄𝙿𝙾𝚂',
+
+  tools:
+    '『 ⚙ 』𝙷𝙴𝚁𝚁𝙰𝙼𝙸𝙴𝙽𝚃𝙰𝚂',
+
+  descargas:
+    '『 ⇩ 』𝙳𝙴𝚂𝙲𝙰𝚁𝙶𝙰𝚂',
+
+  busquedas:
+    '『 ⌕ 』𝙱Ú𝚂𝚀𝚄𝙴𝙳𝙰𝚂',
+
+  convertidores:
+    '『 ↻ 』𝙲𝙾𝙽𝚅𝙴𝚁𝚃𝙸𝙳𝙾𝚁𝙴𝚂',
+
+  anime:
+    '『 ✺ 』𝙰𝙽𝙸𝙼𝙴 / 𝙾𝚃𝙰𝙺𝚄',
+
+  nsfw:
+    '『 +18 』𝙲𝙾𝙽𝚃𝙴𝙽𝙸𝙳𝙾',
+
+  jadibot:
+    '『 ◉ 』𝚂𝚄𝙱-𝙱𝙾𝚃𝚂',
+
+  ia:
+    '『 ▣ 』𝙸𝙽𝚃𝙴𝙻𝙸𝙶𝙴𝙽𝙲𝙸𝙰 𝙰𝚁𝚃𝙸𝙵𝙸𝙲𝙸𝙰𝙻'
 }
 
-const getTime = () => {
-  const t = Math.floor((Date.now() - START_TIME) / 1000)
-  const d = Math.floor(t / 86400)
-  const h = Math.floor((t / 3600) % 24)
-  const min = Math.floor((t / 60) % 60)
-  const s = t % 60
+// ═════════════════════════════════════
+// ✦ TIEMPO ACTIVO
+// ═════════════════════════════════════
 
-  return `${d > 0 ? d + 'd ' : ''}${h > 0 ? h + 'h ' : ''}${min > 0 ? min + 'm ' : ''}${s}s`
+function getTime() {
+
+  const t =
+    Math.floor(
+      (Date.now() - START_TIME) / 1000
+    )
+
+  const d =
+    Math.floor(t / 86400)
+
+  const h =
+    Math.floor(
+      (t / 3600) % 24
+    )
+
+  const min =
+    Math.floor(
+      (t / 60) % 60
+    )
+
+  const s =
+    t % 60
+
+  return (
+    `${d > 0 ? d + 'd ' : ''}` +
+    `${h > 0 ? h + 'h ' : ''}` +
+    `${min > 0 ? min + 'm ' : ''}` +
+    `${s}s`
+  )
 }
 
-function getCategorias(isOwner, groupDb) {
+// ═════════════════════════════════════
+// ✦ OBTENER CATEGORÍAS
+// ═════════════════════════════════════
+
+function getCategorias(
+  isOwner,
+  groupDb
+) {
+
   const categorias = {}
   let total = 0
 
-  for (const p of Object.values(plugins)) {
-    if (!p || !p.help) continue
+  for (
+    const p of Object.values(plugins)
+  ) {
 
-    if ((p.owner || p.ownerOnly) && !isOwner) continue
+    if (
+      !p ||
+      !p.help
+    ) continue
 
-    const tagRaw = Array.isArray(p.tags)
-      ? p.tags[0]
-      : (p.tags || 'otros')
+    if (
+      (p.owner || p.ownerOnly) &&
+      !isOwner
+    ) continue
 
-    const tag = tagRaw.toLowerCase()
+    const tagRaw =
+      Array.isArray(p.tags)
+        ? p.tags[0]
+        : (
+            p.tags ||
+            'otros'
+          )
 
-    if (groupDb && groupDb.disabledCategories?.includes(tag)) continue
-
-    const cmdsReales = Array.isArray(p.command)
-      ? p.command
-      : [p.command]
+    const tag =
+      String(tagRaw).toLowerCase()
 
     if (
       groupDb &&
-      cmdsReales.every(c => groupDb.disabledCmds?.includes(c))
-    ) continue
+      groupDb.disabledCategories?.includes(tag)
+    ) {
+      continue
+    }
+
+    const comandosReales =
+      Array.isArray(p.command)
+        ? p.command
+        : [p.command]
+
+    if (
+      groupDb &&
+      comandosReales.every(
+        c =>
+          groupDb.disabledCmds?.includes(c)
+      )
+    ) {
+      continue
+    }
 
     if (!categorias[tag]) {
       categorias[tag] = []
     }
 
-    const cmds = Array.isArray(p.help)
-      ? p.help
-      : [p.help]
+    const comandos =
+      Array.isArray(p.help)
+        ? p.help
+        : [p.help]
 
-    for (const cmd of cmds) {
+    for (
+      const cmd of comandos
+    ) {
+
+      if (!cmd) continue
+
       categorias[tag].push(cmd)
       total++
     }
@@ -91,44 +202,71 @@ function getCategorias(isOwner, groupDb) {
   }
 }
 
-function getOrdenActivo(isOwner, groupDb) {
-  const { categorias, total } = getCategorias(
-    isOwner,
-    groupDb
-  )
+// ═════════════════════════════════════
+// ✦ ORDEN DE CATEGORÍAS
+// ═════════════════════════════════════
 
-  const ordenFinal = Object.keys(categorias)
+function getOrdenActivo(
+  isOwner,
+  groupDb
+) {
+
+  const {
+    categorias,
+    total
+  } =
+    getCategorias(
+      isOwner,
+      groupDb
+    )
 
   return {
     categorias,
     total,
-    ordenFinal
+    ordenFinal:
+      Object.keys(categorias)
   }
 }
 
-const getContextInfo = (conn, m) => ({
-  mentionedJid: [m.sender],
-  forwardingScore: 999,
-  isForwarded: true,
+// ═════════════════════════════════════
+// ✦ CONTEXT INFO
+// ═════════════════════════════════════
 
-  forwardedNewsletterMessageInfo: {
-    newsletterJid:
-      global.newsletterJid ||
-      '120363408885875268@newsletter',
+function getContextInfo(
+  conn,
+  m
+) {
 
-    newsletterName:
-      `${conn.botname || config.botName} - ${config.ownerName}`,
+  return {
 
-    serverMessageId:
-      Math.floor(Math.random() * 999) + 1
+    mentionedJid: [
+      m.sender
+    ],
+
+    forwardingScore: 999,
+
+    isForwarded: true,
+
+    forwardedNewsletterMessageInfo: {
+
+      newsletterJid:
+        global.newsletterJid ||
+        '120363408885875268@newsletter',
+
+      newsletterName:
+        `${conn.botname || config.botName} - ${config.ownerName}`,
+
+      serverMessageId:
+        Math.floor(
+          Math.random() * 999
+        ) + 1
+    }
   }
-})
+}
 
-/*
-|--------------------------------------------------------------------------
-| SUBMENÚ
-|--------------------------------------------------------------------------
-*/
+// ═════════════════════════════════════
+// ✦ SUBMENÚ
+// ═════════════════════════════════════
 
 async function enviarSubmenu(
   conn,
@@ -139,30 +277,44 @@ async function enviarSubmenu(
   groupDb,
   userDb
 ) {
-  const { categorias } = getOrdenActivo(
-    isOwner,
-    groupDb
-  )
 
-  const comandos = categorias[tag]
+  const {
+    categorias
+  } =
+    getOrdenActivo(
+      isOwner,
+      groupDb
+    )
 
-  if (!comandos?.length) {
+  const comandos =
+    categorias[tag]
+
+  if (
+    !comandos?.length
+  ) {
+
     return m.reply(
-      '╭━━〔 ❌ 𝐄𝐑𝐑𝐎𝐑 〕━━⬣\n' +
-      '┃\n' +
-      '┃ 𝐍𝐨 𝐡𝐚𝐲 𝐜𝐨𝐦𝐚𝐧𝐝𝐨𝐬 𝐚𝐜𝐭𝐢𝐯𝐨𝐬\n' +
-      '┃ 𝐞𝐧 𝐞𝐬𝐭𝐚 𝐜𝐚𝐭𝐞𝐠𝐨𝐫í𝐚.\n' +
-      '┃\n' +
-      '╰━━━━━━━━━━━━━━⬣'
+`╭━━〔 ✕ 𝙴𝚁𝚁𝙾𝚁 〕━━⬣
+┃
+┃ 𝙽𝚘 𝚑𝚊𝚢 𝚌𝚘𝚖𝚊𝚗𝚍𝚘𝚜
+┃ 𝚊𝚌𝚝𝚒𝚟𝚘𝚜 𝚎𝚗 𝚎𝚜𝚝𝚊
+┃ 𝚌𝚊𝚝𝚎𝚐𝚘𝚛í𝚊.
+┃
+╰━━━━━━━━━━━━━━⬣`
     )
   }
 
   const nombreCat =
-    ETIQUETAS[tag] || ETIQUETAS.otros
+    ETIQUETAS[tag] ||
+    ETIQUETAS.otros
 
   const prefix =
     usedPrefix ||
-    config.prefix.source.replace(/[\^\[\]\\]/g, '')[0] ||
+    config.prefix.source
+      .replace(
+        /[\^\[\]\\]/g,
+        ''
+      )[0] ||
     '.'
 
   const linkCanal =
@@ -173,64 +325,55 @@ async function enviarSubmenu(
     conn.botname ||
     config.botName
 
-  /*
-  |--------------------------------------------------------------------------
-  | TEXTO DECORADO DEL SUBMENÚ
-  |--------------------------------------------------------------------------
-  */
+  let caption =
 
-  let caption = ''
+`╭━━〔 ✦ ${nombreCat} ✦ 〕━━⬣
+┃
+┃ 〘 ⟡ 〙 𝙻𝙸𝚂𝚃𝙰 𝙳𝙴
+┃      𝙲𝙾𝙼𝙰𝙽𝙳𝙾𝚂
+┃
+┃ 〘 ⚡ 〙 𝙼𝚘𝚍𝚘 𝙷é𝚛𝚘𝚎
+┃      𝚊𝚌𝚝𝚒𝚟𝚊𝚍𝚘.
+┃
+┣━━━━━━━━━━━━━━━━━━
+┃
+`
 
-  caption +=
-    `╭━━〔 ✦ ${nombreCat} ✦ 〕━━⬣\n`
+  for (
+    const cmd of comandos
+  ) {
 
-  caption +=
-    `┃\n`
-
-  caption +=
-    `┃  ✧ 𝐋𝐈𝐒𝐓𝐀 𝐃𝐄 𝐂𝐎𝐌𝐀𝐍𝐃𝐎𝐒\n`
-
-  caption +=
-    `┃  ╰─➤ 𝐒𝐞𝐥𝐞𝐜𝐜𝐢𝐨𝐧𝐚 𝐮𝐧 𝐜𝐨𝐦𝐚𝐧𝐝𝐨\n`
-
-  caption +=
-    `┃\n`
-
-  for (const cmd of comandos) {
     caption +=
       `┃  ⟡ ${prefix}${cmd}\n`
   }
 
   caption +=
-    `┃\n`
-
-  caption +=
-    `┃  ✦ 𝐓𝐨𝐭𝐚𝐥: ${comandos.length} 𝐜𝐨𝐦𝐚𝐧𝐝𝐨𝐬\n`
-
-  caption +=
-    `┃\n`
-
-  caption +=
-    `╰━━〔 ✧ ${currentBotName} ✧ 〕━━⬣`
+`┃
+┣━━━━━━━━━━━━━━━━━━
+┃
+┃ 〘 ◈ 〙 𝚃𝚘𝚝𝚊𝚕:
+┃      ${comandos.length} 𝚌𝚘𝚖𝚊𝚗𝚍𝚘𝚜
+┃
+╰━━〔 ✦ ${currentBotName} ✦ 〕━━⬣`
 
   const imageUrl =
     conn.menuImage ||
     IMAGENES[
       Math.floor(
-        Math.random() * IMAGENES.length
+        Math.random() *
+        IMAGENES.length
       )
     ]
 
-  /*
-  |--------------------------------------------------------------------------
-  | MODO SIN BOTONES
-  |--------------------------------------------------------------------------
-  */
+  // ═════════════════════════════════
+  // ✦ SIN BOTONES
+  // ═════════════════════════════════
 
   if (
     conn.noButtons ||
     userDb?.noButtons
   ) {
+
     return conn.sendMessage(
       m.chat,
       {
@@ -245,12 +388,6 @@ async function enviarSubmenu(
     )
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | MEDIA
-  |--------------------------------------------------------------------------
-  */
-
   const media =
     await prepareWAMessageMedia(
       {
@@ -264,24 +401,21 @@ async function enviarSubmenu(
       }
     )
 
-  /*
-  |--------------------------------------------------------------------------
-  | MENSAJE INTERACTIVO
-  |--------------------------------------------------------------------------
-  */
-
   const msg =
     generateWAMessageFromContent(
       m.chat,
       {
         viewOnceMessage: {
+
           message: {
+
             messageContextInfo: {
               deviceListMetadata: {},
               deviceListMetadataVersion: 2
             },
 
             interactiveMessage: {
+
               body: {
                 text: caption
               },
@@ -292,21 +426,26 @@ async function enviarSubmenu(
               },
 
               header: {
-                hasMediaAttachment: true,
+                hasMediaAttachment:
+                  true,
+
                 imageMessage:
                   media.imageMessage
               },
 
               nativeFlowMessage: {
+
                 buttons: [
 
                   {
-                    name: 'quick_reply',
+                    name:
+                      'quick_reply',
 
                     buttonParamsJson:
                       JSON.stringify({
+
                         display_text:
-                          '↩️ 𝐕𝐎𝐋𝐕𝐄𝐑 𝐀𝐋 𝐌𝐄𝐍Ú',
+                          '↩ 𝚅𝙾𝙻𝚅𝙴𝚁 𝙰𝙻 𝙼𝙴𝙽Ú',
 
                         id:
                           `${prefix}menu`
@@ -314,12 +453,14 @@ async function enviarSubmenu(
                   },
 
                   {
-                    name: 'cta_url',
+                    name:
+                      'cta_url',
 
                     buttonParamsJson:
                       JSON.stringify({
+
                         display_text:
-                          '📢 𝐒𝐄𝐆𝐔𝐈𝐑 𝐂𝐀𝐍𝐀𝐋',
+                          '➤ 𝚂𝙴𝙶𝚄𝙸𝚁 𝙲𝙰𝙽𝙰𝙻',
 
                         url:
                           linkCanal,
@@ -328,7 +469,6 @@ async function enviarSubmenu(
                           linkCanal
                       })
                   }
-
                 ]
               },
 
@@ -350,16 +490,15 @@ async function enviarSubmenu(
     m.chat,
     msg.message,
     {
-      messageId: msg.key.id
+      messageId:
+        msg.key.id
     }
   )
 }
 
-/*
-|--------------------------------------------------------------------------
-| HANDLER PRINCIPAL
-|--------------------------------------------------------------------------
-*/
+// ═════════════════════════════════════
+// ✦ HANDLER PRINCIPAL
+// ═════════════════════════════════════
 
 const handler = async (
   m,
@@ -377,31 +516,35 @@ const handler = async (
     categorias,
     total,
     ordenFinal
-  } = getOrdenActivo(
-    isOwner,
-    groupDb
-  )
+  } =
+    getOrdenActivo(
+      isOwner,
+      groupDb
+    )
 
-  /*
-  |--------------------------------------------------------------------------
-  | MENÚ 1, MENÚ 2, MENÚ 3...
-  |--------------------------------------------------------------------------
-  */
+  // ═════════════════════════════════
+  // ✦ MENU1 / MENU2 / ETC.
+  // ═════════════════════════════════
 
   const numMatch =
-    command.match(/^menu(\d+)$/)
+    String(command || '')
+      .match(
+        /^menu(\d+)$/
+      )
 
   if (numMatch) {
 
     const idx =
       parseInt(
-        numMatch[1]
+        numMatch[1],
+        10
       ) - 1
 
     const tag =
       ordenFinal[idx]
 
     if (tag) {
+
       return enviarSubmenu(
         conn,
         m,
@@ -414,20 +557,18 @@ const handler = async (
     }
 
     return m.reply(
-      '╭━━〔 ❌ 𝐄𝐑𝐑𝐎𝐑 〕━━⬣\n' +
-      '┃\n' +
-      '┃ 𝐂𝐚𝐭𝐞𝐠𝐨𝐫í𝐚 𝐧𝐨 𝐞𝐧𝐜𝐨𝐧𝐭𝐫𝐚𝐝𝐚\n' +
-      '┃ 𝐨 𝐝𝐞𝐬𝐚𝐜𝐭𝐢𝐯𝐚𝐝𝐚.\n' +
-      '┃\n' +
-      '╰━━━━━━━━━━━━━━⬣'
+`╭━━〔 ✕ 𝙴𝚁𝚁𝙾𝚁 〕━━⬣
+┃
+┃ 𝙲𝚊𝚝𝚎𝚐𝚘𝚛í𝚊 𝚗𝚘
+┃ 𝚎𝚗𝚌𝚘𝚗𝚝𝚛𝚊𝚍𝚊.
+┃
+╰━━━━━━━━━━━━━━⬣`
     )
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | DATOS DEL USUARIO
-  |--------------------------------------------------------------------------
-  */
+  // ═════════════════════════════════
+  // ✦ DATOS DEL USUARIO
+  // ═════════════════════════════════
 
   const nombreUsuario =
     m.pushName ||
@@ -435,21 +576,20 @@ const handler = async (
 
   const prefix =
     usedPrefix ||
-    config.prefix.source.replace(
-      /[\^\[\]\\]/g,
-      ''
-    )[0] ||
+    config.prefix.source
+      .replace(
+        /[\^\[\]\\]/g,
+        ''
+      )[0] ||
     '.'
 
   const currentBotName =
     conn.botname ||
     config.botName
 
-  /*
-  |--------------------------------------------------------------------------
-  | OPCIONES DEL MENÚ
-  |--------------------------------------------------------------------------
-  */
+  // ═════════════════════════════════
+  // ✦ FILAS
+  // ═════════════════════════════════
 
   const rows =
     ordenFinal.map(
@@ -466,13 +606,13 @@ const handler = async (
         return {
 
           header:
-            nombreCat.toUpperCase(),
+            nombreCat,
 
           title:
-            '✦ 𝐕𝐄𝐑 𝐂𝐎𝐌𝐀𝐍𝐃𝐎𝐒 ✦',
+            '✦ 𝚅𝙴𝚁 𝙲𝙾𝙼𝙰𝙽𝙳𝙾𝚂 ✦',
 
           description:
-            `✧ ${n} 𝐜𝐨𝐦𝐚𝐧𝐝𝐨𝐬 · ${prefix}menu${i + 1}`,
+            `⟡ ${n} 𝚌𝚘𝚖𝚊𝚗𝚍𝚘𝚜 • ${prefix}menu${i + 1}`,
 
           id:
             `menu_cat_${tag}`
@@ -484,15 +624,14 @@ const handler = async (
     conn.menuImage ||
     IMAGENES[
       Math.floor(
-        Math.random() * IMAGENES.length
+        Math.random() *
+        IMAGENES.length
       )
     ]
 
-  /*
-  |--------------------------------------------------------------------------
-  | MENÚ SIN BOTONES
-  |--------------------------------------------------------------------------
-  */
+  // ═════════════════════════════════
+  // ✦ MODO SIN BOTONES
+  // ═════════════════════════════════
 
   if (
     conn.noButtons ||
@@ -503,51 +642,54 @@ const handler = async (
       ordenFinal
         .map(
           (tag, i) =>
-            `┃  『 ${i + 1} 』 ${ETIQUETAS[tag] || tag}\n` +
-            `┃       ⤷ ${categorias[tag]?.length || 0} 𝐜𝐨𝐦𝐚𝐧𝐝𝐨𝐬 · ${prefix}menu${i + 1}`
+`┃
+┃ 〘 ${i + 1} 〙 ${ETIQUETAS[tag] || tag}
+┃      ⤷ ${categorias[tag]?.length || 0} 𝚌𝚘𝚖𝚊𝚗𝚍𝚘𝚜
+┃      ⤷ ${prefix}menu${i + 1}`
         )
         .join('\n')
 
     const textoNoBtn =
 
-`╭━━〔 ✦ 𝐒𝐀𝐈𝐓𝐀𝐌𝐀𝐁𝐎𝐓 ✦ 〕━━⬣
+`╭━━〔 ✦ 𝚂𝙰𝙸𝚃𝙰𝙼𝙰𝙱𝙾𝚃 ✦ 〕━━⬣
 ┃
-┃  ╭─〔 👋 𝐁𝐈𝐄𝐍𝐕𝐄𝐍𝐈𝐃𝐎/𝐀 〕
-┃  │
-┃  │  ✧ 𝐇𝐨𝐥𝐚, *${nombreUsuario}* ♡
-┃  │
-┃  │  𝐌𝐞 𝐚𝐥𝐞𝐠𝐫𝐚 𝐯𝐞𝐫𝐭𝐞 𝐩𝐨𝐫 𝐚𝐪𝐮í.
-┃  │  𝐄𝐬𝐭𝐞 𝐞𝐬 𝐞𝐥 𝐦𝐞𝐧ú 𝐩𝐫𝐢𝐧𝐜𝐢𝐩𝐚𝐥 𝐝𝐞
-┃  │  *${currentBotName}* ✨
-┃  ╰───────────────
+┃ 〘 ⚡ 〙 𝙷𝚘𝚕𝚊, ${nombreUsuario}!
 ┃
-┣━━〔 📊 𝐈𝐍𝐅𝐎𝐑𝐌𝐀𝐂𝐈Ó𝐍 〕━━⬣
+┃ 𝚂𝚘𝚢 𝚂𝚊𝚒𝚝𝚊𝚖𝚊𝙱𝚘𝚝.
 ┃
-┃  👑 𝐂𝐫𝐞𝐚𝐝𝐨𝐫:
-┃     ${config.ownerName}
+┃ 𝚄𝚗 𝚋𝚘𝚝 𝚙𝚛𝚎𝚙𝚊𝚛𝚊𝚍𝚘
+┃ 𝚙𝚊𝚛𝚊 𝚊𝚢𝚞𝚍𝚊𝚛𝚝𝚎.
 ┃
-┃  ⚙️ 𝐏𝐫𝐞𝐟𝐢𝐣𝐨:
-┃     『 ${prefix} 』
+┃ 〘 👊 〙 𝙼𝙾𝙳𝙾 𝙷É𝚁𝙾𝙴
 ┃
-┃  ⏱️ 𝐀𝐜𝐭𝐢𝐯𝐨:
-┃     ${getTime()}
+┃ 𝙴𝚕𝚒𝚐𝚎 𝚞𝚗𝚊 𝚌𝚊𝚝𝚎𝚐𝚘𝚛í𝚊
+┃ 𝚢 𝚌𝚘𝚖𝚒𝚎𝚗𝚣𝚊.
 ┃
-┃  📦 𝐂𝐨𝐦𝐚𝐧𝐝𝐨𝐬:
-┃     ${total}
+┣━━〔 ◈ 𝙴𝚂𝚃𝙰𝙳Í𝚂𝚃𝙸𝙲𝙰𝚂 ◈ 〕━━⬣
 ┃
-┣━━〔 ✦ 𝐑𝐄𝐃𝐄𝐒 ✦ 〕━━⬣
+┃ 〘 ♛ 〙 𝙲𝚛𝚎𝚊𝚍𝚘𝚛:
+┃      ${config.ownerName}
 ┃
-┃  🎵 𝐓𝐢𝐤𝐓𝐨𝐤 𝐝𝐞 𝐦𝐢 𝐜𝐫𝐞𝐚𝐝𝐨𝐫:
-┃  🔗 https://www.tiktok.com/@sai16172?_r=1&_t=ZS-97okvUBLwyT
+┃ 〘 ⚙ 〙 𝙿𝚛𝚎𝚏𝚒𝚓𝚘:
+┃      『 ${prefix} 』
 ┃
-┃  ♡ 𝐒𝐢𝐠𝐮𝐞 𝐚 𝐦𝐢 𝐜𝐫𝐞𝐚𝐝𝐨𝐫 𝐩𝐚𝐫𝐚
-┃     𝐚𝐩𝐨𝐲𝐚𝐫 𝐞𝐥 𝐩𝐫𝐨𝐲𝐞𝐜𝐭𝐨 💯❤️
+┃ 〘 ◷ 〙 𝙰𝚌𝚝𝚒𝚟𝚘:
+┃      ${getTime()}
 ┃
-┣━━〔 📚 𝐂𝐀𝐓𝐄𝐆𝐎𝐑Í𝐀𝐒 〕━━⬣
+┃ 〘 ◈ 〙 𝙲𝚘𝚖𝚊𝚗𝚍𝚘𝚜:
+┃      ${total}
 ┃
+┣━━〔 👊 𝙲𝙴𝙽𝚃𝚁𝙾 𝙳𝙴 𝙷É𝚁𝙾𝙴𝚂 👊 〕━━⬣
+┃
+┃ 〘 ⟡ 〙 𝙲𝚊𝚝𝚎𝚐𝚘𝚛í𝚊𝚜:
 ${cats}
 ┃
-╰━━〔 ✧ ${config.footer} ✧ 〕━━⬣`
+┣━━〔 ✦ 𝚁𝙴𝙳𝙴𝚂 ✦ 〕━━⬣
+┃
+┃ 〘 ♪ 〙 𝚃𝚒𝚔𝚃𝚘𝚔:
+┃  https://www.tiktok.com/@sai16172
+┃
+╰━━〔 ✦ ${config.footer} ✦ 〕━━⬣`
 
     return conn.sendMessage(
       m.chat,
@@ -555,7 +697,8 @@ ${cats}
         image: {
           url: imageUrl
         },
-        caption: textoNoBtn
+        caption:
+          textoNoBtn
       },
       {
         quoted: m
@@ -563,55 +706,64 @@ ${cats}
     )
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | MENÚ PRINCIPAL CON BOTONES
-  |--------------------------------------------------------------------------
-  */
+  // ═════════════════════════════════════
+  // ✦ MENÚ PRINCIPAL
+  // ═════════════════════════════════════
 
   const textoMenu =
 
-`╭━━〔 ✦ 𝐒𝐀𝐈𝐓𝐀𝐌𝐀𝐁𝐎𝐓 ✦ 〕━━⬣
+`╭━━〔 ✦ 𝚂𝙰𝙸𝚃𝙰𝙼𝙰𝙱𝙾𝚃 ✦ 〕━━⬣
 ┃
-┃  ╭─〔 👋 𝐁𝐈𝐄𝐍𝐕𝐄𝐍𝐈𝐃𝐎/𝐀 〕
-┃  │
-┃  │  ✧ 𝐇𝐨𝐥𝐚, *${nombreUsuario}* ♡
-┃  │
-┃  │  𝐁𝐢𝐞𝐧𝐯𝐞𝐧𝐢𝐝𝐨/𝐚 𝐚𝐥 𝐦𝐞𝐧ú 𝐩𝐫𝐢𝐧𝐜𝐢𝐩𝐚𝐥.
-┃  │  𝐄𝐬𝐭𝐚𝐬 𝐞𝐧 𝐒𝐚𝐢𝐭𝐚𝐦𝐚𝐁𝐨𝐭 ✨
-┃  │
-┃  │  𝐄𝐥𝐢𝐠𝐞 𝐮𝐧𝐚 𝐜𝐚𝐭𝐞𝐠𝐨𝐫í𝐚
-┃  │  𝐩𝐚𝐫𝐚 𝐯𝐞𝐫 𝐬𝐮𝐬 𝐜𝐨𝐦𝐚𝐧𝐝𝐨𝐬.
-┃  ╰───────────────
+┃ 〘 ⚡ 〙 𝙷𝚘𝚕𝚊, ${nombreUsuario}!
 ┃
-┣━━〔 📊 𝐄𝐒𝐓𝐀𝐃Í𝐒𝐓𝐈𝐂𝐀𝐒 〕━━⬣
+┃ 𝚂𝚘𝚢 𝚂𝚊𝚒𝚝𝚊𝚖𝚊𝙱𝚘𝚝.
 ┃
-┃  👑 𝐂𝐫𝐞𝐚𝐝𝐨𝐫:
-┃     ${config.ownerName}
+┃ 𝚄𝚗 𝚊𝚜𝚒𝚜𝚝𝚎𝚗𝚝𝚎
+┃ 𝚙𝚛𝚎𝚙𝚊𝚛𝚊𝚍𝚘 𝚙𝚊𝚛𝚊
+┃ 𝚕𝚕𝚎𝚟𝚊𝚛 𝚝𝚞𝚜
+┃ 𝚌𝚘𝚖𝚊𝚗𝚍𝚘𝚜.
 ┃
-┃  ⚙️ 𝐏𝐫𝐞𝐟𝐢𝐣𝐨:
-┃     『 ${prefix} 』
+┃ 〘 👊 〙 𝙼𝙾𝙳𝙾 𝙷É𝚁𝙾𝙴
 ┃
-┃  ⏱️ 𝐓𝐢𝐞𝐦𝐩𝐨 𝐚𝐜𝐭𝐢𝐯𝐨:
-┃     ${getTime()}
+┃ 𝙴𝚕𝚒𝚐𝚎 𝚞𝚗𝚊 𝚌𝚊𝚝𝚎𝚐𝚘𝚛í𝚊
+┃ 𝚢 𝚌𝚘𝚖𝚒𝚎𝚗𝚣𝚊 𝚕𝚊
+┃ 𝚊𝚟𝚎𝚗𝚝𝚞𝚛𝚊.
 ┃
-┃  📦 𝐓𝐨𝐭𝐚𝐥 𝐝𝐞 𝐜𝐨𝐦𝐚𝐧𝐝𝐨𝐬:
-┃     ${total}
+┣━━〔 ⚡ 𝙴𝚂𝚃𝙰𝙳Í𝚂𝚃𝙸𝙲𝙰𝚂 ⚡ 〕━━⬣
 ┃
-┣━━〔 ✦ 𝐑𝐄𝐃𝐄𝐒 ✦ 〕━━⬣
+┃ 〘 ♛ 〙 𝙲𝚛𝚎𝚊𝚍𝚘𝚛:
+┃      ${config.ownerName}
 ┃
-┃  🎵 𝐓𝐢𝐤𝐓𝐨𝐤 𝐝𝐞 𝐦𝐢 𝐜𝐫𝐞𝐚𝐝𝐨𝐫:
-┃  🔗 https://www.tiktok.com/@sai16172?_r=1&_t=ZS-97okvUBLwyT
+┃ 〘 ⚙ 〙 𝙿𝚛𝚎𝚏𝚒𝚓𝚘:
+┃      『 ${prefix} 』
 ┃
-┃  ♡ 𝐒𝐢𝐠𝐮𝐞 𝐚 𝐦𝐢 𝐜𝐫𝐞𝐚𝐝𝐨𝐫 𝐩𝐚𝐫𝐚
-┃     𝐚𝐩𝐨𝐲𝐚𝐫 𝐞𝐥 𝐩𝐫𝐨𝐲𝐞𝐜𝐭𝐨 💯❤️
+┃ 〘 ◷ 〙 𝚃𝚒𝚎𝚖𝚙𝚘 𝚊𝚌𝚝𝚒𝚟𝚘:
+┃      ${getTime()}
 ┃
-┣━━〔 📖 𝐌𝐄𝐍Ú 〕━━⬣
+┃ 〘 ◈ 〙 𝚃𝚘𝚝𝚊𝚕:
+┃      ${total} 𝚌𝚘𝚖𝚊𝚗𝚍𝚘𝚜
 ┃
-┃  ✧ 𝐏𝐮𝐥𝐬𝐚 𝐞𝐥 𝐛𝐨𝐭ó𝐧
-┃     𝐩𝐚𝐫𝐚 𝐯𝐞𝐫 𝐥𝐚𝐬 𝐜𝐚𝐭𝐞𝐠𝐨𝐫í𝐚𝐬.
+┣━━〔 👊 𝙲𝙴𝙽𝚃𝚁𝙾 𝙳𝙴 𝙷É𝚁𝙾𝙴𝚂 👊 〕━━⬣
 ┃
-╰━━〔 ✧ ${config.footer} ✧ 〕━━⬣`
+┃ 〘 ⟡ 〙 𝙿𝚞𝚕𝚜𝚊 𝚎𝚕 𝚋𝚘𝚝ó𝚗
+┃      𝚍𝚎 𝚊𝚋𝚊𝚓𝚘 𝚙𝚊𝚛𝚊
+┃      𝚟𝚎𝚛 𝚕𝚊𝚜
+┃      𝚌𝚊𝚝𝚎𝚐𝚘𝚛í𝚊𝚜.
+┃
+┃ 〘 ⚔ 〙 𝙴𝚕 𝚎𝚗𝚝𝚛𝚎𝚗𝚊𝚖𝚒𝚎𝚗𝚝𝚘
+┃      𝚌𝚘𝚖𝚒𝚎𝚗𝚣𝚊 𝚊𝚑𝚘𝚛𝚊.
+┃
+┣━━〔 ✦ 𝚁𝙴𝙳𝙴𝚂 ✦ 〕━━⬣
+┃
+┃ 〘 ♪ 〙 𝚃𝚒𝚔𝚃𝚘𝚔 𝚍𝚎𝚕 𝚌𝚛𝚎𝚊𝚍𝚘𝚛:
+┃
+┃  https://www.tiktok.com/@sai16172
+┃
+╰━━〔 ✦ ${config.footer} ✦ 〕━━⬣`
+
+  // ═════════════════════════════════════
+  // ✦ PREPARAR IMAGEN
+  // ═════════════════════════════════════
 
   const media =
     await prepareWAMessageMedia(
@@ -626,17 +778,16 @@ ${cats}
       }
     )
 
-  /*
-  |--------------------------------------------------------------------------
-  | MENSAJE INTERACTIVO
-  |--------------------------------------------------------------------------
-  */
+  // ═════════════════════════════════════
+  // ✦ MENSAJE INTERACTIVO
+  // ═════════════════════════════════════
 
   const msg =
     generateWAMessageFromContent(
       m.chat,
       {
         viewOnceMessage: {
+
           message: {
 
             messageContextInfo: {
@@ -647,7 +798,8 @@ ${cats}
             interactiveMessage: {
 
               body: {
-                text: textoMenu
+                text:
+                  textoMenu
               },
 
               footer: {
@@ -656,7 +808,10 @@ ${cats}
               },
 
               header: {
-                hasMediaAttachment: true,
+
+                hasMediaAttachment:
+                  true,
+
                 imageMessage:
                   media.imageMessage
               },
@@ -665,26 +820,25 @@ ${cats}
 
                 buttons: [
 
-                  /*
-                  |--------------------------------------------------------------------------
-                  | BOTÓN DE CATEGORÍAS
-                  |--------------------------------------------------------------------------
-                  */
+                  // ═══════════════════════
+                  // ✦ SELECTOR
+                  // ═══════════════════════
 
                   {
-                    name: 'single_select',
+                    name:
+                      'single_select',
 
                     buttonParamsJson:
                       JSON.stringify({
 
                         title:
-                          '📚 𝐒𝐄𝐋𝐄𝐂𝐂𝐈𝐎𝐍𝐀𝐑 𝐌𝐄𝐍Ú',
+                          '👊 𝚂𝙴𝙻𝙴𝙲𝙲𝙸𝙾𝙽𝙰𝚁 𝙼𝙴𝙽Ú',
 
                         sections: [
 
                           {
                             title:
-                              '✦ 𝐂𝐀𝐓𝐄𝐆𝐎𝐑Í𝐀𝐒 𝐃𝐈𝐒𝐏𝐎𝐍𝐈𝐁𝐋𝐄𝐒 ✦',
+                              '『 ⚡ 』𝙲𝙴𝙽𝚃𝚁𝙾 𝙳𝙴 𝙷É𝚁𝙾𝙴𝚂',
 
                             rows
                           }
@@ -693,20 +847,19 @@ ${cats}
                       })
                   },
 
-                  /*
-                  |--------------------------------------------------------------------------
-                  | BOTÓN DEL CANAL
-                  |--------------------------------------------------------------------------
-                  */
+                  // ═══════════════════════
+                  // ✦ CANAL
+                  // ═══════════════════════
 
                   {
-                    name: 'cta_url',
+                    name:
+                      'cta_url',
 
                     buttonParamsJson:
                       JSON.stringify({
 
                         display_text:
-                          '📢 𝐔𝐍𝐈𝐑𝐒𝐄 𝐀𝐋 𝐂𝐀𝐍𝐀𝐋',
+                          '➤ 𝚂𝙴𝙶𝚄𝙸𝚁 𝙲𝙰𝙽𝙰𝙻',
 
                         url:
                           config.groupLink ||
@@ -717,7 +870,6 @@ ${cats}
                           'https://whatsapp.com'
                       })
                   }
-
                 ]
               },
 
@@ -739,16 +891,15 @@ ${cats}
     m.chat,
     msg.message,
     {
-      messageId: msg.key.id
+      messageId:
+        msg.key.id
     }
   )
 }
 
-/*
-|--------------------------------------------------------------------------
-| RESPUESTAS DE LOS BOTONES
-|--------------------------------------------------------------------------
-*/
+// ═════════════════════════════════════
+// ✦ RESPUESTAS DEL SELECTOR
+// ═════════════════════════════════════
 
 handler.all = async (
   m,
@@ -774,7 +925,7 @@ handler.all = async (
         ''
       )
 
-    await enviarSubmenu(
+    return enviarSubmenu(
       conn,
       m,
       tag,
@@ -786,11 +937,9 @@ handler.all = async (
   }
 }
 
-/*
-|--------------------------------------------------------------------------
-| CONFIGURACIÓN DEL COMANDO
-|--------------------------------------------------------------------------
-*/
+// ═════════════════════════════════════
+// ✦ CONFIGURACIÓN DEL COMANDO
+// ═════════════════════════════════════
 
 handler.help = [
   'menu'
@@ -801,10 +950,12 @@ handler.tags = [
 ]
 
 handler.command = [
+
   'menu',
   'help',
   'ayuda',
   'menú',
+
   ...Array.from(
     {
       length: 20

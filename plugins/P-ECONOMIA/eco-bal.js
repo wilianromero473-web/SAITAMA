@@ -2,81 +2,261 @@ import { RANGOS } from '../../lib/database/models/zen-users.js'
 import User from '../../lib/database/models/zen-users.js'
 import config from '../../config.js'
 
-const extraerNum = (jid = '') => (typeof jid === 'string' ? jid : '').split('@')[0].split(':')[0].replace(/\D/g, '')
+// ═════════════════════════════════════
+// ✦ UTILIDADES
+// ═════════════════════════════════════
+
+const extraerNum = (jid = '') => {
+  if (typeof jid !== 'string') return ''
+
+  return jid
+    .split('@')[0]
+    .split(':')[0]
+    .replace(/\D/g, '')
+}
 
 const resolveTargetJid = (m, participants = []) => {
-  const raw = m.mentionedJid?.[0] || m.quoted?.sender || null
+  const raw =
+    m.mentionedJid?.[0] ||
+    m.quoted?.sender ||
+    null
+
   if (!raw) return null
-  if (!raw.endsWith('@lid')) return raw
-  const p = participants.find(p => p.id === raw || p.lid === raw)
-  if (p?.phoneNumber) return `${String(p.phoneNumber).replace(/\D/g, '')}@s.whatsapp.net`
-  if (p?.id?.includes('@s.whatsapp.net')) return p.id
+
+  if (!raw.endsWith('@lid')) {
+    return raw
+  }
+
+  const participante = participants.find(
+    p => p.id === raw || p.lid === raw
+  )
+
+  if (participante?.phoneNumber) {
+    const numero = String(participante.phoneNumber)
+      .replace(/\D/g, '')
+
+    if (numero) {
+      return `${numero}@s.whatsapp.net`
+    }
+  }
+
+  if (participante?.id?.includes('@s.whatsapp.net')) {
+    return participante.id
+  }
+
   return raw
 }
 
-const findByNum = (jid) => {
+const findByNum = async jid => {
   const num = extraerNum(jid)
+
   if (!num) return null
-  return User.findOne({ jid: { $regex: `^${num}@` } }).lean()
+
+  return await User.findOne({
+    jid: {
+      $regex: `^${num}@`
+    }
+  }).lean()
 }
+
+// ═════════════════════════════════════
+// ✦ FORMATO DE BALANCE
+// ═════════════════════════════════════
 
 const formatBalance = (u, jid, now) => {
-  const rango = RANGOS[Math.min(u.level, RANGOS.length - 1)]
-  const estaProtegido = u.bankExpiry > now
-  const expira = estaProtegido
-    ? `${Math.floor((u.bankExpiry - now) / 3600000)}h ${Math.floor(((u.bankExpiry - now) % 3600000) / 60000)}m`
-    : 'INACTIVO ⚠️'
-  return `*╔═══⌦ ✦ 💳 CUENTA ✦ ⌫═══╗*\n\n`
-       + `> 👤 *Usuario:* @${extraerNum(jid)}\n`
-       + `> 🆙 *Nivel:* ${u.level}\n`
-       + `> 🏆 *Rango:* ${rango}\n\n`
-       + `*⌬┤ 💰 BILLETERA ├⌬*\n`
-       + `> ${config.CURRENCY_SYMBOL} *${config.CURRENCY_NAME}:* ${u.genosCoins} ${config.CURRENCY_SYMBOL}\n`
-       + `> 🔓 *Estado:* EXPUESTO A ROBOS\n\n`
-       + `*⌬┤ 🏦 BANCO ├⌬*\n`
-       + `> 💳 *Saldo:* ${u.bankBalance} ${config.CURRENCY_SYMBOL}\n`
-       + `> 🛡️ *Protección:* ${estaProtegido ? 'ACTIVA ✅' : 'INACTIVA ❌'}\n`
-       + `> ⏳ *Expira:* ${expira}\n\n`
-       + `*⌬┤ ✨ PREMIUM ├⌬*\n`
-       + `> ${config.PREMIUM_SYMBOL} *${config.PREMIUM_NAME}:* ${u.genos} ${config.PREMIUM_SYMBOL}\n\n`
-       + `*╚══⌦ ${config.footer} ⌫══╝*`
+  const nivel = Number(u.level) || 0
+
+  const rango =
+    RANGOS?.[
+      Math.min(
+        nivel,
+        Math.max(0, RANGOS.length - 1)
+      )
+    ] || 'Sin rango'
+
+  const genosCoins = Number(u.genosCoins) || 0
+  const bankBalance = Number(u.bankBalance) || 0
+  const genos = Number(u.genos) || 0
+  const bankExpiry = Number(u.bankExpiry) || 0
+
+  const protegido = bankExpiry > now
+
+  let expira = '𝙸𝙽𝙰𝙲𝚃𝙸𝚅𝙾 ⚠️'
+
+  if (protegido) {
+    const restante = bankExpiry - now
+
+    const horas = Math.floor(
+      restante / 3600000
+    )
+
+    const minutos = Math.floor(
+      (restante % 3600000) / 60000
+    )
+
+    expira = `${horas}𝚑 ${minutos}𝚖`
+  }
+
+  return [
+    `༺ 𝙲𝚄𝙴𝙽𝚃𝙰 𝙳𝙴 𝙹𝚄𝙴𝙶𝙾 ༻`,
+    ``,
+    `✰ 𝚄𝚜𝚞𝚊𝚛𝚒𝚘: @${extraerNum(jid)}`,
+    `> ✰ 𝙽𝚒𝚟𝚎𝚕: ${nivel}`,
+    `> ✰ 𝚁𝚊𝚗𝚐𝚘: ${rango}`,
+    ``,
+    `༺ 𝙱𝙸𝙻𝙻𝙴𝚃𝙴𝚁𝙰 ༻`,
+    ``,
+    `✰ ${config.CURRENCY_NAME}: ${genosCoins} ${config.CURRENCY_SYMBOL}`,
+    `> ✰ 𝙴𝚜𝚝𝚊𝚍𝚘: 𝙴𝚇𝙿𝚄𝙴𝚂𝚃𝙾 𝙰 𝚁𝙾𝙱𝙾𝚂`,
+    ``,
+    `༺ 𝙱𝙰𝙽𝙲𝙾 ༻`,
+    ``,
+    `✰ 𝚂𝚊𝚕𝚍𝚘: ${bankBalance} ${config.CURRENCY_SYMBOL}`,
+    `> ✰ 𝙿𝚛𝚘𝚝𝚎𝚌𝚌𝚒𝚘́𝚗: ${protegido ? '𝙰𝙲𝚃𝙸𝚅𝙰 ✅' : '𝙸𝙽𝙰𝙲𝚃𝙸𝚅𝙰 ❌'}`,
+    `> ✰ 𝙴𝚡𝚙𝚒𝚛𝚊: ${expira}`,
+    ``,
+    `༺ 𝙿𝚁𝙴𝙼𝙸𝚄𝙼 ༻`,
+    ``,
+    `✰ ${config.PREMIUM_NAME}: ${genos} ${config.PREMIUM_SYMBOL}`,
+    ``,
+    `༺ ${config.footer} ༻`
+  ].join('\n')
 }
 
-const handler = async (m, { userDb, participants }) => {
-  if (!userDb) return
-  const senderJid = userDb.jid
+// ═════════════════════════════════════
+// ✦ HANDLER PRINCIPAL
+// ═════════════════════════════════════
+
+const handler = async (
+  m,
+  {
+    userDb,
+    participants = []
+  }
+) => {
+  if (!userDb) {
+    return m.reply(
+      `༺ 𝙴𝚁𝚁𝙾𝚁 ༻\n\n` +
+      `✰ 𝙲𝚞𝚎𝚗𝚝𝚊 𝚗𝚘 𝚎𝚗𝚌𝚘𝚗𝚝𝚛𝚊𝚍𝚊\n` +
+      `> ✰ 𝙽𝚘 𝚜𝚎 𝚎𝚗𝚌𝚘𝚗𝚝𝚛𝚊𝚛𝚘𝚗 𝚝𝚞𝚜 𝚍𝚊𝚝𝚘𝚜.`
+    )
+  }
+
+  const senderJid =
+    userDb.jid || m.sender
+
   const now = Date.now()
 
-  const targetRaw = resolveTargetJid(m, participants)
-  const isSelf = !targetRaw || extraerNum(targetRaw) === extraerNum(m.sender)
+  // ═══════════════════════════════════
+  // ✦ USUARIO CONSULTADO
+  // ═══════════════════════════════════
+
+  const targetRaw = resolveTargetJid(
+    m,
+    participants
+  )
+
+  const isSelf =
+    !targetRaw ||
+    extraerNum(targetRaw) ===
+      extraerNum(senderJid)
 
   if (!isSelf) {
-    const v = await findByNum(targetRaw)
-    if (!v) return m.reply('*⌬┤ ❌ · USUARIO NO REGISTRADO.*')
-    return m.reply(formatBalance(v, v.jid, now), { mentions: [v.jid] })
+    const usuario =
+      await findByNum(targetRaw)
+
+    if (!usuario) {
+      return m.reply(
+        `༺ 𝚄𝚂𝚄𝙰𝚁𝙸𝙾 𝙽𝙾 𝚁𝙴𝙶𝙸𝚂𝚃𝚁𝙰𝙳𝙾 ༻\n\n` +
+        `✰ 𝙽𝚘 𝚜𝚎 𝚎𝚗𝚌𝚘𝚗𝚝𝚛𝚘́ 𝚕𝚊 𝚌𝚞𝚎𝚗𝚝𝚊 𝚍𝚎 𝚎𝚜𝚎 𝚞𝚜𝚞𝚊𝚛𝚒𝚘.`
+      )
+    }
+
+    return m.reply(
+      formatBalance(
+        usuario,
+        usuario.jid,
+        now
+      ),
+      {
+        mentions: [usuario.jid]
+      }
+    )
   }
 
-  if (userDb.bankBalance > 0 && userDb.bankExpiry > 0 && now > userDb.bankExpiry) {
-    const amount = userDb.bankBalance
-    userDb.genosCoins += amount
-    userDb.bankBalance = 0
-    userDb.bankExpiry = 0
-    await User.updateOne({ jid: senderJid }, {
-      $inc: { genosCoins: amount },
-      $set: { bankBalance: 0, bankExpiry: 0 }
-    })
+  // ═══════════════════════════════════
+  // ✦ PROTECCIÓN DEL BANCO
+  // ═══════════════════════════════════
+
+  if (
+    Number(userDb.bankBalance) > 0 &&
+    Number(userDb.bankExpiry) > 0 &&
+    now > Number(userDb.bankExpiry)
+  ) {
+    const amount =
+      Number(userDb.bankBalance)
+
+    await User.updateOne(
+      { jid: senderJid },
+      {
+        $inc: {
+          genosCoins: amount
+        },
+        $set: {
+          bankBalance: 0,
+          bankExpiry: 0
+        }
+      }
+    )
   }
 
-  const freshUser = await User.findOne({ jid: senderJid }).lean()
+  // ═══════════════════════════════════
+  // ✦ DATOS ACTUALIZADOS
+  // ═══════════════════════════════════
 
-m.reply(
-  formatBalance(freshUser || userDb, senderJid, now),
-  { mentions: [senderJid] }
-)
+  const freshUser =
+    await User.findOne({
+      jid: senderJid
+    }).lean()
+
+  const cuenta =
+    freshUser || userDb
+
+  // ═══════════════════════════════════
+  // ✦ MOSTRAR BALANCE
+  // ═══════════════════════════════════
+
+  return m.reply(
+    formatBalance(
+      cuenta,
+      senderJid,
+      now
+    ),
+    {
+      mentions: [senderJid]
+    }
+  )
 }
 
-handler.help = ['balance [@usuario]']
+// ═════════════════════════════════════
+// ✦ CONFIGURACIÓN
+// ═════════════════════════════════════
+
+handler.help = [
+  'balance',
+  'balance @usuario'
+]
+
 handler.tags = ['eco']
-handler.command = ['bal', 'balance', 'wallet', 'cartera', 'puntos']
+
+handler.command = [
+  'bal',
+  'balance',
+  'wallet',
+  'cartera',
+  'puntos'
+]
+
 handler.register = true
+
 export default handler

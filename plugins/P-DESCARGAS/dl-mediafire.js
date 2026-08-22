@@ -1,16 +1,21 @@
 import axios from 'axios'
-import { createWriteStream, statSync, mkdirSync, readFileSync } from 'fs'
+import {
+  createWriteStream,
+  statSync,
+  mkdirSync,
+  readFileSync
+} from 'fs'
 import { rm } from 'fs/promises'
 import { pipeline } from 'stream/promises'
 import { join, extname } from 'path'
 import { randomUUID } from 'crypto'
 import { mediafireInfo } from '@axel-dev09/zen-dl'
+import config from '../../config.js'
 
-/*
-|--------------------------------------------------------------------------
-| CONFIGURACIÓN
-|--------------------------------------------------------------------------
-*/
+
+// ═══════════════════════════════════════
+// ✰ SAITAMABOT • MEDIAFIRE
+// ═══════════════════════════════════════
 
 const MAX_MB = 1024
 
@@ -23,99 +28,84 @@ const TMP_DIR = join(
   'mfire'
 )
 
+mkdirSync(TMP_DIR, {
+  recursive: true
+})
+
+
+// ═══════════════════════════════════════
+// ✰ NOMBRE DEL BOT
+// ═══════════════════════════════════════
+
+const BOT_NAME =
+  '𝑺𝒂𝒊𝒕𝒂𝒎𝒂𝑩𝒐𝒕'
+
+
+// ═══════════════════════════════════════
+// ✰ MIME
+// ═══════════════════════════════════════
+
 const MF_MIMES = {
   apk: 'application/vnd.android.package-archive',
-
   pdf: 'application/pdf',
-
   zip: 'application/zip',
-
   rar: 'application/vnd.rar',
-
   '7z': 'application/x-7z-compressed',
 
   mp4: 'video/mp4',
-
   mkv: 'video/x-matroska',
-
   avi: 'video/x-msvideo',
-
   mov: 'video/quicktime',
 
   mp3: 'audio/mpeg',
-
   m4a: 'audio/mp4',
-
   wav: 'audio/wav',
 
   jpg: 'image/jpeg',
-
   jpeg: 'image/jpeg',
-
   png: 'image/png',
-
   gif: 'image/gif',
-
   webp: 'image/webp',
 
   doc: 'application/msword',
-
   docx:
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 
   xls: 'application/vnd.ms-excel',
-
   xlsx:
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 
   ppt: 'application/vnd.ms-powerpoint',
-
   pptx:
     'application/vnd.openxmlformats-officedocument.presentationml.presentation',
 
   txt: 'text/plain',
-
   csv: 'text/csv',
 
   exe: 'application/x-msdownload'
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| CREAR TMP
-|--------------------------------------------------------------------------
-*/
-
-mkdirSync(
-  TMP_DIR,
-  {
-    recursive: true
-  }
-)
-
-
-/*
-|--------------------------------------------------------------------------
-| LIMPIAR NOMBRE
-|--------------------------------------------------------------------------
-*/
+// ═══════════════════════════════════════
+// ✰ LIMPIAR NOMBRE
+// ═══════════════════════════════════════
 
 function cleanFileName(name) {
 
   return String(name || 'archivo')
-    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
+    .replace(
+      /[<>:"/\\|?*\x00-\x1F]/g,
+      ''
+    )
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, 180) || 'archivo'
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| OBTENER EXTENSIÓN
-|--------------------------------------------------------------------------
-*/
+// ═══════════════════════════════════════
+// ✰ EXTENSIÓN
+// ═══════════════════════════════════════
 
 function getExtension(fileName) {
 
@@ -128,11 +118,9 @@ function getExtension(fileName) {
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| DESCARGAR ARCHIVO
-|--------------------------------------------------------------------------
-*/
+// ═══════════════════════════════════════
+// ✰ DESCARGAR
+// ═══════════════════════════════════════
 
 async function downloadFile(
   url,
@@ -174,7 +162,7 @@ async function downloadFile(
   ) {
 
     throw new Error(
-      `El archivo supera el límite de ${MAX_MB} MB.`
+      `El archivo supera ${MAX_MB} MB.`
     )
   }
 
@@ -193,7 +181,7 @@ async function downloadFile(
   if (size < 100) {
 
     throw new Error(
-      `Archivo inválido (${size} bytes).`
+      'Archivo inválido.'
     )
   }
 
@@ -203,7 +191,7 @@ async function downloadFile(
   ) {
 
     throw new Error(
-      `El archivo supera el límite de ${MAX_MB} MB.`
+      `El archivo supera ${MAX_MB} MB.`
     )
   }
 
@@ -212,11 +200,9 @@ async function downloadFile(
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| HANDLER
-|--------------------------------------------------------------------------
-*/
+// ═══════════════════════════════════════
+// ✰ HANDLER
+// ═══════════════════════════════════════
 
 const handler = async (
   m,
@@ -229,16 +215,12 @@ const handler = async (
 ) => {
 
   let url =
-    text
-      ? text.trim()
-      : ''
+    text?.trim() || ''
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | BUSCAR LINK EN MENSAJE CITADO
-  |--------------------------------------------------------------------------
-  */
+  // ═══════════════════════════════════
+  // ✰ ENLACE CITADO
+  // ═══════════════════════════════════
 
   if (
     !url &&
@@ -263,51 +245,51 @@ const handler = async (
   }
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | COMPROBAR URL
-  |--------------------------------------------------------------------------
-  */
+  // ═══════════════════════════════════
+  // ✰ SIN ENLACE
+  // ═══════════════════════════════════
 
   if (!url) {
 
     return m.reply(
-`╭━━━〔 📥 MEDIAFIRE 〕━━━⬣
 
-✦ Enviá un enlace de MediaFire.
+`༺ 𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻
 
-✧ También podés responder a
-un mensaje que contenga el enlace.
+✰ 𝚄𝚜𝚊:
+${usedPrefix}${command} <enlace>
 
-Ejemplo:
-${usedPrefix}${command} https://www.mediafire.com/file/xxxxx
+✰ 𝙴𝚓𝚎𝚖𝚙𝚕𝚘:
+${usedPrefix}${command} https://mediafire.com/...
 
-╰━━━━━━━━━━━━━━━━━━⬣`
+✰ ${BOT_NAME}`
     )
   }
 
 
+  // ═══════════════════════════════════
+  // ✰ URL INVÁLIDA
+  // ═══════════════════════════════════
+
   if (
-    !/^(https?:\/\/)?(www\.)?mediafire\.com\//i.test(
+    !/^https?:\/\/(www\.)?mediafire\.com\//i.test(
       url
     )
   ) {
 
     return m.reply(
-`╭━━━〔 ❌ ENLACE INVÁLIDO 〕━━━⬣
 
-> El enlace debe pertenecer a MediaFire.
+`༺ 𝙴𝙽𝙻𝙰𝙲𝙴 𝙸𝙽𝚅Á𝙻𝙸𝙳𝙾 ༻
 
-╰━━━━━━━━━━━━━━━━━━⬣`
+✰ 𝙳𝚎𝚋𝚎𝚜 𝚞𝚜𝚊𝚛 𝚞𝚗 𝚎𝚗𝚕𝚊𝚌𝚎 𝚍𝚎 𝙼𝚎𝚍𝚒𝚊𝙵𝚒𝚛𝚎.
+
+✰ ${BOT_NAME}`
     )
   }
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | REACCIÓN
-  |--------------------------------------------------------------------------
-  */
+  // ═══════════════════════════════════
+  // ✰ REACCIÓN
+  // ═══════════════════════════════════
 
   await conn.sendMessage(
     m.chat,
@@ -319,12 +301,6 @@ ${usedPrefix}${command} https://www.mediafire.com/file/xxxxx
     }
   ).catch(() => {})
 
-
-  /*
-  |--------------------------------------------------------------------------
-  | TMP
-  |--------------------------------------------------------------------------
-  */
 
   const tmpBase =
     join(
@@ -338,20 +314,17 @@ ${usedPrefix}${command} https://www.mediafire.com/file/xxxxx
 
   try {
 
-    /*
-    |--------------------------------------------------------------------------
-    | INFORMACIÓN MEDIAFIRE
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ INFORMACIÓN
+    // ═════════════════════════════════
 
     const info =
       await mediafireInfo(url)
 
 
     if (!info) {
-
       throw new Error(
-        'No se pudo obtener la información del archivo.'
+        'No se obtuvo información.'
       )
     }
 
@@ -363,12 +336,15 @@ ${usedPrefix}${command} https://www.mediafire.com/file/xxxxx
 
 
     if (!download) {
-
       throw new Error(
-        'MediaFire no devolvió un enlace de descarga.'
+        'No existe enlace de descarga.'
       )
     }
 
+
+    // ═════════════════════════════════
+    // ✰ ARCHIVO
+    // ═════════════════════════════════
 
     const originalName =
       cleanFileName(
@@ -379,158 +355,40 @@ ${usedPrefix}${command} https://www.mediafire.com/file/xxxxx
       )
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | EXTENSIÓN
-    |--------------------------------------------------------------------------
-    */
-
     const ext =
       getExtension(
         originalName
       )
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | NOMBRE FINAL
-    |--------------------------------------------------------------------------
-    */
-
-    let fileName =
+    const fileName =
       originalName
-
-
-    if (
-      !fileName
         .toLowerCase()
         .endsWith(`.${ext}`)
-    ) {
-
-      fileName =
-        `${fileName}.${ext}`
-    }
+        ? originalName
+        : `${originalName}.${ext}`
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | MIME
-    |--------------------------------------------------------------------------
-    */
-
-    let mime =
+    const mime =
       MF_MIMES[ext] ||
       'application/octet-stream'
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | COMPROBAR TAMAÑO
-    |--------------------------------------------------------------------------
-    */
-
-    try {
-
-      const head =
-        await axios.head(
-          download,
-          {
-            headers: {
-              'User-Agent': UA,
-              Referer:
-                'https://www.mediafire.com/'
-            },
-
-            timeout: 15000,
-
-            maxRedirects: 10
-          }
-        )
-
-
-      const contentType =
-        head.headers['content-type']
-          ?.split(';')[0]
-          ?.trim()
-
-
-      const contentLength =
-        parseInt(
-          head.headers['content-length'] || '0',
-          10
-        )
-
-
-      if (
-        contentType &&
-        contentType !== 'application/octet-stream'
-      ) {
-
-        if (
-          !MF_MIMES[ext]
-        ) {
-          mime = contentType
-        }
-      }
-
-
-      if (
-        contentLength > 0 &&
-        contentLength / (1024 * 1024) > MAX_MB
-      ) {
-
-        throw new Error(
-          `El archivo supera el límite de ${MAX_MB} MB.`
-        )
-      }
-
-    } catch (headError) {
-
-      /*
-      |--------------------------------------------------------------------------
-      | HEAD NO ES OBLIGATORIO
-      |--------------------------------------------------------------------------
-      */
-
-      if (
-        headError?.message?.includes(
-          'supera el límite'
-        )
-      ) {
-
-        throw headError
-      }
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | ARCHIVO TEMPORAL
-    |--------------------------------------------------------------------------
-    */
 
     filePath =
       `${tmpBase}.${ext}`
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | DESCARGAR
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ DESCARGANDO
+    // ═════════════════════════════════
 
     await m.reply(
-`╭━━━〔 ⬇️ DESCARGANDO 〕━━━⬣
 
-📄 *Archivo:*
-${fileName}
+`༺ 𝙳𝙴𝚂𝙲𝙰𝚁𝙶𝙰𝙽𝙳𝙾 ༻
 
-📦 *Formato:*
-${ext.toUpperCase()}
+✰ ${fileName}
 
-⏳ Esperá un momento...
-
-╰━━━━━━━━━━━━━━━━━━⬣`
+✰ ${BOT_NAME}`
     )
 
 
@@ -540,46 +398,26 @@ ${ext.toUpperCase()}
     )
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | LEER ARCHIVO
-    |--------------------------------------------------------------------------
-    */
-
-    const buffer =
-      readFileSync(
-        filePath
-      )
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | ENVIAR COMO DOCUMENTO
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ ENVIAR
+    // ═════════════════════════════════
 
     await conn.sendMessage(
       m.chat,
       {
-        document: buffer,
+        document:
+          readFileSync(filePath),
 
         mimetype: mime,
 
         fileName,
 
         caption:
-`╭━━━〔 ✅ MEDIAFIRE 〕━━━⬣
+`༺ 𝙼𝙴𝙳𝙸𝙰𝙵𝙸𝚁𝙴 ༻
 
-┃ 📄 *Archivo:*
-┃ ${fileName}
-┃
-┃ 📦 *Formato:*
-┃ ${ext.toUpperCase()}
-┃
-┃ 📥 *Estado:*
-┃ Descarga completada
-┃
-╰━━━━━━━━━━━━━━━━━━⬣`
+✰ 𝙰𝚛𝚌𝚑𝚒𝚟𝚘 𝚕𝚒𝚜𝚝𝚘.
+
+✰ ${BOT_NAME}`
       },
       {
         quoted: m
@@ -587,11 +425,9 @@ ${ext.toUpperCase()}
     )
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | REACCIÓN OK
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ OK
+    // ═════════════════════════════════
 
     await conn.sendMessage(
       m.chat,
@@ -606,19 +442,9 @@ ${ext.toUpperCase()}
 
   } catch (error) {
 
-    console.error(
-      '[MEDIAFIRE ERROR]',
-      error?.response?.data ||
-      error?.message ||
-      error
-    )
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | REACCIÓN ERROR
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ ERROR
+    // ═════════════════════════════════
 
     await conn.sendMessage(
       m.chat,
@@ -632,26 +458,25 @@ ${ext.toUpperCase()}
 
 
     return m.reply(
-`╭━━━〔 ❌ ERROR 〕━━━⬣
 
-No se pudo descargar el archivo.
+`༺ 𝙴𝚁𝚁𝙾𝚁 ༻
 
-⚠️ ${
-      error?.message ||
-      'Error desconocido.'
-    }
+✰ 𝙽𝚘 𝚜𝚎 𝚙𝚞𝚍𝚘 𝚍𝚎𝚜𝚌𝚊𝚛𝚐𝚊𝚛.
 
-╰━━━━━━━━━━━━━━━━━━⬣`
+✰ ${String(
+  error?.message ||
+  'Error desconocido.'
+).slice(0, 200)}
+
+✰ ${BOT_NAME}`
     )
 
 
   } finally {
 
-    /*
-    |--------------------------------------------------------------------------
-    | ELIMINAR TEMPORAL
-    |--------------------------------------------------------------------------
-    */
+    // ═════════════════════════════════
+    // ✰ LIMPIAR
+    // ═════════════════════════════════
 
     if (filePath) {
 
@@ -666,11 +491,9 @@ No se pudo descargar el archivo.
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| CONFIGURACIÓN DEL PLUGIN
-|--------------------------------------------------------------------------
-*/
+// ═══════════════════════════════════════
+// ✰ CONFIGURACIÓN
+// ═══════════════════════════════════════
 
 handler.help = [
   'mediafire <link>',
@@ -678,9 +501,11 @@ handler.help = [
   'mfire <link>'
 ]
 
+
 handler.tags = [
   'descargas'
 ]
+
 
 handler.command = [
   'mediafire',
@@ -688,6 +513,9 @@ handler.command = [
   'mfire',
   'mediafiredl'
 ]
+
+
+handler.register = false
 
 
 export default handler

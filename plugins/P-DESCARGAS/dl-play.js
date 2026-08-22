@@ -2,23 +2,27 @@ import axios from 'axios'
 import ytsearch from 'yt-search'
 import config from '../../config.js'
 
-// ═════════════════════════════════════
-// CACHE DE RESULTADOS
-// ═════════════════════════════════════
+
+// ═══════════════════════════════════════
+// ✰ SAITAMABOT • YOUTUBE SEARCH
+// ═══════════════════════════════════════
 
 global.youtubeCache =
   global.youtubeCache || {}
 
-// ═════════════════════════════════════
-// API SECUNDARIA
-// ═════════════════════════════════════
 
 const LUXINFINITY =
   'https://luxinfinity.vercel.app/api/search/youtube'
 
-// ═════════════════════════════════════
-// HANDLER
-// ═════════════════════════════════════
+
+const BOT_NAME =
+  config.botName ||
+  '𝑺𝒂𝒊𝒕𝒂𝒎𝒂𝑩𝒐𝒕'
+
+
+// ═══════════════════════════════════════
+// ✰ HANDLER
+// ═══════════════════════════════════════
 
 const handler = async (
   m,
@@ -32,16 +36,19 @@ const handler = async (
 
   try {
 
-    // ═══════════════════════════════
-    // ➡️ SIGUIENTE RESULTADO
-    // ═══════════════════════════════
+    // ═════════════════════════════════
+    // ✰ SIGUIENTE RESULTADO
+    // ═════════════════════════════════
 
     if (
       command === 'playnext'
     ) {
 
       const dataUser =
-        global.youtubeCache[m.sender]
+        global.youtubeCache[
+          m.sender
+        ]
+
 
       if (
         !dataUser ||
@@ -49,18 +56,21 @@ const handler = async (
       ) {
 
         return m.reply(
-          `╭━━━〔 ❌ SIN BÚSQUEDA 〕━━━⬣
-┃
-┃ No hay una búsqueda activa.
-┃
-┃ Usa:
-┃ ${usedPrefix}play nombre
-┃
-╰━━━━━━━━━━━━━━━━━━⬣`
+
+`༺ 𝚂𝙸𝙽 𝙱Ú𝚂𝚀𝚄𝙴𝙳𝙰 ༻
+
+✰ 𝙽𝚘 𝚑𝚊𝚢 𝚋ú𝚜𝚚𝚞𝚎𝚍𝚊.
+
+✰ 𝚄𝚜𝚊:
+${usedPrefix}play <texto>
+
+✰ ${BOT_NAME}`
         )
       }
 
+
       dataUser.index++
+
 
       if (
         dataUser.index >=
@@ -69,6 +79,7 @@ const handler = async (
 
         dataUser.index = 0
       }
+
 
       return sendYoutubeCard(
         conn,
@@ -79,56 +90,79 @@ const handler = async (
       )
     }
 
-    // ═══════════════════════════════
-    // 🔎 VALIDAR BÚSQUEDA
-    // ═══════════════════════════════
+
+    // ═════════════════════════════════
+    // ✰ SIN TEXTO
+    // ═════════════════════════════════
 
     if (
       !text?.trim()
     ) {
 
       return m.reply(
-        `╭━━━〔 🔎 SAITAMABOT SEARCH 〕━━━⬣
-┃
-┃ ❌ Escribe el nombre
-┃ de una canción o video.
-┃
-┃ ✧ Ejemplo:
-┃ ${usedPrefix}play Twice
-┃
-╰━━━━━━━━━━━━━━━━━━⬣`
+
+`༺ 𝚈𝙾𝚄𝚃𝚄𝙱𝙴 ༻
+
+✰ 𝚄𝚜𝚊:
+${usedPrefix}${command} <texto>
+
+✰ 𝙴𝚓𝚎𝚖𝚙𝚕𝚘:
+${usedPrefix}${command} Twice
+
+✰ ${BOT_NAME}`
       )
     }
 
-    // ═══════════════════════════════
-    // 🔍 MENSAJE DE BÚSQUEDA
-    // ═══════════════════════════════
 
-    await m.reply(
-      `╭━━━〔 🔎 BUSCANDO 〕━━━⬣
-┃
-┃ 🔍 Buscando en YouTube...
-┃
-┃ 🎧 Consulta:
-┃ ${text.trim()}
-┃
-┃ ⏳ Espera un momento...
-┃
-╰━━━━━━━━━━━━━━━━━━⬣`
-    )
+    const query =
+      text.trim()
+
+
+    // ═════════════════════════════════
+    // ✰ REACCIÓN
+    // ═════════════════════════════════
+
+    await conn.sendMessage(
+      m.chat,
+      {
+        react: {
+          text: '⏳',
+          key: m.key
+        }
+      }
+    ).catch(() => {})
+
+
+    // ═════════════════════════════════
+    // ✰ BUSCANDO
+    // ═════════════════════════════════
+
+    const searchMsg =
+      await m.reply(
+
+`༺ 𝙱𝚄𝚂𝙲𝙰𝙽𝙳𝙾 ༻
+
+✰ 𝙱𝚞𝚜𝚌𝚊𝚗𝚍𝚘:
+${query}
+
+✰ ${BOT_NAME}`
+      )
+
 
     let videos = []
 
-    // ═══════════════════════════════
-    // 1️⃣ PRIMERA API — YT-SEARCH
-    // ═══════════════════════════════
+
+    // ═════════════════════════════════
+    // ✰ YT-SEARCH
+    // ═════════════════════════════════
 
     try {
 
       const searchResult =
         await ytsearch(
-          text.trim()
+          query
         )
+
 
       if (
         searchResult?.videos?.length
@@ -136,82 +170,12 @@ const handler = async (
 
         videos =
           searchResult.videos
-            .slice(0, 10)
-            .map(v => ({
-
-              title:
-                v.title ||
-                'Sin título',
-
-              author:
-                v.author?.name ||
-                'Desconocido',
-
-              duration:
-                v.timestamp ||
-                'Desconocida',
-
-              views:
-                Number(v.views || 0)
-                  .toLocaleString(),
-
-              publishedAt:
-                v.ago ||
-                'Desconocido',
-
-              videoId:
-                v.videoId,
-
-              thumbnail:
-                v.image,
-
-              url:
-                v.url
-
-            }))
-            .filter(v =>
-              v.videoId &&
-              v.url
+            .slice(
+              0,
+              10
             )
-      }
-
-    } catch {}
-
-    // ═══════════════════════════════
-    // 2️⃣ SEGUNDA API — LUXINFINITY
-    // ═══════════════════════════════
-
-    if (
-      !videos.length
-    ) {
-
-      try {
-
-        const { data } =
-          await axios.get(
-            LUXINFINITY,
-            {
-              params: {
-                query:
-                  text.trim(),
-
-                limit: 10
-              },
-
-              timeout: 30000
-            }
-          )
-
-        if (
-          data?.status &&
-          Array.isArray(data?.data) &&
-          data.data.length
-        ) {
-
-          videos =
-            data.data
-              .slice(0, 10)
-              .map(v => ({
+            .map(
+              v => ({
 
                 title:
                   v.title ||
@@ -222,69 +186,174 @@ const handler = async (
                   'Desconocido',
 
                 duration:
-                  v.duration?.text ||
-                  v.duration?.timestamp ||
+                  v.timestamp ||
                   'Desconocida',
 
                 views:
-                  Number(v.views || 0)
-                    .toLocaleString(),
+                  Number(
+                    v.views || 0
+                  ).toLocaleString(),
 
                 publishedAt:
-                  v.publishDate ||
+                  v.ago ||
                   'Desconocido',
 
                 videoId:
-                  v.id ||
                   v.videoId,
 
                 thumbnail:
-                  v.thumb ||
-                  v.thumbnail ||
                   v.image,
 
                 url:
                   v.url
 
-              }))
-              .filter(v =>
+              })
+            )
+            .filter(
+              v =>
                 v.videoId &&
                 v.url
+            )
+      }
+
+    } catch {}
+
+
+    // ═════════════════════════════════
+    // ✰ API SECUNDARIA
+    // ═════════════════════════════════
+
+    if (
+      !videos.length
+    ) {
+
+      try {
+
+        const {
+          data
+        } =
+          await axios.get(
+            LUXINFINITY,
+            {
+              params: {
+
+                query:
+                  query,
+
+                limit:
+                  10
+              },
+
+              timeout:
+                30000
+            }
+          )
+
+
+        if (
+          data?.status &&
+          Array.isArray(
+            data?.data
+          ) &&
+          data.data.length
+        ) {
+
+          videos =
+            data.data
+              .slice(
+                0,
+                10
+              )
+              .map(
+                v => ({
+
+                  title:
+                    v.title ||
+                    'Sin título',
+
+                  author:
+                    v.author?.name ||
+                    'Desconocido',
+
+                  duration:
+                    v.duration?.text ||
+                    v.duration?.timestamp ||
+                    'Desconocida',
+
+                  views:
+                    Number(
+                      v.views || 0
+                    ).toLocaleString(),
+
+                  publishedAt:
+                    v.publishDate ||
+                    'Desconocido',
+
+                  videoId:
+                    v.id ||
+                    v.videoId,
+
+                  thumbnail:
+                    v.thumb ||
+                    v.thumbnail ||
+                    v.image,
+
+                  url:
+                    v.url
+
+                })
+              )
+              .filter(
+                v =>
+                  v.videoId &&
+                  v.url
               )
         }
 
       } catch {}
     }
 
-    // ═══════════════════════════════
-    // ❌ SIN RESULTADOS
-    // ═══════════════════════════════
+
+    // ═════════════════════════════════
+    // ✰ SIN RESULTADOS
+    // ═════════════════════════════════
 
     if (
       !videos.length
     ) {
 
-      return m.reply(
-        `╭━━━〔 ❌ SIN RESULTADOS 〕━━━⬣
-┃
-┃ No encontré resultados para:
-┃
-┃ 🎧 *${text.trim()}*
-┃
-┃ Intenta con otro nombre.
-┃
-╰━━━━━━━━━━━━━━━━━━⬣`
-      )
+      await conn.sendMessage(
+        m.chat,
+        {
+          edit:
+            searchMsg.key,
+
+          text:
+
+`༺ 𝚂𝙸𝙽 𝚁𝙴𝚂𝚄𝙻𝚃𝙰𝙳𝙾𝚂 ༻
+
+✰ 𝙽𝚘 𝚎𝚗𝚌𝚘𝚗𝚝𝚛é:
+${query}
+
+✰ ${BOT_NAME}`
+        }
+      ).catch(() => {})
+
+
+      return
     }
 
-    // ═══════════════════════════════
-    // 💾 GUARDAR CACHE
-    // ═══════════════════════════════
 
-    global.youtubeCache[m.sender] = {
+    // ═════════════════════════════════
+    // ✰ GUARDAR RESULTADOS
+    // ═════════════════════════════════
+
+    global.youtubeCache[
+      m.sender
+    ] = {
 
       query:
-        text.trim(),
+        query,
 
       index:
         0,
@@ -293,9 +362,32 @@ const handler = async (
         videos
     }
 
-    // ═══════════════════════════════
-    // 🎬 MOSTRAR PRIMER RESULTADO
-    // ═══════════════════════════════
+
+    // ═════════════════════════════════
+    // ✰ EDITAR MENSAJE
+    // ═════════════════════════════════
+
+    await conn.sendMessage(
+      m.chat,
+      {
+        edit:
+          searchMsg.key,
+
+        text:
+
+`༺ 𝚁𝙴𝚂𝚄𝙻𝚃𝙰𝙳𝙾 ༻
+
+✰ 𝙴𝚗𝚌𝚘𝚗𝚝𝚛𝚊𝚍𝚘𝚜:
+${videos.length}
+
+✰ ${BOT_NAME}`
+      }
+    ).catch(() => {})
+
+
+    // ═════════════════════════════════
+    // ✰ MOSTRAR RESULTADO
+    // ═════════════════════════════════
 
     await sendYoutubeCard(
       conn,
@@ -305,24 +397,52 @@ const handler = async (
       usedPrefix
     )
 
+
+    // ═════════════════════════════════
+    // ✰ REACCIÓN FINAL
+    // ═════════════════════════════════
+
+    await conn.sendMessage(
+      m.chat,
+      {
+        react: {
+          text: '✅',
+          key: m.key
+        }
+      }
+    ).catch(() => {})
+
+
   } catch {
 
+    await conn.sendMessage(
+      m.chat,
+      {
+        react: {
+          text: '❌',
+          key: m.key
+        }
+      }
+    ).catch(() => {})
+
+
     return m.reply(
-      `╭━━━〔 ❌ ERROR 〕━━━⬣
-┃
-┃ No se pudo realizar
-┃ la búsqueda.
-┃
-┃ Intenta nuevamente.
-┃
-╰━━━━━━━━━━━━━━━━━━⬣`
+
+`༺ 𝙴𝚁𝚁𝙾𝚁 ༻
+
+✰ 𝙽𝚘 𝚜𝚎 𝚙𝚞𝚍𝚘 𝚋𝚞𝚜𝚌𝚊𝚛.
+
+✰ 𝙸𝚗𝚝𝚎𝚗𝚝𝚊 𝚍𝚎 𝚗𝚞𝚎𝚟𝚘.
+
+✰ ${BOT_NAME}`
     )
   }
 }
 
-// ═════════════════════════════════════
-// 🎬 TARJETA DE YOUTUBE
-// ═════════════════════════════════════
+
+// ═══════════════════════════════════════
+// ✰ TARJETA YOUTUBE
+// ═══════════════════════════════════════
 
 async function sendYoutubeCard(
   conn,
@@ -335,53 +455,68 @@ async function sendYoutubeCard(
   const video =
     results[index]
 
+
   if (!video) {
 
     return m.reply(
-      '❌ No existe ese resultado.'
+
+`༺ 𝚁𝙴𝚂𝚄𝙻𝚃𝙰𝙳𝙾 𝙸𝙽𝚅Á𝙻𝙸𝙳𝙾 ༻
+
+✰ 𝙽𝚘 𝚎𝚡𝚒𝚜𝚝𝚎.
+
+✰ ${BOT_NAME}`
     )
   }
 
+
+  // ═════════════════════════════════
+  // ✰ INFORMACIÓN
+  // ═════════════════════════════════
+
   const infoText =
-`╭━━━〔 🎬  𝒀𝑶𝑼𝑻𝑼𝑩𝑬 𝑺𝑬𝑨𝑹𝑪𝑯 〕━━━⬣
-┃
-┃ ✦ 𝑰𝑵𝑭𝑶𝑹𝑴𝑨𝑪𝑰Ó𝑵
-┃
-┃ 🎵 𝑻í𝒕𝒖𝒍𝒐 ❯ ${video.title}
-┃ 👤 𝑪𝒂𝒏𝒂𝒍 ❯ ${video.author}
-┃ ⏱️ 𝑫𝒖𝒓𝒂𝒄𝒊ó𝒏 ❯ ${video.duration}
-┃ 👁️ 𝑽𝒊𝒔𝒕𝒂𝒔 ❯ ${video.views}
-┃ 📅 𝑷𝒖𝒃𝒍𝒊𝒄𝒂𝒅𝒐 ❯ ${video.publishedAt}
-┃
-┃ ✧ 𝑹𝒆𝒔𝒖𝒍𝒕𝒂𝒅𝒐 ❯ ${index + 1}/${results.length}
-┃
-┃ ╰─➤ 𝑬𝒍𝒊𝒈𝒆 𝒖𝒏𝒂 𝒐𝒑𝒄𝒊ó𝒏
-┃
-╰━━━━━━━━━━━━━━━━━━⬣`
-  // ═══════════════════════════════
-  // BOTONES
-  // ═══════════════════════════════
+
+`*༺ 𝚈𝙾𝚄𝚃𝚄𝙱𝙴 ༻*
+
+*✰ 𝚃í𝚝𝚞𝚕𝚘:*
+${video.title}
+*✰ 𝙲𝚊𝚗𝚊𝚕:*
+${video.author}
+*✰ 𝙳𝚞𝚛𝚊𝚌𝚒ó𝚗:*
+${video.duration}
+*✰ 𝚅𝚒𝚜𝚝𝚊𝚜:*
+${video.views}
+*✰ 𝙿𝚞𝚋𝚕𝚒𝚌𝚊𝚍𝚘:*
+${video.publishedAt}
+*✰ 𝚁𝚎𝚜𝚞𝚕𝚝𝚊𝚍𝚘:*
+${index + 1}/${results.length}
+
+✰ ╰┈➤ 𝟮𝟬𝟮𝟲`
+
+
+  // ═════════════════════════════════
+  // ✰ BOTONES
+  // ═════════════════════════════════
 
   const buttons = [
 
     {
       text:
-        '✦ Elegir formato ✦',
+        '✦ 𝙵𝙾𝚁𝙼𝙰𝚃𝙾 ✦',
 
       sections: [
 
         {
           title:
-            '╭─〔 🎧 𝑨𝑼𝑫𝑰𝑶 〕─╮',
+            '╭─〔 𝙰𝚄𝙳𝙸𝙾 〕─╮',
 
           rows: [
 
             {
               title:
-                '🎵 ❯ 𝑨𝑼𝑫𝑰𝑶 𝑴𝑷𝟑',
+                '🎵 ❯ 𝙼𝙿𝟹',
 
               description:
-                '✦ 𝑫𝒆𝒔𝒄𝒂𝒓𝒈𝒂𝒓 𝒂𝒖𝒅𝒊𝒐 𝑴𝑷𝟑',
+                '✰ 𝙳𝚎𝚜𝚌𝚊𝚛𝚐𝚊𝚛 𝚊𝚞𝚍𝚒𝚘',
 
               id:
                 `${usedPrefix}ytmp3 ${video.videoId}`
@@ -389,10 +524,10 @@ async function sendYoutubeCard(
 
             {
               title:
-                '📄 ❯ 𝑨𝑼𝑫𝑰𝑶 𝑫𝑶𝑪𝑼𝑴𝑬𝑵𝑻𝑶',
+                '📄 ❯ 𝙼𝙿𝟹 𝙳𝙾𝙲',
 
               description:
-                '✦ 𝑫𝒆𝒔𝒄𝒂𝒓𝒈𝒂𝒓 𝒂𝒖𝒅𝒊𝒐 𝒄𝒐𝒎𝒐 𝒅𝒐𝒄𝒖𝒎𝒆𝒏𝒕𝒐',
+                '✰ 𝙰𝚞𝚍𝚒𝚘 𝚌𝚘𝚖𝚘 𝚍𝚘𝚌𝚞𝚖𝚎𝚗𝚝𝚘',
 
               id:
                 `${usedPrefix}ytmp3doc ${video.videoId}`
@@ -403,16 +538,16 @@ async function sendYoutubeCard(
 
         {
           title:
-            '╭─〔 🎬 𝑽𝑰𝑫𝑬𝑶 〕─╮',
+            '╭─〔 𝚅𝙸𝙳𝙴𝙾 〕─╮',
 
           rows: [
 
             {
               title:
-                '🎬 ❯ 𝑽𝑰𝑫𝑬𝑶 𝑴𝑷𝟒',
+                '🎬 ❯ 𝙼𝙿𝟺',
 
               description:
-                '✦ 𝑫𝒆𝒔𝒄𝒂𝒓𝒈𝒂𝒓 𝒗𝒊𝒅𝒆𝒐 𝑴𝑷𝟒',
+                '✰ 𝙳𝚎𝚜𝚌𝚊𝚛𝚐𝚊𝚛 𝚟í𝚍𝚎𝚘',
 
               id:
                 `${usedPrefix}ytmp4 ${video.url}`
@@ -420,10 +555,10 @@ async function sendYoutubeCard(
 
             {
               title:
-                '📁 ❯ 𝑽𝑰𝑫𝑬𝑶 𝑫𝑶𝑪𝑼𝑴𝑬𝑵𝑻𝑶',
+                '📁 ❯ 𝙼𝙿𝟺 𝙳𝙾𝙲',
 
               description:
-                '✦ 𝑫𝒆𝒔𝒄𝒂𝒓𝒈𝒂𝒓 𝒗𝒊𝒅𝒆𝒐 𝒄𝒐𝒎𝒐 𝒅𝒐𝒄𝒖𝒎𝒆𝒏𝒕𝒐',
+                '✰ 𝚅í𝚍𝚎𝚘 𝚌𝚘𝚖𝚘 𝚍𝚘𝚌𝚞𝚖𝚎𝚗𝚝𝚘',
 
               id:
                 `${usedPrefix}ytmp4doc ${video.url}`
@@ -434,20 +569,18 @@ async function sendYoutubeCard(
 
         {
           title:
-            '╭─〔 🔎 BÚSQUEDA 〕─╮',
+            '╭─〔 𝙱Ú𝚂𝚀𝚄𝙴𝙳𝙰 〕─╮',
 
           rows: [
 
             {
               title:
-                '➡️ Siguiente resultado',
+                '➡️ ❯ 𝚂𝙸𝙶𝚄𝙸𝙴𝙽𝚃𝙴',
 
               description:
-                `Ver resultado ${
-                  index + 2 > results.length
-                    ? 1
-                    : index + 2
-                }/${results.length}`,
+                `✰ ${index + 2 > results.length
+                  ? 1
+                  : index + 2}/${results.length}`,
 
               id:
                 `${usedPrefix}playnext`
@@ -461,13 +594,15 @@ async function sendYoutubeCard(
 
   ]
 
-  // ═══════════════════════════════
-  // ENVIAR TARJETA
-  // ═══════════════════════════════
+
+  // ═════════════════════════════════
+  // ✰ ENVIAR TARJETA
+  // ═════════════════════════════════
 
   await conn.sendMessage(
     m.chat,
     {
+
       image: {
         url:
           video.thumbnail
@@ -477,31 +612,33 @@ async function sendYoutubeCard(
         infoText,
 
       footer:
-        global.botname ||
-        config.botName ||
-        'SaitamaBot',
+        BOT_NAME,
 
       buttons
 
     },
     {
-      quoted: m
+      quoted:
+        m
     }
   )
 }
 
-// ═════════════════════════════════════
-// CONFIGURACIÓN
-// ═════════════════════════════════════
+
+// ═══════════════════════════════════════
+// ✰ CONFIGURACIÓN
+// ═══════════════════════════════════════
 
 handler.help = [
-  'play <nombre>',
+  'play <texto>',
   'playnext'
 ]
+
 
 handler.tags = [
   'descargas'
 ]
+
 
 handler.command = [
   'play',
@@ -509,5 +646,9 @@ handler.command = [
   'play3',
   'playnext'
 ]
+
+
+handler.register = false
+
 
 export default handler

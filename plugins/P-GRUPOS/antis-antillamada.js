@@ -2,66 +2,65 @@ const handler = async (m, { args, groupDb }) => {
   const option = (args[0] || '').toLowerCase()
 
   if (!option) {
-    return m.reply(`╭━━━〔 📞 ANTILLAMADAS 〕━━━⬣
+    return m.reply(
+`༺ ✰ 𝙰𝙽𝚃𝙸𝙻𝙻𝙰𝙼𝙰𝙳𝙰𝚂 ✰ ༻
 
-> Estado: ${groupDb.antiCall ? '🟢 ACTIVADO' : '🔴 DESACTIVADO'}
-
-📌 Uso:
-
-• .antillamadas on
-• .antillamadas off
-
-╰━━━━━━━━━━━━━━━━━━⬣`)
+> ✰ Estado: ${groupDb.antiCall ? '🟢 ACTIVADO' : '🔴 DESACTIVADO'}
+> ✰ Uso: .antillamadas on / off`
+    )
   }
 
   if (['on', '1', 'true', 'activar', 'enable'].includes(option)) {
-
     if (groupDb.antiCall) {
-      return m.reply(`⚠️ El sistema *Antillamadas* ya estaba activado.`)
+      return m.reply(
+`༺ ✰ 𝙰𝙽𝚃𝙸𝙻𝙻𝙰𝙼𝙰𝙳𝙰𝚂 ✰ ༻
+
+> ✰ El sistema ya está activado.
+> ✰ Las llamadas serán rechazadas.
+> ✰ El usuario podrá ser expulsado si el bot tiene permisos.
+> ✰ El Owner estará protegido.`
+      )
     }
 
     groupDb.antiCall = true
     await groupDb.save()
 
-    return m.reply(`╭━━━〔 ✅ ANTILLAMADAS 〕━━━⬣
+    return m.reply(
+`༺ ✰ 𝙰𝙽𝚃𝙸𝙻𝙻𝙰𝙼𝙰𝙳𝙰𝚂 ✰ ༻
 
-El sistema ha sido activado correctamente.
-
-Ahora el bot:
-
-📞 Rechazará cualquier llamada.
-
-🚫 Expulsará automáticamente al usuario que llame al bot (si el bot es administrador).
-
-👑 El Owner no será expulsado.
-
-╰━━━━━━━━━━━━━━━━━━⬣`)
+> ✰ Estado: 🟢 ACTIVADO
+> ✰ Las llamadas serán rechazadas.
+> ✰ El infractor será expulsado si el bot es administrador.
+> ✰ El Owner no será expulsado.`
+    )
   }
 
   if (['off', '0', 'false', 'desactivar', 'disable'].includes(option)) {
-
     if (!groupDb.antiCall) {
-      return m.reply(`⚠️ El sistema *Antillamadas* ya estaba desactivado.`)
+      return m.reply(
+`༺ ✰ 𝙰𝙽𝚃𝙸𝙻𝙻𝙰𝙼𝙰𝙳𝙰𝚂 ✰ ༻
+
+> ✰ El sistema ya está desactivado.`
+      )
     }
 
     groupDb.antiCall = false
     await groupDb.save()
 
-    return m.reply(`╭━━━〔 ❌ ANTILLAMADAS 〕━━━⬣
+    return m.reply(
+`༺ ✰ 𝙰𝙽𝚃𝙸𝙻𝙻𝙰𝙼𝙰𝙳𝙰𝚂 ✰ ༻
 
-El sistema ha sido desactivado.
-
-El bot ya no expulsará usuarios por realizar llamadas.
-
-╰━━━━━━━━━━━━━━━━━━⬣`)
+> ✰ Estado: 🔴 DESACTIVADO
+> ✰ El bot ya no expulsará usuarios por llamadas.`
+    )
   }
 
-  return m.reply(`❌ Opción inválida.
+  return m.reply(
+`༺ ✰ 𝙾𝙿𝙲𝙸Ó𝙽 𝙸𝙽𝚅Á𝙻𝙸𝙳𝙰 ✰ ༻
 
-Usa:
-
-.antillamadas on
-.antillamadas off`)
+> ✰ Usá: .antillamadas on
+> ✰ Usá: .antillamadas off`
+  )
 }
 
 handler.help = ['antillamadas <on/off>']
